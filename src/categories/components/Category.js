@@ -10,13 +10,13 @@ const Category = props => {
     useEffect(() => {
         // Set source to movie, tv, game, or board game depending on props.id
         if(props.id === 'movie') {
-            setSource('/Home/movie-outline.png');
+            setSource(`${process.env.PUBLIC_URL}/Home/movie-outline.png`);
         } else if(props.id === 'tv') {
-            setSource('/Home/tv-outline.png');
+            setSource(`${process.env.PUBLIC_URL}/Home/tv-outline.png`);
         } else if(props.id === 'game') {
-            setSource('/Home/video-game-outline.png');
+            setSource(`${process.env.PUBLIC_URL}/Home/video-game-outline.png`);
         } else if(props.id === 'board') {
-            setSource('/Home/board-game-outline.png');
+            setSource(`${process.env.PUBLIC_URL}/Home/board-game-outline.png`);
         }
     }, []);
 

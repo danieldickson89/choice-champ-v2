@@ -108,7 +108,7 @@ const Auth = props => {
         <div className='center'>
             <form onSubmit={handleSubmit(onSubmit)}>
                 
-                <img src='/Logo/choice-champ-title.png' alt="Choice Champ Logo" id="logo" />
+                <img src={`${process.env.PUBLIC_URL}/img/Logo/choice-champ-title.png`} alt="Choice Champ Logo" id="logo" />
                 
                 <div className='seperator' />
                 

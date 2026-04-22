@@ -15,7 +15,7 @@ const CollectionsHome = props => {
     return (
         <React.Fragment>
             <div className="content" style={{paddingBottom: '0px'}}>
-                <img src="/Logo/choice-champ-title.png" id="choice-champ-header" />
+                <img src={`${process.env.PUBLIC_URL}/img/Logo/choice-champ-title.png`} id="choice-champ-header" />
                 <div id="categories">
                     <Category id="movie" title="MOVIES" />
                     <Category id="tv" title="TV" />
