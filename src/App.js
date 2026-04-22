@@ -1,15 +1,17 @@
 import React, { lazy, Suspense, useCallback, useEffect, useState, useRef } from 'react';
 import {
   BrowserRouter as Router,
-  Route, 
+  Route,
   Navigate,
-  Routes
+  Routes,
+  useParams
 } from 'react-router-dom';
 
 import io from 'socket.io-client';
 
 import Loading from './shared/components/Loading';
 import Footer from './shared/components/Navigation/Footer';
+import BottomNav from './shared/components/Navigation/BottomNav';
 
 import { AuthContext } from './shared/context/auth-context';
 
@@ -29,6 +31,11 @@ const PartyWait = lazy(() => import('./Party/pages/PartyWait'));
 const Party = lazy(() => import('./Party/pages/Party'));
 const JoinParty = lazy(() => import('./Party/pages/JoinParty'));
 const Settings = lazy(() => import('./settings/pages/Settings'));
+
+const CollectionsByType = () => {
+  const { type } = useParams();
+  return <Collections key={type} />;
+};
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -160,7 +167,7 @@ function App() {
         <Routes>
           <Route path="/welcome/info" element={<Welcome />} exact />
           <Route path="/collections" element={<Categories />} exact />
-          <Route path="/collections/:type" element={<Collections />} exact />
+          <Route path="/collections/:type" element={<CollectionsByType />} exact />
           <Route path="/collections/:type/:id" element={<Collection socket={socket} />} exact />
           <Route path="/collections/:type/:id/add" element={<Search socket={socket} />} exact />
           <Route path="/collections/:type/:collectionId/details/:itemId" element={ <Details /> } exact />
@@ -191,7 +198,7 @@ function App() {
   let footer;
 
   if(showFooter && isLoggedIn) {
-    footer = <Footer />
+    footer = <BottomNav />
   }
 
 
