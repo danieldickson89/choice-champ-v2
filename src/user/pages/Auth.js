@@ -2,7 +2,6 @@ import React, {useContext, useState} from 'react';
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import logo from '../../shared/assets/img/logo.png'
 import Button from '../../shared/components/FormElements/Button';
 
 import { AuthContext } from '../../shared/context/auth-context';
@@ -47,7 +46,7 @@ const Auth = props => {
                     auth.userIdSetter(body.userId);
                     // Set the userId to local storage so it can be used in other backend calls
                     localStorage.setItem('userId', body.userId);
-                    navigate('/collections');
+                    navigate('/collections/movie');
                 } else {
                     setErrorMessage(body.errMsg);
                 }
@@ -128,9 +127,9 @@ const Auth = props => {
                         </div>
                     )
                 }
-                <input id="username" placeholder="Username" {...register("usernameRequired", { required: true, minLength: 5, maxLength: 20 }) }/>
+                <input className='text-input' id="username" placeholder="Username" {...register("usernameRequired", { required: true, minLength: 5, maxLength: 20 }) }/>
                 {errors.usernameRequired && <p className='error'>A username of at least 5 characters is required</p>}
-                <input type='password' id="password" placeholder="Password" {...register("passwordRequired", { required: true, minLength: 5 }) }/>
+                <input className='text-input' type='password' id="password" placeholder="Password" {...register("passwordRequired", { required: true, minLength: 5 }) }/>
                 {errors.passwordRequired && <p className='error'>A password of at lease 5 characters is required</p>}
                 {
                     isLoginMode && (

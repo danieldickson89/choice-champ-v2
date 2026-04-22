@@ -1,17 +1,18 @@
 import React, { useState, useTransition, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faVideo, faGamepad, faDice, faUser } from '@fortawesome/free-solid-svg-icons';
+import { Clapperboard, Gamepad2, Dices, User } from 'lucide-react';
 
 import RetroTv from '../Icons/RetroTv';
 import './BottomNav.css';
 
+const ICON_SIZE = 28;
+
 const tabs = [
-    { to: '/collections/movie', icon: faVideo,    color: '#FCB016', key: 'movie' },
-    { to: '/collections/tv',    icon: 'retro-tv', color: '#F04C53', key: 'tv' },
-    { to: '/collections/game',  icon: faGamepad,  color: '#2482C5', key: 'game' },
-    { to: '/collections/board', icon: faDice,     color: '#45B859', key: 'board' },
-    { to: '/settings',          icon: faUser,     color: '#FCB016', key: 'profile' },
+    { to: '/collections/movie', Icon: Clapperboard, color: '#FCB016', key: 'movie' },
+    { to: '/collections/tv',    Icon: RetroTv,      color: '#F04C53', key: 'tv' },
+    { to: '/collections/game',  Icon: Gamepad2,     color: '#2482C5', key: 'game' },
+    { to: '/collections/board', Icon: Dices,        color: '#45B859', key: 'board' },
+    { to: '/settings',          Icon: User,         color: '#FCB016', key: 'profile' },
 ];
 
 const BottomNav = () => {
@@ -42,6 +43,7 @@ const BottomNav = () => {
                 const isActive = committedPath === tab.to || committedPath.startsWith(tab.to + '/');
                 const isLoading = clickedPath === tab.to;
                 const isHighlighted = isActive || isLoading;
+                const iconStyle = isLoading && !isActive ? { opacity: 0.6 } : undefined;
                 return (
                     <a
                         key={tab.key}
@@ -57,14 +59,7 @@ const BottomNav = () => {
                                 opacity: isActive ? 1 : (isLoading ? 0.45 : 0),
                             }}
                         />
-                        {tab.icon === 'retro-tv'
-                            ? <RetroTv style={isLoading && !isActive ? { opacity: 0.6 } : undefined} />
-                            : <FontAwesomeIcon
-                                icon={tab.icon}
-                                size='xl'
-                                fixedWidth
-                                style={isLoading && !isActive ? { opacity: 0.6 } : undefined}
-                              />}
+                        <tab.Icon size={ICON_SIZE} style={iconStyle} />
                     </a>
                 );
             })}

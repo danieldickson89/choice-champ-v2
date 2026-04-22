@@ -3,6 +3,24 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+a:focus {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+button:active,
+a:active,
+.clickable:active {
+  opacity: 0.7;
 }
 
 html {
@@ -34,7 +52,12 @@ p {
   font-size: 12pt;
 }
 
-input {
+input,
+button {
+  font-family: 'Oxanium', cursive;
+}
+
+.text-input {
   width: 100%;
   background-color: #312E2E;
   color: white;
@@ -43,14 +66,6 @@ input {
   padding: 15px;
   margin-top: 20px;
   font-size: 14pt;
-}
-
-button {
-  font-family: 'Oxanium', cursive;
-}
-
-input {
-  font-family: 'Oxanium', cursive;
 }
 
 #download-banner {
@@ -133,7 +148,7 @@ input {
   grid-template-columns: repeat(17, 1fr);
   justify-items: center;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 0;
   padding-bottom: 200px;
 }
 
@@ -240,6 +255,10 @@ input {
   grid-column: 2/17;
   color: white;
   background-color: #312E2E;
+  padding: 12px 16px;
+  font-size: 12pt;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .add img {

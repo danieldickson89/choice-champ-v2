@@ -1,0 +1,137 @@
+.item-details-paper {
+    background-color: rgb(58, 58, 58) !important;
+    border-radius: 20px !important;
+    border: 2px solid #0c0c0cad !important;
+}
+
+.item-details-modal {
+    position: relative;
+    padding: 24px 20px 24px 20px;
+    color: #e8e8e8;
+    font-family: inherit;
+}
+
+.item-details-close {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: #000;
+    color: #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 150ms ease-out, color 150ms ease-out;
+    z-index: 1;
+}
+
+.item-details-close:hover {
+    background-color: #1a1a1a;
+    color: #fff;
+}
+
+.item-details-loading {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.item-details-poster {
+    display: block;
+    width: 55%;
+    max-width: 280px;
+    margin: 8px auto 16px auto;
+    border-radius: 14px;
+}
+
+.item-details-title {
+    text-align: center;
+    font-size: 16pt;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+}
+
+.item-details-row {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 11pt;
+    line-height: 1.5;
+}
+
+.item-details-label {
+    font-weight: 700;
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-right: 8px;
+}
+
+.item-details-overview {
+    margin-top: 6px;
+    color: #ccc;
+}
+
+.item-details-overview p {
+    margin: 0 0 8px 0;
+}
+
+.item-details-providers {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.item-details-provider {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.item-details-none {
+    margin-top: 8px;
+    color: #888;
+    font-style: italic;
+    font-size: 10pt;
+}
+
+.item-details-platforms {
+    margin-top: 6px;
+    color: #ccc;
+}
+
+.item-details-collections {
+    margin-top: 24px;
+}
+
+.item-details-collection-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+}
+
+.item-details-collection-row:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.item-details-collection-name {
+    font-weight: 600;
+    color: #e8e8e8;
+}
+
+@media (min-width: 700px) {
+    .item-details-poster {
+        width: 45%;
+    }
+    .item-details-providers {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}

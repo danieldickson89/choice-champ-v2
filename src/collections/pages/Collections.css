@@ -1,59 +1,18 @@
 .collections-content {
     box-sizing: border-box;
-    grid-column: 1/18;
+    grid-column: 2/17;
     width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    justify-items: center;
-    align-items: center;
-    column-gap: 15px;
-    row-gap: 15px;
-    margin-top: 30px;
-    padding-left: 10px;
-    padding-right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
 }
 
 .no-collections-txt {
     text-align: center;
-    grid-column: 1/3;
     font-weight: bold;
-}
-
-.collections-item {
-    width: 100%;
-    height: 20vh;
-    display: grid;
-    grid-template-columns: repeat(17, 1fr);
-    align-items: center;
-    justify-items: center;
-    border-radius: 5px;
-    background-color: rgb(27, 27, 27);
-    position: relative;
-    text-decoration: none;
-}
-
-.collection-text {
-    font-size: 12pt;
-    font-weight: bold;
-    text-align: center;
-    width: 100%;
-    grid-column: 5/14;
-}
-
-.collection-text-movie {
-    color: #FCB016;
-}
-
-.collection-text-tv {
-    color: #F04C53;
-}
-
-.collection-text-game {
-    color: #2482C5;
-}
-
-.collection-text-board {
-    color: #45B859;
+    color: #888;
+    padding: 40px 0;
 }
 
 .dialog-content {
@@ -87,30 +46,8 @@
     font-weight: bold;
 }
 
-.remove {
-    position: absolute;
-    width: 20%;
-    height: auto;
-    top: 5px;
-    right: 5px;
-}
-
-.left {
-    grid-column: 1/4;
-    width: 100%;
-}
-
-.right {
-    width: 100%;
-    grid-column: 15/18;
-}
-
 @media screen and (min-width: 768px) {
     .collections-content {
-        grid-template-columns: repeat(4, 1fr);
-    }
-
-    .no-collections-txt {
-        grid-column: 1/5;
+        grid-column: 4/15;
     }
 }

@@ -15,7 +15,7 @@ const Welcome = props => {
 
     useEffect(() => {
         auth.showFooterHandler(false);
-    }, []);
+    }, [auth]);
 
     const continueOn = () => {
         setIsWelcome(false);
@@ -26,7 +26,7 @@ const Welcome = props => {
     }
 
     const getStarted = () => {
-        navigate('/collections');
+        navigate('/collections/movie');
     }
 
     const handlers = useSwipeable({

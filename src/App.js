@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState, useRef } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import {
   BrowserRouter as Router,
   Route,
@@ -10,7 +10,6 @@ import {
 import io from 'socket.io-client';
 
 import Loading from './shared/components/Loading';
-import Footer from './shared/components/Navigation/Footer';
 import BottomNav from './shared/components/Navigation/BottomNav';
 
 import { AuthContext } from './shared/context/auth-context';
@@ -18,23 +17,21 @@ import { AuthContext } from './shared/context/auth-context';
 // Lazy loading is a way to load a component only when it is needed. 
 // This is useful for components that are not needed right away, but are needed later on. 
 // This can help with performance by only loading what is needed at the time.
-const Categories = lazy(() => import('./categories/pages/Categories'));
 const Collection = lazy(() => import('./collection/pages/Collection'));
 const Search = lazy(() => import('./collection/pages/Search'));
-const Details = lazy(() => import('./collection/pages/Details'));
-const Collections = lazy(() => import('./collections/pages/Collections'));
 const Auth = lazy(() => import('./user/pages/Auth'));
 const Welcome = lazy(() => import('./welcome/pages/Welcome'));
-const PartyHome = lazy(() => import('./Party/pages/PartyHome'));
-const CreateParty = lazy(() => import('./Party/pages/CreateParty'));
-const PartyWait = lazy(() => import('./Party/pages/PartyWait'));
-const Party = lazy(() => import('./Party/pages/Party'));
-const JoinParty = lazy(() => import('./Party/pages/JoinParty'));
+const PartyHome = lazy(() => import('./party/pages/PartyHome'));
+const CreateParty = lazy(() => import('./party/pages/CreateParty'));
+const PartyWait = lazy(() => import('./party/pages/PartyWait'));
+const Party = lazy(() => import('./party/pages/Party'));
+const JoinParty = lazy(() => import('./party/pages/JoinParty'));
 const Settings = lazy(() => import('./settings/pages/Settings'));
+const MediaTab = lazy(() => import('./mediaTab/MediaTab'));
 
-const CollectionsByType = () => {
+const MediaTabByType = () => {
   const { type } = useParams();
-  return <Collections key={type} />;
+  return <MediaTab key={type} />;
 };
 
 function App() {
@@ -140,6 +137,11 @@ function App() {
     setShowFooter(show);
   }, []);
 
+  const authValue = useMemo(
+    () => ({ isLoggedIn, userId, userIdSetter, login, logout, showFooterHandler }),
+    [isLoggedIn, userId, userIdSetter, login, logout, showFooterHandler]
+  );
+
   const installApp = () => {
     setShowInstallPrompt(false);
 
@@ -166,18 +168,16 @@ function App() {
       <Suspense fallback={<Loading color='#FCB016' className='page-loading' size={100} />}>
         <Routes>
           <Route path="/welcome/info" element={<Welcome />} exact />
-          <Route path="/collections" element={<Categories />} exact />
-          <Route path="/collections/:type" element={<CollectionsByType />} exact />
+          <Route path="/collections/:type" element={<MediaTabByType />} exact />
           <Route path="/collections/:type/:id" element={<Collection socket={socket} />} exact />
           <Route path="/collections/:type/:id/add" element={<Search socket={socket} />} exact />
-          <Route path="/collections/:type/:collectionId/details/:itemId" element={ <Details /> } exact />
           <Route path="/party" element={<PartyHome />} exact />
           <Route path="/party/createParty" element={<CreateParty />} exact />
           <Route path="/party/joinParty" element={<JoinParty />} exact />
           <Route path="/party/wait/:code" element={<PartyWait socket={socket} />} exact />
           <Route path="/party/:code" element={<Party socket={socket} />} exact />
           <Route path="/settings" element={<Settings />} exact />
-          <Route path="*" element={<Navigate to="/collections" />} />
+          <Route path="*" element={<Navigate to="/collections/movie" />} />
         </Routes>
       </Suspense>
     )
@@ -203,7 +203,7 @@ function App() {
 
 
   return (
-    <AuthContext.Provider value={{isLoggedIn: isLoggedIn, userId: userId, userIdSetter: userIdSetter, login: login, logout: logout, showFooterHandler: showFooterHandler}}>
+    <AuthContext.Provider value={authValue}>
       <Router>
         <main>
           {loading && <Loading color='#FCB016' className='page-loading' size={100} />}

@@ -449,7 +449,7 @@ const Search = ({ socket }) => {
                 isLoading ? <Loading color={collectionTypeColor} type='sync' className='list-loading' size={15} speed={.5} /> :
                 (<div className='collection-content'>
                     {items.map(item => (
-                        <div className={`item-section ${ (item.inCollection && collectionType !== 'board') ? collectionType + '-outline' : null }`} key={item.id} onClick={() => {
+                        <div className={`search-item-section ${ (item.inCollection && collectionType !== 'board') ? collectionType + '-outline' : null }`} key={item.id} onClick={() => {
                             if(!item.loadingUpdate && collectionType !== 'board') {
                                 if(!item.inCollection) {
                                         addItem(item.id, item.title, item.poster, false);
@@ -464,7 +464,7 @@ const Search = ({ socket }) => {
 
                             { 
                                 collectionType !== 'board' ?
-                                <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='item-img clickable' src={item.poster} />
+                                <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='search-item-img clickable' src={item.poster} />
                                 :
                                 <div className='board-img-search' />
                             }

@@ -1,0 +1,80 @@
+.sort-filter-panel-paper {
+    background-color: rgb(40, 40, 40) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    color: #e8e8e8 !important;
+}
+
+.sort-filter-panel {
+    display: flex;
+    padding: 10px;
+    gap: 8px;
+    min-width: 300px;
+}
+
+.sort-filter-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sort-filter-header {
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #888;
+    padding: 4px 10px 10px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 6px;
+}
+
+.sort-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border: none;
+    background: transparent;
+    color: #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Oxanium', cursive;
+    font-size: 10.5pt;
+    font-weight: 500;
+    text-align: left;
+    transition: background-color 150ms ease-out;
+}
+
+.sort-filter-option:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.sort-filter-option-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sort-filter-option-active {
+    background-color: rgba(255, 255, 255, 0.04);
+    font-weight: 600;
+}
+
+.sort-filter-option-active:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.sort-filter-option-check {
+    flex-shrink: 0;
+}
+
+@media (max-width: 420px) {
+    .sort-filter-panel {
+        flex-direction: column;
+        min-width: 220px;
+        gap: 4px;
+    }
+}

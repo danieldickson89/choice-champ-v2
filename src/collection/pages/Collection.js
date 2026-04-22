@@ -3,16 +3,26 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowDownAZ, faClock, faEye, faGamepad, faChessPawn, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import { ArrowLeft, Check, MoreVertical, Share2, ListOrdered, Clock, ArrowDownAZ, ArrowDownZA, Eye, Gamepad2, Dices, ChevronDown, Layers, EyeOff } from 'lucide-react';
+import { Menu, MenuItem, Dialog } from '@mui/material';
 
-import edit from '../../shared/assets/img/edit.png';
-import editing from '../../shared/assets/img/editing.png';
 import searchIcon from '../../shared/assets/img/search.svg';
-import back from '../../shared/assets/img/back.svg';
-import removeImg from '../../shared/assets/img/remove.png';
 
 import './Collection.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
+import ItemDetailsModal from '../components/ItemDetailsModal';
+import ManageItemRow from '../components/ManageItemRow';
+import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterPanel';
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 const Collection = ({ socket }) => {
     const auth = useContext(AuthContext);
@@ -25,10 +35,9 @@ const Collection = ({ socket }) => {
     let collectionType = useParams().type;
     let collectionId = useParams().id;
 
-    // Grab filter query parameters from the url
+    // Grab query parameters from the url
     const search = window.location.search;
     const params = new URLSearchParams(search);
-    const filter = params.get('filter');
     const hash = params.get('hash');
 
     const [items, setItems] = useState([]);
@@ -37,28 +46,54 @@ const Collection = ({ socket }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [currentCollectionName, setCurrentCollectionName] = useState('');
     const [collectionName, setCollectionName] = useState('');
-    const [showAlphabetical, setShowAlphabetical] = useState(() => {
-        if(filter === 'alphabetical') {
-            return true;
-        } else {
-            return false;
-        }
-    });
-    const [showWatched, setShowWatched] = useState(() => {
-        if(filter === 'watched') {
-            return true;
-        } else {
-            return false;
-        }
-    });
-    const [navingBack, setNavingBack] = useState(false);
-    const [navingAdd, setNavingAdd] = useState(false);
+    const [sortValue, setSortValue] = useState('recent');
+    const [filterValue, setFilterValue] = useState('unwatched');
     const [collectionTypeColor, setCollectionTypeColor] = useState('#FCB016');
+
+    const [kebabAnchor, setKebabAnchor] = useState(null);
+    const [sortAnchor, setSortAnchor] = useState(null);
+    const [shareOpen, setShareOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const openKebab = (e) => setKebabAnchor(e.currentTarget);
+    const closeKebab = () => setKebabAnchor(null);
+    const openSort = (e) => setSortAnchor(e.currentTarget);
+    const closeSort = () => setSortAnchor(null);
+
+    const handleShare = () => { setShareOpen(true); closeKebab(); };
+    const handleManage = () => { setIsEdit(true); closeKebab(); };
+    const handleCopyCode = async () => {
+        try {
+            await navigator.clipboard.writeText(shareCode);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+        } catch {}
+    };
+
+    const watchedLabel = (collectionType === 'game' || collectionType === 'board') ? 'Played' : 'Watched';
+    const unwatchedLabel = (collectionType === 'game' || collectionType === 'board') ? 'Unplayed' : 'Unwatched';
+    const WatchedIcon = collectionType === 'game' ? Gamepad2 : collectionType === 'board' ? Dices : Eye;
+
+    const SORT_LABELS = { recent: 'Recent', oldest: 'Oldest', abc: 'A–Z', zyx: 'Z–A' };
+    const currentSortLabel = SORT_LABELS[sortValue];
+    const filterIsDefault = filterValue === 'unwatched';
+
+    const sortOptions = [
+        { value: 'recent', label: 'Recent', icon: Clock },
+        { value: 'oldest', label: 'Oldest', icon: Clock },
+        { value: 'abc',    label: 'A–Z',    icon: ArrowDownAZ },
+        { value: 'zyx',    label: 'Z–A',    icon: ArrowDownZA },
+    ];
+    const filterOptions = [
+        { value: 'all',       label: 'All',          icon: Layers },
+        { value: 'unwatched', label: unwatchedLabel, icon: EyeOff },
+        { value: 'watched',   label: watchedLabel,   icon: WatchedIcon },
+    ];
 
     const itemsRef = useRef(items);
 
     useEffect(() => {
-        auth.showFooterHandler(true);
+        auth.showFooterHandler(false);
 
         if(collectionType === 'movie') {
             setCollectionTypeColor('#FCB016');
@@ -85,13 +120,6 @@ const Collection = ({ socket }) => {
             setCurrentCollectionName(data.name);
             setCollectionName(data.name);
 
-            // Check if there is a filter in the url if there is set the filter
-            if(filter === 'alphabetical') {
-                setShowAlphabetical(true);
-            } else if(filter === 'watched') {
-                setShowWatched(true);
-            }
-
             // Give a little time for the items to load
             setTimeout(() => {
                 setIsLoading(false);
@@ -110,6 +138,7 @@ const Collection = ({ socket }) => {
             // Join room with the collection id
             socket.emit('join-room', collectionId);
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [auth, collectionId, socket]);
 
     useEffect(() => {
@@ -198,62 +227,30 @@ const Collection = ({ socket }) => {
 
     const navBack = () => {
         socket.emit('leave-room', collectionId);
-        setNavingBack(true);
-        setTimeout(() => {
-            setNavingBack(false);
-            navigate(`/collections/${collectionType}`);
-        }, 1000);
+        navigate(`/collections/${collectionType}`);
     }
 
-    const navAdd = () => {
-        setNavingAdd(true);
-        setTimeout(() => {
-            setNavingAdd(false);
-            navigate(`/collections/${collectionType}/${collectionId}/add`);
-        }, 1000);
-    }
+    const [activeDetailItemId, setActiveDetailItemId] = useState(null);
+    const openDetails = (id) => setActiveDetailItemId(id);
+    const closeDetails = () => setActiveDetailItemId(null);
 
-    const navDetails = (id) => {
-        // Check if filter for alphabetical or watched is on
-        if(showAlphabetical || showWatched) {
-            navigate(`/collections/${collectionType}/${collectionId}/details/${id}?filter=${showAlphabetical ? 'alphabetical' : 'watched'}`);
-        } else {
-            navigate(`/collections/${collectionType}/${collectionId}/details/${id}`);
-        }
-    }
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    );
 
-    const updateWatched = (id, watched) => {
-        // Make a fetch post request to update the watched status of an item
-        fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/collections/items/${collectionId}/${id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                watched: !watched
-            })
-        })
-        .then(res => {
-            // Update the item with the given id to be watched
-            setItems(items.map(item => {
-                if(item._id === id && item.watched === false) {
-                    item.watched = true;
-                    item.timestamp = Math.floor(Date.now() / 1000);
-                } else if(item._id === id && item.watched === true) {
-                    item.watched = false;
-                    // Remove the timestamp if the item is unwatched
-                    item.timestamp = undefined;
-                }
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        const oldIndex = items.findIndex(i => i._id === active.id);
+        const newIndex = items.findIndex(i => i._id === over.id);
+        if (oldIndex < 0 || newIndex < 0) return;
+        const next = arrayMove(items, oldIndex, newIndex);
+        setItems(next);
+        itemsRef.current = next;
+        // NOTE: reorder is session-local. Needs a backend "reorder" endpoint for persistence.
+    };
 
-                return item;
-            }));
-
-            itemsRef.current = items;
-
-            // Emit to the server that an item has been watched
-            socket.emit('watched-remote-item', id, collectionId);
-        });
-    }
 
     /************************************************************
      * Logic for creating a query from the search bar. I received
@@ -266,167 +263,196 @@ const Collection = ({ socket }) => {
     // A: useMemo is used to optimize the filtering of items. It will only filter the items
     // when the query changes. This is important because if we didn't use useMemo the items
     // would be filtered on every render. This would be a waste of resources.
-    const filteredItems = useMemo(() => {
-        return items.filter(item => {
-            return item.title.toLowerCase().includes(query.toLowerCase());
-        })
+    const manageItems = useMemo(() => {
+        if (!query) return items;
+        return items.filter(i => i.title.toLowerCase().includes(query.toLowerCase()));
     }, [items, query]);
+
+    const sortedItems = useMemo(() => {
+        let result = items.filter(i => i.title.toLowerCase().includes(query.toLowerCase()));
+
+        if (filterValue === 'watched')        result = result.filter(i => i.watched);
+        else if (filterValue === 'unwatched') result = result.filter(i => !i.watched);
+
+        if (sortValue === 'abc') {
+            result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+        } else if (sortValue === 'zyx') {
+            result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+        } else if (sortValue === 'oldest') {
+            result = [...result].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        } else { /* recent */
+            result = [...result].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        }
+
+        return result;
+    }, [items, query, sortValue, filterValue]);
+
+    const emptyMessage = (() => {
+        if (query !== '') return 'No items match search';
+        if (filterValue === 'watched') return (collectionType === 'game' || collectionType === 'board') ? 'No played items' : 'No watched items';
+        if (filterValue === 'unwatched') return 'No items in this collection';
+        return 'No items in this collection';
+    })();
 
     return (
         <React.Fragment>
-            <div className='content'>
-                { 
-                    /* 
-                        Q: What is the difference between a link and navlink?
-                        A: A link is used to navigate to a different page. 
-                           A navlink is used to navigate to a different page
-                           but it also allows you to style the link based on
-                           if it is active or not.
-                    */ 
-                }
-                {
-                    navingBack ? 
-                    (<img src={back} alt="Back symbol" className="top-left clickable" style={{animation: 'button-press .75s'}} />) :
-                    (<img src={back} alt="Back symbol" className="top-left clickable" onClick={navBack} />)
-                }
-                { isEdit 
-                    ? (<input className='title' style={{gridColumn:"5/14", marginBottom: "10px"}} value={collectionName} onChange={e => setCollectionName(e.target.value)} />)
-                    : (<h2 className={`title color-${collectionType}`}>{collectionName}</h2>)
-                }
-
-                <img src={ isEdit ? editing :  edit } className="edit clickable" alt='Edit icon' onClick={isEditHandler} style={isEdit ? {animation: 'button-press .75s'} : null} />
-                <div className='share-code'>share code: {shareCode}</div>
-                {
-                    navingAdd ?
-                    <button 
-                        className={`add-btn backgroundColor-${collectionType} backgroundColorPressed-${collectionType}`}
-                        style={{animation: 'button-press .75s'}}>Add { collectionType === 'movie' ? 'Movie' : collectionType === 'game' || collectionType === 'board' ? 'Game' : 'Show'}</button>
-                    :
-                    <button 
-                        className={`add-btn backgroundColor-${collectionType} clickable`}
-                        onClick={navAdd}>Add { collectionType === 'movie' ? 'Movie' : collectionType === 'game' || collectionType === 'board' ? 'Game' : 'Show'}</button>
-                }
-                <div className='search-bar-container'>
-                    <img src={searchIcon} alt='Search icon' className='search-icon' />
-                    <input className='search-bar' placeholder='Search Collection' value={query} onChange={e => setQuery(e.target.value)}/>
-                    {
-                        query !== '' &&
-                        <FontAwesomeIcon icon={faXmark} size="lg" className='clear-search clickable' onClick={() => setQuery('')} />
-                    }
+            <div className='collection-page'>
+                <div className='collection-header'>
+                    <button className='icon-btn' onClick={navBack} aria-label='Back'>
+                        <ArrowLeft size={22} strokeWidth={2.5} />
+                    </button>
+                    {isEdit ? (
+                        <input
+                            className='collection-title-input'
+                            value={collectionName}
+                            onChange={e => setCollectionName(e.target.value)}
+                        />
+                    ) : (
+                        <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>
+                    )}
+                    {isEdit ? (
+                        <button
+                            className='icon-btn collection-edit-btn-active'
+                            onClick={isEditHandler}
+                            aria-label='Done'
+                        >
+                            <Check size={22} strokeWidth={2.5} />
+                        </button>
+                    ) : (
+                        <button className='icon-btn' onClick={openKebab} aria-label='More'>
+                            <MoreVertical size={22} strokeWidth={2.5} />
+                        </button>
+                    )}
                 </div>
-                <FontAwesomeIcon icon={faClock} size="xl" onClick={() => {
-                    setShowAlphabetical(false);
-                    setShowWatched(false);
-                }} className={!showAlphabetical && !showWatched ? `active-categorize active-${collectionType} category-icon clickable` : 'category-icon clickable'} id='category-clock' />
-                <FontAwesomeIcon icon={faArrowDownAZ} size="xl" onClick={() => {
-                    setShowAlphabetical(true);
-                    setShowWatched(false);
-                }} className={showAlphabetical ? `active-categorize active-${collectionType} category-icon clickable` : 'category-icon clickable'} id='category-alph' />
-                <FontAwesomeIcon icon={collectionType === 'game' ? faGamepad : collectionType === 'board' ? faChessPawn :faEye} size="xl" onClick={() => {
-                    setShowWatched(true);
-                    setShowAlphabetical(false);
-                }} className={showWatched ? `active-categorize active-${collectionType} category-icon clickable` : 'category-icon clickable'} id='category-watch'/>
-                <span id='chrono-label' className={!showAlphabetical && !showWatched ? `category-label category-label-active-${collectionType}` : 'category-label'}>recent</span>
-                <span id='alph-label' className={(showAlphabetical) ? `category-label category-label-active-${collectionType}` : 'category-label'}>a-z</span>
-                <span id='watched-label' className={(showWatched) ? `category-label category-label-active-${collectionType}` : 'category-label'}>
-                    { collectionType === 'game' || collectionType === 'board' ? 'played' : 'watched'}
-                </span> 
-                {
-                    isLoading ? <Loading color={collectionTypeColor} type='beat' className='list-loading' size={20} /> : 
-                        (
-                            <div className='collection-content'>
-                                {
-                                    (filteredItems.length === 0 && query === '' && !showWatched) && <p className='no-items'>No items in this collection</p>
-                                }
-                                {
-                                    (filteredItems.length === 0 && query !== '') && <p className='no-items'>No items match search</p>
-                                }
-                                {
-                                    // Logic to check if we should show the items in alphabetical order or not
-                                    showAlphabetical && !showWatched ? (
-                                        [...filteredItems].sort((a, b) => a.title.localeCompare(b.title)).map(item => (
-                                           // Only show if the item is not watched
-                                           !item.watched ?
-                                                (<div className='item-section' id={item.itemId} key={item.itemId} onClick={ !isEdit ? () => { navDetails(item.itemId) } : null } >
-                                                    { 
-                                                        !isEdit ? 
-                                                            <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='item-img clickable' src={item.poster} />
-                                                            :
-                                                            <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='item-img' src={item.poster} />
-                                                    }
-                                                    { isEdit ? (<img src={removeImg} alt={`${item.title} poster`} className='item-action clickable' onClick={() => { removeItem(item._id) }} />) : null }
-                                                    { isEdit ? (
-                                                        <FontAwesomeIcon icon={collectionType === 'game' ? faGamepad : collectionType === 'board' ? faChessPawn :faEye} size="xl" 
-                                                        className='item-action-watched clickable' onClick={() => {updateWatched(item._id)}} /> 
-                                                    ) : null }
-                                                </div>
-                                                )
-                                            :   null
-                                        )) 
-                                    ) : (
-                                        /* 
-                                            Received help from this article: https://bobbyhadz.com/blog/react-map-array-reverse 
-                                            We use the spread operator here because we want to make a copy of filteredItems. We don't want
-                                            to modify it
-                                        */ 
-                                        [...filteredItems].reverse().map(item => (
-                                            // Only show if the item is not watched
-                                            !item.watched && !showWatched ?
-                                                (<div className='item-section' id={item.itemId} key={item.itemId} onClick={ !isEdit ? () => { navDetails(item.itemId) } : null } >
-                                                    { 
-                                                        !isEdit ? 
-                                                            <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='item-img clickable' src={item.poster} />
-                                                            :
-                                                            <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='item-img' src={item.poster} />
-                                                    }
-                                                    { isEdit ? (<img src={removeImg} alt={`${item.title} poster`} className='item-action clickable' onClick={() => { removeItem(item._id) }} />) : null }
-                                                    { isEdit ? (
-                                                        <FontAwesomeIcon icon={collectionType === 'game' ? faGamepad : collectionType === 'board' ? faChessPawn :faEye} size="xl" 
-                                                        className='item-action-watched clickable' onClick={() => {updateWatched(item._id)}} /> 
-                                                    ) : null }
-                                                </div>
-                                                )
-                                            :   null
-                                        ))
-                                    )
-                                }
-                                {
-                                    // Logic to check if we should show the items in alphabetical order or not
-                                    showWatched && (
-                                        [...filteredItems].filter(item => item.watched).length === 0 && query === '' ? (
-                                            
-                                                collectionType === 'game' || collectionType === 'board' ? 
-                                                <p className='no-items'>No played items</p>
-                                                :
-                                                <p className='no-items'>No watched items</p>
-                                        )
-                                        : 
-                                        (
-                                            [...filteredItems]
-                                                .filter(item => item.watched)
-                                                .sort((a, b) => a.timestamp - b.timestamp)
-                                                .reverse().map(item => (
-                                                    <div className='item-section' id={item.itemId} key={item.itemId} onClick={ !isEdit ? () => { navDetails(item.itemId) } : null } >
-                                                        { 
-                                                            !isEdit ? 
-                                                            <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='item-img clickable' src={item.poster} />
-                                                            :
-                                                            <PlaceholderImg voted={null} finished={null} alt={`${item.title} poster`} collectionColor={collectionTypeColor} classNames='item-img' src={item.poster} />
-                                                        }
-                                                        { isEdit ? (<img src={removeImg} alt={`${item.title} poster`} className='item-action clickable' onClick={() => { removeItem(item._id) }} />) : null }
-                                                        { isEdit ? (
-                                                            <FontAwesomeIcon icon={collectionType === 'game' ? faGamepad : collectionType === 'board' ? faChessPawn :faEye} size="xl" 
-                                                            className={`item-action-watched color-${collectionType} clickable`} onClick={() => {updateWatched(item._id, item.watched)}} /> 
-                                                        ) : null }
-                                                    </div>
-                                            ))
-                                        )
-                                    )
-                                }
+
+                <div className={`collection-controls ${isEdit ? 'collection-controls-edit' : ''}`}>
+                    <div className='coll-search'>
+                        <img src={searchIcon} alt='' className='coll-search-icon' />
+                        <input
+                            className='coll-search-input'
+                            placeholder='Search'
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                        />
+                        {query !== '' && (
+                            <FontAwesomeIcon
+                                icon={faXmark}
+                                size='lg'
+                                className='coll-search-clear clickable'
+                                onClick={() => setQuery('')}
+                            />
+                        )}
+                    </div>
+                    {!isEdit && (
+                        <button className='sort-pill' onClick={openSort} aria-label='Sort and filter'>
+                            {currentSortLabel}
+                            {!filterIsDefault && (
+                                <span className='sort-pill-filter-dot' style={{ backgroundColor: collectionTypeColor }} />
+                            )}
+                            <ChevronDown size={16} strokeWidth={2.5} />
+                        </button>
+                    )}
+                </div>
+
+                {isLoading ? (
+                    <div className='collection-loading'>
+                        <Loading color={collectionTypeColor} type='beat' size={20} />
+                    </div>
+                ) : isEdit ? (
+                    manageItems.length === 0 ? (
+                        <div className='collection-empty'>
+                            {query !== '' ? 'No items match search' : 'No items in this collection'}
+                        </div>
+                    ) : (
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <SortableContext items={manageItems.map(i => i._id)} strategy={verticalListSortingStrategy}>
+                                <div className='manage-list'>
+                                    {manageItems.map(item => (
+                                        <ManageItemRow key={item._id} item={item} onRemove={removeItem} />
+                                    ))}
+                                </div>
+                            </SortableContext>
+                        </DndContext>
+                    )
+                ) : sortedItems.length === 0 ? (
+                    <div className='collection-empty'>{emptyMessage}</div>
+                ) : (
+                    <div className='collection-grid'>
+                        {sortedItems.map(item => (
+                            <div
+                                className='collection-item'
+                                id={item.itemId}
+                                key={item.itemId}
+                                onClick={() => openDetails(item.itemId)}
+                            >
+                                <PlaceholderImg
+                                    voted={null}
+                                    finished={null}
+                                    alt={`${item.title} poster`}
+                                    collectionColor={collectionTypeColor}
+                                    classNames='collection-item-img'
+                                    src={item.poster}
+                                />
                             </div>
-                        )
-                }
+                        ))}
+                    </div>
+                )}
             </div>
+            <ItemDetailsModal
+                open={activeDetailItemId !== null}
+                itemId={activeDetailItemId}
+                collectionType={collectionType}
+                collectionId={collectionId}
+                onClose={closeDetails}
+            />
+
+            <Menu
+                anchorEl={kebabAnchor}
+                open={Boolean(kebabAnchor)}
+                onClose={closeKebab}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                PaperProps={{ className: 'collection-menu-paper' }}
+            >
+                <MenuItem onClick={handleShare} className='collection-menu-item'>
+                    <Share2 size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Share code
+                </MenuItem>
+                <MenuItem onClick={handleManage} className='collection-menu-item'>
+                    <ListOrdered size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Manage items
+                </MenuItem>
+            </Menu>
+
+            <SortFilterPanel
+                anchorEl={sortAnchor}
+                open={Boolean(sortAnchor)}
+                onClose={closeSort}
+                sortOptions={sortOptions}
+                sortValue={sortValue}
+                onSortChange={setSortValue}
+                filterOptions={filterOptions}
+                filterValue={filterValue}
+                onFilterChange={setFilterValue}
+                activeColor={collectionTypeColor}
+            />
+
+            <Dialog
+                open={shareOpen}
+                onClose={() => setShareOpen(false)}
+                fullWidth
+                maxWidth='xs'
+                PaperProps={{ className: 'share-dialog-paper' }}
+            >
+                <div className='share-dialog'>
+                    <h3>Share this collection</h3>
+                    <p>Send this code to someone you'd like to share with:</p>
+                    <div className='share-code-display'>{shareCode}</div>
+                    <button className='share-copy-btn' onClick={handleCopyCode}>
+                        {copied ? 'Copied!' : 'Copy code'}
+                    </button>
+                </div>
+            </Dialog>
         </React.Fragment>
     );
 }
