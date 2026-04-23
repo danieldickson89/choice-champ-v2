@@ -1,4 +1,4 @@
-button {
+.primary-btn {
     width: 100%;
     color: #312E2E;
     margin-top: 20px;
@@ -6,12 +6,13 @@ button {
     border: none;
     border-radius: 10px;
     background-color: #FCB016;
-
-    font-weight: 400;
+    font-family: inherit;
     font-size: 12pt;
     font-weight: bold;
+    cursor: pointer;
 }
 
-button:hover {
-    cursor: pointer;
+.primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

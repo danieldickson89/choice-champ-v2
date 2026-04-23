@@ -27,7 +27,9 @@ const CreateParty = lazy(() => import('./party/pages/CreateParty'));
 const PartyWait = lazy(() => import('./party/pages/PartyWait'));
 const Party = lazy(() => import('./party/pages/Party'));
 const JoinParty = lazy(() => import('./party/pages/JoinParty'));
-const Settings = lazy(() => import('./settings/pages/Settings'));
+const Profile = lazy(() => import('./profile/pages/Profile'));
+const Attribution = lazy(() => import('./profile/pages/Attribution'));
+const Contact = lazy(() => import('./profile/pages/Contact'));
 const MediaTab = lazy(() => import('./mediaTab/MediaTab'));
 
 const MediaTabByType = () => {
@@ -38,6 +40,7 @@ const MediaTabByType = () => {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [username, setUsername] = useState(null);
   const [socket, setSocket] = useState(null);
 
   const [loading, setLoading] = useState(true);
@@ -49,25 +52,22 @@ function App() {
 
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
+    const storedUsername = localStorage.getItem('username');
     const neverShowAppInstallBanner = localStorage.getItem('neverShowAppInstallBanner');
 
     if(storedUserId) {
-      // Check if user exists in database
-      fetch(`${BACKEND_URL}/user/checkUser`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: storedUserId
-        })
-      })
+      fetch(`${BACKEND_URL}/user/${storedUserId}`)
       .then(response => {
-        return response.json();
+        if(response.status === 200) {
+          return response.json();
+        }
+        return null;
       })
       .then(body => {
-        if(body.userExists) {
+        if(body) {
           setUserId(storedUserId);
+          setUsername(body.username);
+          localStorage.setItem('username', body.username);
           setIsLoggedIn(true);
           setLoading(false);
 
@@ -90,8 +90,13 @@ function App() {
       .catch(err => {
         console.log(err);
         localStorage.removeItem('userId');
+        localStorage.removeItem('username');
         setLoading(false);
       });
+
+      if(storedUsername) {
+        setUsername(storedUsername);
+      }
     } else {
       setIsLoggedIn(false);
       setLoading(false);
@@ -127,11 +132,22 @@ function App() {
   const logout = useCallback(() => {
     setIsLoggedIn(false);
     setUserId(null);
+    setUsername(null);
     localStorage.removeItem('userId');
+    localStorage.removeItem('username');
   }, []);
 
   const userIdSetter = useCallback((id) => {
     setUserId(id);
+  }, []);
+
+  const usernameSetter = useCallback((name) => {
+    setUsername(name);
+    if(name) {
+      localStorage.setItem('username', name);
+    } else {
+      localStorage.removeItem('username');
+    }
   }, []);
 
   const showFooterHandler = useCallback((show) => {
@@ -139,8 +155,8 @@ function App() {
   }, []);
 
   const authValue = useMemo(
-    () => ({ isLoggedIn, userId, userIdSetter, login, logout, showFooterHandler }),
-    [isLoggedIn, userId, userIdSetter, login, logout, showFooterHandler]
+    () => ({ isLoggedIn, userId, username, userIdSetter, usernameSetter, login, logout, showFooterHandler }),
+    [isLoggedIn, userId, username, userIdSetter, usernameSetter, login, logout, showFooterHandler]
   );
 
   const installApp = () => {
@@ -177,7 +193,9 @@ function App() {
           <Route path="/party/joinParty" element={<JoinParty />} exact />
           <Route path="/party/wait/:code" element={<PartyWait socket={socket} />} exact />
           <Route path="/party/:code" element={<Party socket={socket} />} exact />
-          <Route path="/settings" element={<Settings />} exact />
+          <Route path="/profile" element={<Profile />} exact />
+          <Route path="/profile/attribution" element={<Attribution />} exact />
+          <Route path="/profile/contact" element={<Contact />} exact />
           <Route path="*" element={<Navigate to="/collections/movie" />} />
         </Routes>
       </Suspense>

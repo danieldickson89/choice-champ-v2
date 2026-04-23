@@ -1,0 +1,214 @@
+.profile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-top: 12px;
+    padding-bottom: 4px;
+}
+
+.profile-header {
+    margin: 16px 0 28px 0;
+    text-align: center;
+}
+
+.profile-username {
+    margin: 0;
+    font-size: 28pt;
+    color: white;
+    line-height: 1.1;
+}
+
+.profile-member-for {
+    margin: 6px 0 0 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11pt;
+}
+
+.profile-section {
+    margin-bottom: 28px;
+}
+
+.profile-section-title {
+    margin: 0 0 12px 0;
+    font-size: 13pt;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.profile-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.profile-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+}
+
+.profile-stat-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-stat-heading {
+    font-size: 11pt;
+    font-weight: 600;
+    color: white;
+}
+
+.profile-stat-sub {
+    font-size: 10pt;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.profile-activity {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.profile-activity-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-activity-row + .profile-activity-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-activity-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-activity-title {
+    font-size: 11pt;
+    font-weight: 600;
+    color: white;
+}
+
+.profile-activity-detail {
+    font-size: 10pt;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.profile-link-list {
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.profile-link-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 56px;
+    margin: 0;
+    padding: 0 16px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 12pt;
+    font-weight: normal;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.profile-link-row + .profile-link-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-link-row:active {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.profile-danger-section {
+    margin-top: 8px;
+    text-align: center;
+}
+
+.profile-danger-link {
+    background: none;
+    border: none;
+    color: #f56868;
+    font-size: 11pt;
+    font-weight: normal;
+    font-family: inherit;
+    cursor: pointer;
+    margin: 0;
+    padding: 8px 12px;
+    width: auto;
+}
+
+.profile-confirm {
+    padding: 24px;
+    color: white;
+}
+
+.profile-confirm h2 {
+    margin: 0 0 8px 0;
+    font-size: 16pt;
+}
+
+.profile-confirm p {
+    margin: 0 0 16px 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 11pt;
+    line-height: 1.4;
+}
+
+.profile-confirm-prompt {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.profile-confirm-prompt strong {
+    color: white;
+    font-weight: 600;
+}
+
+.profile-confirm-input {
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 10px 12px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: white;
+    font-family: inherit;
+    font-size: 12pt;
+    box-sizing: border-box;
+}
+
+.profile-confirm-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.profile-confirm-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}

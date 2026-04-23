@@ -1,84 +1,143 @@
 import React, { useEffect, useState } from 'react';
+import { Search as SearchIcon, X } from 'lucide-react';
 
-import { SUBTABS, hasTmdbKey, fetchTmdb, normalizeItems } from './tmdb';
+import { SUBTABS, fetchDiscover, fetchSearch } from './discoverApi';
+import ItemDetailsModal from '../collection/components/ItemDetailsModal';
 import './Discover.css';
 
-const isTmdbType = (type) => type === 'movie' || type === 'tv';
+const SUPPORTED_TYPES = ['movie', 'tv', 'board'];
 
 const Discover = ({ collectionType, color }) => {
-    let content;
-    if (!isTmdbType(collectionType)) {
-        content = <ComingSoon collectionType={collectionType} color={color} />;
-    } else if (!hasTmdbKey()) {
-        content = <MissingKey color={color} />;
-    } else {
-        return <DiscoverFeed collectionType={collectionType} color={color} />;
+    if(!SUPPORTED_TYPES.includes(collectionType)) {
+        return (
+            <div className='discover'>
+                <ComingSoon collectionType={collectionType} color={color} />
+            </div>
+        );
     }
-    return <div className='discover'>{content}</div>;
+    return <DiscoverFeed collectionType={collectionType} color={color} />;
 };
 
 const DiscoverFeed = ({ collectionType, color }) => {
     const subtabs = SUBTABS[collectionType];
     const [activeSubtab, setActiveSubtab] = useState(subtabs[0].key);
+    const [query, setQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedItem, setSelectedItem] = useState(null);
+
+    const trimmedQuery = debouncedQuery.trim();
+    const isSearching = trimmedQuery.length > 0;
 
     useEffect(() => {
-        const subtab = subtabs.find(s => s.key === activeSubtab);
-        if (!subtab) return;
+        const id = setTimeout(() => setDebouncedQuery(query), 300);
+        return () => clearTimeout(id);
+    }, [query]);
+
+    useEffect(() => {
         let cancelled = false;
         setIsLoading(true);
         setError(null);
-        fetchTmdb(subtab.path)
+
+        const request = isSearching
+            ? fetchSearch(collectionType, trimmedQuery)
+            : fetchDiscover(collectionType, activeSubtab);
+
+        request
             .then(data => {
-                if (cancelled) return;
-                setItems(normalizeItems(collectionType, data.results || []));
+                if(cancelled) return;
+                setItems(data.results || []);
                 setIsLoading(false);
             })
             .catch(err => {
-                if (cancelled) return;
+                if(cancelled) return;
                 setError(err);
                 setIsLoading(false);
             });
+
         return () => { cancelled = true; };
-    }, [activeSubtab, collectionType, subtabs]);
+    }, [activeSubtab, collectionType, trimmedQuery, isSearching]);
+
+    const openItem = (item) => {
+        setSelectedItem({ itemId: item.id, title: item.title, poster: item.poster });
+    };
 
     return (
         <div className='discover'>
-            <div className='discover-subtabs'>
-                {subtabs.map(tab => {
-                    const isActive = tab.key === activeSubtab;
-                    return (
-                        <button
-                            key={tab.key}
-                            className={`discover-subtab ${isActive ? 'discover-subtab-active' : ''}`}
-                            style={isActive ? { color, borderColor: color } : undefined}
-                            onClick={() => setActiveSubtab(tab.key)}
-                        >
-                            {tab.label}
-                        </button>
-                    );
-                })}
+            <div className='discover-search'>
+                <SearchIcon size={18} strokeWidth={2} className='discover-search-icon' aria-hidden='true' />
+                <input
+                    className='discover-search-input'
+                    type='text'
+                    placeholder='Search'
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    autoComplete='off'
+                />
+                {query && (
+                    <button
+                        type='button'
+                        className='discover-search-clear'
+                        onClick={() => setQuery('')}
+                        aria-label='Clear search'
+                        style={{ color }}
+                    >
+                        <X size={18} strokeWidth={2.5} />
+                    </button>
+                )}
             </div>
+
+            {!isSearching && subtabs.length > 1 && (
+                <div className='discover-subtabs'>
+                    {subtabs.map(tab => {
+                        const isActive = tab.key === activeSubtab;
+                        return (
+                            <button
+                                key={tab.key}
+                                className={`discover-subtab ${isActive ? 'discover-subtab-active' : ''}`}
+                                style={isActive ? { color, borderColor: color } : undefined}
+                                onClick={() => setActiveSubtab(tab.key)}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
 
             {isLoading && <DiscoverSkeleton color={color} />}
             {error && <DiscoverError error={error} color={color} />}
             {!isLoading && !error && items.length === 0 && (
-                <p className='discover-empty'>No results available right now.</p>
+                <p className='discover-empty'>
+                    {isSearching ? `No results for "${trimmedQuery}"` : 'No results available right now.'}
+                </p>
             )}
             {!isLoading && !error && items.length > 0 && (
                 <div className='discover-grid'>
                     {items.map(item => (
-                        <div key={item.id} className='discover-card'>
+                        <button
+                            key={item.id}
+                            type='button'
+                            className='discover-card'
+                            onClick={() => openItem(item)}
+                            aria-label={item.title}
+                        >
                             {item.poster
                                 ? <img src={item.poster} alt={`${item.title} poster`} className='discover-poster' />
-                                : <div className='discover-poster discover-poster-placeholder'>No image</div>}
-                            <p className='discover-card-title'>{item.title}</p>
-                        </div>
+                                : <div className='discover-poster discover-poster-placeholder'>{item.title || 'No image'}</div>}
+                        </button>
                     ))}
                 </div>
             )}
+
+            <ItemDetailsModal
+                open={selectedItem !== null}
+                item={selectedItem}
+                collectionType={collectionType}
+                onClose={() => setSelectedItem(null)}
+            />
         </div>
     );
 };
@@ -93,39 +152,16 @@ const DiscoverError = ({ error }) => (
     <div className='discover-error'>
         <p className='discover-error-title'>Could not load content</p>
         <p className='discover-error-text'>
-            {error.status === 401
-                ? 'TMDB API key rejected. Check your key in .env.local.'
-                : `Something went wrong loading this feed. (${error.message})`}
-        </p>
-    </div>
-);
-
-const MissingKey = ({ color }) => (
-    <div className='discover-placeholder'>
-        <p className='discover-placeholder-title' style={{ color }}>Discover needs a TMDB key</p>
-        <p className='discover-placeholder-text'>
-            Create a free API key at{' '}
-            <a href='https://www.themoviedb.org/settings/api' target='_blank' rel='noreferrer' style={{ color }}>
-                themoviedb.org/settings/api
-            </a>
-            , then create a <code>.env.local</code> file at the project root with:
-        </p>
-        <pre className='discover-code'>REACT_APP_TMDB_API_KEY=your_key_here</pre>
-        <p className='discover-placeholder-subtext'>
-            Restart the dev server after adding the key. The file is gitignored by default so Jordan won't see your key.
+            {error.message || 'Something went wrong loading this feed.'}
         </p>
     </div>
 );
 
 const ComingSoon = ({ collectionType, color }) => {
-    const label = collectionType === 'game' ? 'video games' : 'board games';
-    const note = collectionType === 'game'
-        ? 'Video games discover is waiting on a decision about the API source — see the memo about Giant Bomb.'
-        : 'Board games discover will pull from BoardGameGeek\'s "hot" list.';
+    const label = collectionType === 'game' ? 'video games' : collectionType;
     return (
         <div className='discover-placeholder'>
             <p className='discover-placeholder-title' style={{ color }}>Discover — {label}</p>
-            <p className='discover-placeholder-text'>{note}</p>
             <p className='discover-placeholder-subtext'>Coming soon.</p>
         </div>
     );

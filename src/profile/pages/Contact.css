@@ -1,0 +1,40 @@
+.contact-content {
+    padding-bottom: 40px;
+}
+
+.contact-topbar {
+    display: flex;
+    align-items: center;
+    padding-top: 12px;
+    padding-bottom: 4px;
+}
+
+.contact-title {
+    margin: 12px 0 12px 0;
+    font-size: 24pt;
+    color: white;
+    text-align: center;
+}
+
+.contact-intro {
+    margin: 0 0 24px 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 11pt;
+    line-height: 1.5;
+}
+
+.contact-email-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    color: white;
+    text-decoration: none;
+    font-size: 12pt;
+}
+
+.contact-email-card:active {
+    background-color: rgba(255, 255, 255, 0.1);
+}

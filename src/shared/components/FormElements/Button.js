@@ -22,7 +22,7 @@ const Button = props => {
                     <button 
                         type={props.type} 
                         disabled={props.disabled}
-                        className={props.className}
+                        className={`primary-btn ${props.className || ''}`.trim()}
                         style={ props.backgroundColor ? {animation: 'button-press .75s', backgroundColor: `${props.backgroundColor}`} : {animation: 'button-press .75s', backgroundColor: '#dd9b14' }}
                     >
                         {props.children}
@@ -32,7 +32,7 @@ const Button = props => {
                         type={props.type} 
                         disabled={props.disabled}
                         onClick={action}
-                        className={props.className}
+                        className={`primary-btn ${props.className || ''}`.trim()}
                         style={ props.backgroundColor ? {backgroundColor: `${props.backgroundColor}`} : null }
                     >
                         {props.children}

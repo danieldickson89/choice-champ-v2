@@ -45,6 +45,7 @@ const Auth = props => {
                     auth.login();
                     // Save user id to context so it can be used in other backend calls
                     auth.userIdSetter(body.userId);
+                    auth.usernameSetter(body.username);
                     // Set the userId to local storage so it can be used in other backend calls
                     localStorage.setItem('userId', body.userId);
                     navigate('/collections/movie');
@@ -74,6 +75,7 @@ const Auth = props => {
                 if(status === 200) {
                 auth.login();
                 auth.userIdSetter(body.userId);
+                auth.usernameSetter(body.username);
 
                 // Set the userId to local storage so it can be used in other backend calls
                 localStorage.setItem('userId', body.userId);

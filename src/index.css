@@ -60,6 +60,16 @@ button {
   font-family: 'Oxanium', cursive;
 }
 
+button {
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
 .text-input {
   width: 100%;
   background-color: #312E2E;
@@ -187,18 +197,17 @@ button {
 
 .content {
   width: 100%;
-  display: grid;
-  grid-template-columns: repeat(17, 1fr);
-  justify-items: center;
-  align-items: center;
+  display: block;
+  box-sizing: border-box;
   margin-top: 0;
-  padding-top: env(safe-area-inset-top, 0);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 200px);
+  padding: env(safe-area-inset-top, 0) 16px calc(env(safe-area-inset-bottom, 0) + 200px) 16px;
 }
 
 .top-left {
-  grid-column: 2/4;
-  width: 90%;
+  width: 32px;
+  height: auto;
+  display: block;
+  cursor: pointer;
   transition: ease-in-out;
 }
 

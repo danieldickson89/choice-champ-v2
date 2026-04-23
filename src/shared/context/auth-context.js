@@ -4,7 +4,10 @@ import { createContext } from "react";
 // to components that are not direct children of the component that created the context
 export const AuthContext = createContext({
     isLoggedIn: false,
+    userId: null,
+    username: null,
     userIdSetter: null,
+    usernameSetter: null,
     login: () => {},
     logout: () => {}
 });
