@@ -25,18 +25,21 @@ a:active,
 
 html {
   display: grid;
+  grid-template-columns: 100%;
   align-items: center;
   justify-items: center;
+  overflow-x: clip;
 }
 
 body {
   box-sizing: border-box;
   width: 100%;
+  max-width: 1200px;
   margin: 0;
+  overflow-x: clip;
   background: #312E2E;
   color: white;
   font-family: 'Oxanium', cursive;
-  max-width: 1200px;
 }
 
 h3 {
@@ -66,6 +69,46 @@ button {
   padding: 15px;
   margin-top: 20px;
   font-size: 14pt;
+}
+
+.icon-btn {
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: #000;
+  color: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.icon-btn:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.collection-menu-paper {
+  background-color: rgb(40, 40, 40) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+  color: #e8e8e8 !important;
+}
+
+.collection-menu-item {
+  font-family: 'Oxanium', cursive !important;
+  font-size: 11pt !important;
+  color: #e8e8e8 !important;
+  padding: 10px 16px !important;
+}
+
+.collection-menu-item-danger {
+  color: #ff6b6b !important;
 }
 
 #download-banner {
@@ -149,7 +192,8 @@ button {
   justify-items: center;
   align-items: center;
   margin-top: 0;
-  padding-bottom: 200px;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 200px);
 }
 
 .top-left {

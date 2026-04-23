@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { BACKEND_URL } from '../../shared/config';
 import { AuthContext } from '../../shared/context/auth-context';
 import Button from '../../shared/components/FormElements/Button';
 
@@ -51,7 +52,7 @@ const Settings = () => {
     }
 
     const deleteAccount = () => {
-        fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/user/${auth.userId}`, {
+        fetch(`${BACKEND_URL}/user/${auth.userId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'

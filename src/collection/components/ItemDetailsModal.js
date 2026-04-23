@@ -5,6 +5,7 @@ import { X, Check, Circle } from 'lucide-react';
 
 import Loading from '../../shared/components/Loading';
 import { AuthContext } from '../../shared/context/auth-context';
+import { BACKEND_URL } from '../../shared/config';
 import './ItemDetailsModal.css';
 
 const TYPE_COLORS = {
@@ -14,11 +15,16 @@ const TYPE_COLORS = {
     board: '#45B859',
 };
 
-const BACKEND = 'https://choice-champ-backend-181ffd005e9f.herokuapp.com';
+const BACKEND = BACKEND_URL;
 
-const ItemDetailsModal = ({ open, itemId, collectionType, collectionId, onClose }) => {
+const ItemDetailsModal = ({ open, item, collectionType, collectionId, onClose, onToggleWatched }) => {
     const auth = useContext(AuthContext);
     const color = TYPE_COLORS[collectionType] || '#FCB016';
+    const itemId = item?.itemId;
+    const watched = !!item?.watched;
+    const isPlayed = collectionType === 'game' || collectionType === 'board';
+    const watchedLabel = isPlayed ? 'Played' : 'Watched';
+    const unwatchedLabel = isPlayed ? 'Unplayed' : 'Unwatched';
 
     const [details, setDetails] = useState({});
     const [providers, setProviders] = useState({});
@@ -125,9 +131,29 @@ const ItemDetailsModal = ({ open, itemId, collectionType, collectionId, onClose 
         >
             <div className='item-details-modal'>
                 {!isLoading && (
-                    <button className='item-details-close' onClick={onClose} aria-label='Close'>
-                        <X size={22} strokeWidth={2.5} />
-                    </button>
+                    <div className='item-details-topbar'>
+                        <button className='item-details-close' onClick={onClose} aria-label='Close'>
+                            <X size={22} strokeWidth={2.5} />
+                        </button>
+                        {item && onToggleWatched && (
+                            <div className='item-details-watched-control'>
+                                <span className='item-details-watched-label'>
+                                    {watched ? watchedLabel : unwatchedLabel}
+                                </span>
+                                <button
+                                    type='button'
+                                    role='switch'
+                                    aria-checked={watched}
+                                    aria-label={`Toggle ${watchedLabel.toLowerCase()}`}
+                                    className={`item-details-watched-switch ${watched ? 'is-on' : ''}`}
+                                    style={watched ? { backgroundColor: color } : undefined}
+                                    onClick={() => onToggleWatched(item._id, watched)}
+                                >
+                                    <span className='item-details-watched-knob' />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {isLoading ? (
@@ -212,9 +238,13 @@ const ItemDetailsModal = ({ open, itemId, collectionType, collectionId, onClose 
                                     onClick={() => toggleCollection(collection, index)}
                                 >
                                     <div className='item-details-collection-name'>{collection.name}</div>
-                                    {collection.exists
-                                        ? <Check size={20} style={{ color }} />
-                                        : <Circle size={20} style={{ color: '#666' }} />}
+                                    {collection.exists ? (
+                                        <span className='item-details-collection-checked' style={{ color }}>
+                                            <Check size={14} strokeWidth={3} />
+                                        </span>
+                                    ) : (
+                                        <Circle size={20} style={{ color: '#666' }} />
+                                    )}
                                 </div>
                             ))}
                         </div>

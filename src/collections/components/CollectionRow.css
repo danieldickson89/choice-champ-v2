@@ -1,0 +1,51 @@
+.collection-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    transition: gap 200ms ease-out;
+}
+
+.collection-row.is-reorder {
+    gap: 10px;
+}
+
+.collection-row-handle {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 0;
+    height: auto;
+    align-self: stretch;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: #888;
+    cursor: grab;
+    touch-action: none;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: width 200ms ease-out, opacity 200ms ease-out;
+}
+
+.collection-row.is-reorder .collection-row-handle {
+    width: 32px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.collection-row-handle:hover {
+    color: #ccc;
+}
+
+.collection-row-handle:active {
+    cursor: grabbing;
+}
+
+.collection-row > .collection-card {
+    flex: 1;
+    min-width: 0;
+}

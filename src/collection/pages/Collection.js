@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo, useState, useContext, useRef } from 'react';
+import { BACKEND_URL } from '../../shared/config';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
-import { ArrowLeft, Check, MoreVertical, Share2, ListOrdered, Clock, ArrowDownAZ, ArrowDownZA, Eye, Gamepad2, Dices, ChevronDown, Layers, EyeOff } from 'lucide-react';
+import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, X, Columns2, Columns3, Columns4 } from 'lucide-react';
 import { Menu, MenuItem, Dialog } from '@mui/material';
-
-import searchIcon from '../../shared/assets/img/search.svg';
 
 import './Collection.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
@@ -40,20 +37,33 @@ const Collection = ({ socket }) => {
     const params = new URLSearchParams(search);
     const hash = params.get('hash');
 
+    const customOrderKey = `choice-champ:custom-order:${collectionId}`;
+    const viewCountKey = `choice-champ:view-count:${collectionId}`;
+
     const [items, setItems] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
     const [shareCode, setShareCode] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
-    const [currentCollectionName, setCurrentCollectionName] = useState('');
     const [collectionName, setCollectionName] = useState('');
-    const [sortValue, setSortValue] = useState('recent');
-    const [filterValue, setFilterValue] = useState('unwatched');
+    const [sortValue, setSortValue] = useState(() =>
+        localStorage.getItem(`choice-champ:custom-order:${collectionId}`) ? 'custom' : 'recent'
+    );
+    const [filterValue, setFilterValue] = useState('all');
+    const [viewValue, setViewValue] = useState(() => {
+        const saved = localStorage.getItem(`choice-champ:view-count:${collectionId}`);
+        const parsed = saved ? parseInt(saved, 10) : 2;
+        return [2, 3, 4].includes(parsed) ? parsed : 2;
+    });
     const [collectionTypeColor, setCollectionTypeColor] = useState('#FCB016');
 
     const [kebabAnchor, setKebabAnchor] = useState(null);
     const [sortAnchor, setSortAnchor] = useState(null);
     const [shareOpen, setShareOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [renameOpen, setRenameOpen] = useState(false);
+    const [renameDraft, setRenameDraft] = useState('');
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState('');
 
     const openKebab = (e) => setKebabAnchor(e.currentTarget);
     const closeKebab = () => setKebabAnchor(null);
@@ -62,6 +72,45 @@ const Collection = ({ socket }) => {
 
     const handleShare = () => { setShareOpen(true); closeKebab(); };
     const handleManage = () => { setIsEdit(true); closeKebab(); };
+    const handleRename = () => {
+        setRenameDraft(collectionName);
+        setRenameOpen(true);
+        closeKebab();
+    };
+    const handleDelete = () => {
+        setDeleteConfirm('');
+        setDeleteOpen(true);
+        closeKebab();
+    };
+    const handleDeleteCancel = () => setDeleteOpen(false);
+    const handleDeleteConfirm = () => {
+        if (deleteConfirm !== 'DELETE') return;
+        fetch(`${BACKEND_URL}/collections/${collectionType}/${auth.userId}/${collectionId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        }).then(() => {
+            socket.emit('leave-room', collectionId);
+            setDeleteOpen(false);
+            navigate(`/collections/${collectionType}`);
+        });
+    };
+    const handleRenameCancel = () => setRenameOpen(false);
+    const handleRenameSave = () => {
+        const trimmed = renameDraft.trim();
+        if (!trimmed) return;
+        if (trimmed === collectionName) {
+            setRenameOpen(false);
+            return;
+        }
+        fetch(`${BACKEND_URL}/collections/name/${collectionId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: trimmed }),
+        }).then(() => {
+            setCollectionName(trimmed);
+            setRenameOpen(false);
+        });
+    };
     const handleCopyCode = async () => {
         try {
             await navigator.clipboard.writeText(shareCode);
@@ -74,16 +123,25 @@ const Collection = ({ socket }) => {
     const unwatchedLabel = (collectionType === 'game' || collectionType === 'board') ? 'Unplayed' : 'Unwatched';
     const WatchedIcon = collectionType === 'game' ? Gamepad2 : collectionType === 'board' ? Dices : Eye;
 
-    const SORT_LABELS = { recent: 'Recent', oldest: 'Oldest', abc: 'A–Z', zyx: 'Z–A' };
-    const currentSortLabel = SORT_LABELS[sortValue];
-    const filterIsDefault = filterValue === 'unwatched';
+    const isFiltering = filterValue !== 'all';
 
     const sortOptions = [
-        { value: 'recent', label: 'Recent', icon: Clock },
-        { value: 'oldest', label: 'Oldest', icon: Clock },
-        { value: 'abc',    label: 'A–Z',    icon: ArrowDownAZ },
-        { value: 'zyx',    label: 'Z–A',    icon: ArrowDownZA },
+        { value: 'custom', label: 'Custom',       icon: GripVertical },
+        { value: 'recent', label: 'Date Added ↓', icon: ArrowDownWideNarrow },
+        { value: 'oldest', label: 'Date Added ↑', icon: ArrowUpWideNarrow },
+        { value: 'abc',    label: 'A–Z',          icon: ArrowDownAZ },
+        { value: 'zyx',    label: 'Z–A',          icon: ArrowDownZA },
     ];
+    const viewOptions = [
+        { value: 2, label: '2 columns', icon: Columns2 },
+        { value: 3, label: '3 columns', icon: Columns3 },
+        { value: 4, label: '4 columns', icon: Columns4 },
+    ];
+
+    const handleViewChange = (v) => {
+        setViewValue(v);
+        localStorage.setItem(viewCountKey, String(v));
+    };
     const filterOptions = [
         { value: 'all',       label: 'All',          icon: Layers },
         { value: 'unwatched', label: unwatchedLabel, icon: EyeOff },
@@ -106,7 +164,7 @@ const Collection = ({ socket }) => {
         }
 
         // Make a fetch get request to get all the items in a collection
-        fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/collections/items/${collectionId}`, {
+        fetch(`${BACKEND_URL}/collections/items/${collectionId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -114,10 +172,24 @@ const Collection = ({ socket }) => {
         })
         .then(res => res.json())
         .then(data => {
-            setItems(data.items);
-            itemsRef.current = data.items;
+            let ordered = data.items;
+            const savedOrderRaw = localStorage.getItem(customOrderKey);
+            if (savedOrderRaw) {
+                try {
+                    const savedOrder = JSON.parse(savedOrderRaw);
+                    const byId = new Map(data.items.map(i => [i._id, i]));
+                    const result = [];
+                    for (const id of savedOrder) {
+                        const item = byId.get(id);
+                        if (item) { result.push(item); byId.delete(id); }
+                    }
+                    for (const item of byId.values()) result.push(item);
+                    ordered = result;
+                } catch {}
+            }
+            setItems(ordered);
+            itemsRef.current = ordered;
             setShareCode(data.shareCode);
-            setCurrentCollectionName(data.name);
             setCollectionName(data.name);
 
             // Give a little time for the items to load
@@ -176,42 +248,11 @@ const Collection = ({ socket }) => {
         }
     }, [socket]);
 
-    /************************************************************
-     * Logic for setting edit state and removing items
-     ***********************************************************/
-    const isEditHandler = () => {
-        if(isEdit) {
-            // Check to make sure the collection name is not empty
-            if(collectionName !== '') {
-                // If collection name has changed make a fetch post request to update the collection name
-                if(collectionName !== currentCollectionName) {
-                    fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/collections/name/${collectionId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            name: collectionName
-                        })
-                    })
-                    .then(res => {
-                        setIsEdit(false);
-                        setCurrentCollectionName(collectionName);
-                    });
-                } else {
-                    setIsEdit(false);
-                }
-            } else {
-                alert('Collection name cannot be empty');
-            }
-        } else {
-            setIsEdit(true);
-        }
-    }
+    const exitManage = () => setIsEdit(false);
 
     const removeItem = (id) => {
         // Make a fetch delete request to remove an item from a collection
-        fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/collections/items/${collectionId}/${id}`, {
+        fetch(`${BACKEND_URL}/collections/items/${collectionId}/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -234,6 +275,26 @@ const Collection = ({ socket }) => {
     const openDetails = (id) => setActiveDetailItemId(id);
     const closeDetails = () => setActiveDetailItemId(null);
 
+    const activeItem = useMemo(
+        () => (activeDetailItemId === null ? null : items.find(i => i.itemId === activeDetailItemId) || null),
+        [items, activeDetailItemId]
+    );
+
+    const toggleWatched = (id, currentWatched) => {
+        fetch(`${BACKEND_URL}/collections/items/${collectionId}/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ watched: !currentWatched }),
+        }).then(() => {
+            const next = itemsRef.current.map(item =>
+                item._id === id ? { ...item, watched: !currentWatched } : item
+            );
+            itemsRef.current = next;
+            setItems(next);
+            socket.emit('watched-remote-item', id, collectionId);
+        });
+    };
+
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
@@ -248,7 +309,8 @@ const Collection = ({ socket }) => {
         const next = arrayMove(items, oldIndex, newIndex);
         setItems(next);
         itemsRef.current = next;
-        // NOTE: reorder is session-local. Needs a backend "reorder" endpoint for persistence.
+        localStorage.setItem(customOrderKey, JSON.stringify(next.map(i => i._id)));
+        if (sortValue !== 'custom') setSortValue('custom');
     };
 
 
@@ -268,20 +330,33 @@ const Collection = ({ socket }) => {
         return items.filter(i => i.title.toLowerCase().includes(query.toLowerCase()));
     }, [items, query]);
 
+    const addedAt = (item) => {
+        // MongoDB ObjectId: first 8 hex chars encode creation time in seconds.
+        // Fall back to item.timestamp (set on watch) for any non-ObjectId shape.
+        const id = item && item._id;
+        if (typeof id === 'string' && id.length >= 8) {
+            const secs = parseInt(id.substring(0, 8), 16);
+            if (!Number.isNaN(secs)) return secs;
+        }
+        return item.timestamp || 0;
+    };
+
     const sortedItems = useMemo(() => {
         let result = items.filter(i => i.title.toLowerCase().includes(query.toLowerCase()));
 
         if (filterValue === 'watched')        result = result.filter(i => i.watched);
         else if (filterValue === 'unwatched') result = result.filter(i => !i.watched);
 
-        if (sortValue === 'abc') {
+        if (sortValue === 'custom') {
+            // items array is already in the user's saved custom order; preserve it
+        } else if (sortValue === 'abc') {
             result = [...result].sort((a, b) => a.title.localeCompare(b.title));
         } else if (sortValue === 'zyx') {
             result = [...result].sort((a, b) => b.title.localeCompare(a.title));
         } else if (sortValue === 'oldest') {
-            result = [...result].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-        } else { /* recent */
-            result = [...result].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            result = [...result].sort((a, b) => addedAt(a) - addedAt(b));
+        } else { /* recent / newest first */
+            result = [...result].sort((a, b) => addedAt(b) - addedAt(a));
         }
 
         return result;
@@ -297,61 +372,54 @@ const Collection = ({ socket }) => {
     return (
         <React.Fragment>
             <div className='collection-page'>
-                <div className='collection-header'>
-                    <button className='icon-btn' onClick={navBack} aria-label='Back'>
-                        <ArrowLeft size={22} strokeWidth={2.5} />
-                    </button>
-                    {isEdit ? (
-                        <input
-                            className='collection-title-input'
-                            value={collectionName}
-                            onChange={e => setCollectionName(e.target.value)}
-                        />
-                    ) : (
-                        <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>
-                    )}
-                    {isEdit ? (
-                        <button
-                            className='icon-btn collection-edit-btn-active'
-                            onClick={isEditHandler}
-                            aria-label='Done'
-                        >
-                            <Check size={22} strokeWidth={2.5} />
+                <div className='collection-sticky-header'>
+                    <div className='collection-top-row'>
+                        <button className='icon-btn' onClick={navBack} aria-label='Back'>
+                            <ArrowLeft size={22} strokeWidth={2.5} />
                         </button>
-                    ) : (
-                        <button className='icon-btn' onClick={openKebab} aria-label='More'>
-                            <MoreVertical size={22} strokeWidth={2.5} />
-                        </button>
-                    )}
-                </div>
+                        <div className='collection-top-row-right'>
+                            {!isEdit && (
+                                <button className='icon-btn sort-btn' onClick={openSort} aria-label='Sort and filter'>
+                                    <SlidersHorizontal size={20} strokeWidth={2.5} />
+                                    {isFiltering && (
+                                        <span className='sort-btn-badge' style={{ backgroundColor: collectionTypeColor }} />
+                                    )}
+                                </button>
+                            )}
+                            {isEdit ? (
+                                <button className='icon-btn' onClick={exitManage} aria-label='Done'>
+                                    <Check size={24} strokeWidth={3} />
+                                </button>
+                            ) : (
+                                <button className='icon-btn' onClick={openKebab} aria-label='More'>
+                                    <MoreVertical size={22} strokeWidth={2.5} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
 
-                <div className={`collection-controls ${isEdit ? 'collection-controls-edit' : ''}`}>
+                    <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>
+
                     <div className='coll-search'>
-                        <img src={searchIcon} alt='' className='coll-search-icon' />
                         <input
                             className='coll-search-input'
                             placeholder='Search'
                             value={query}
                             onChange={e => setQuery(e.target.value)}
                         />
-                        {query !== '' && (
-                            <FontAwesomeIcon
-                                icon={faXmark}
-                                size='lg'
-                                className='coll-search-clear clickable'
+                        {query !== '' ? (
+                            <button
+                                type='button'
+                                className='coll-search-clear'
                                 onClick={() => setQuery('')}
-                            />
+                                aria-label='Clear search'
+                            >
+                                <X size={18} strokeWidth={2.5} />
+                            </button>
+                        ) : (
+                            <Search size={18} strokeWidth={2} className='coll-search-icon' aria-hidden='true' />
                         )}
                     </div>
-                    {!isEdit && (
-                        <button className='sort-pill' onClick={openSort} aria-label='Sort and filter'>
-                            {currentSortLabel}
-                            {!filterIsDefault && (
-                                <span className='sort-pill-filter-dot' style={{ backgroundColor: collectionTypeColor }} />
-                            )}
-                            <ChevronDown size={16} strokeWidth={2.5} />
-                        </button>
-                    )}
                 </div>
 
                 {isLoading ? (
@@ -377,7 +445,10 @@ const Collection = ({ socket }) => {
                 ) : sortedItems.length === 0 ? (
                     <div className='collection-empty'>{emptyMessage}</div>
                 ) : (
-                    <div className='collection-grid'>
+                    <div
+                        className='collection-grid'
+                        style={{ gridTemplateColumns: `repeat(${viewValue}, minmax(0, 1fr))` }}
+                    >
                         {sortedItems.map(item => (
                             <div
                                 className='collection-item'
@@ -400,10 +471,11 @@ const Collection = ({ socket }) => {
             </div>
             <ItemDetailsModal
                 open={activeDetailItemId !== null}
-                itemId={activeDetailItemId}
+                item={activeItem}
                 collectionType={collectionType}
                 collectionId={collectionId}
                 onClose={closeDetails}
+                onToggleWatched={toggleWatched}
             />
 
             <Menu
@@ -414,13 +486,21 @@ const Collection = ({ socket }) => {
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 PaperProps={{ className: 'collection-menu-paper' }}
             >
-                <MenuItem onClick={handleShare} className='collection-menu-item'>
-                    <Share2 size={18} strokeWidth={2} style={{ marginRight: 12 }} />
-                    Share code
+                <MenuItem onClick={handleRename} className='collection-menu-item'>
+                    <Pencil size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Rename
                 </MenuItem>
                 <MenuItem onClick={handleManage} className='collection-menu-item'>
                     <ListOrdered size={18} strokeWidth={2} style={{ marginRight: 12 }} />
                     Manage items
+                </MenuItem>
+                <MenuItem onClick={handleShare} className='collection-menu-item'>
+                    <Share2 size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Share code
+                </MenuItem>
+                <MenuItem onClick={handleDelete} className='collection-menu-item collection-menu-item-danger'>
+                    <Trash size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Delete
                 </MenuItem>
             </Menu>
 
@@ -434,6 +514,9 @@ const Collection = ({ socket }) => {
                 filterOptions={filterOptions}
                 filterValue={filterValue}
                 onFilterChange={setFilterValue}
+                viewOptions={viewOptions}
+                viewValue={viewValue}
+                onViewChange={handleViewChange}
                 activeColor={collectionTypeColor}
             />
 
@@ -451,6 +534,69 @@ const Collection = ({ socket }) => {
                     <button className='share-copy-btn' onClick={handleCopyCode}>
                         {copied ? 'Copied!' : 'Copy code'}
                     </button>
+                </div>
+            </Dialog>
+
+            <Dialog
+                open={renameOpen}
+                onClose={handleRenameCancel}
+                fullWidth
+                maxWidth='xs'
+                PaperProps={{ className: 'share-dialog-paper' }}
+            >
+                <div className='rename-dialog'>
+                    <h3>Rename collection</h3>
+                    <input
+                        className='rename-input'
+                        value={renameDraft}
+                        onChange={(e) => setRenameDraft(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSave(); }}
+                        autoFocus
+                    />
+                    <div className='rename-actions'>
+                        <button className='rename-cancel-btn' onClick={handleRenameCancel}>Cancel</button>
+                        <button
+                            className='rename-save-btn'
+                            onClick={handleRenameSave}
+                            disabled={!renameDraft.trim() || renameDraft.trim() === collectionName}
+                        >
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </Dialog>
+
+            <Dialog
+                open={deleteOpen}
+                onClose={handleDeleteCancel}
+                fullWidth
+                maxWidth='xs'
+                PaperProps={{ className: 'share-dialog-paper' }}
+            >
+                <div className='rename-dialog'>
+                    <h3>Delete collection?</h3>
+                    <p className='delete-warning'>
+                        This will permanently delete <strong>{collectionName}</strong> and all its items. This cannot be undone.
+                    </p>
+                    <p className='delete-instructions'>Type <strong>DELETE</strong> to confirm.</p>
+                    <input
+                        className='rename-input'
+                        value={deleteConfirm}
+                        onChange={(e) => setDeleteConfirm(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && deleteConfirm === 'DELETE') handleDeleteConfirm(); }}
+                        placeholder='DELETE'
+                        autoFocus
+                    />
+                    <div className='rename-actions'>
+                        <button className='rename-cancel-btn' onClick={handleDeleteCancel}>Cancel</button>
+                        <button
+                            className='delete-confirm-btn'
+                            onClick={handleDeleteConfirm}
+                            disabled={deleteConfirm !== 'DELETE'}
+                        >
+                            Delete
+                        </button>
+                    </div>
                 </div>
             </Dialog>
         </React.Fragment>

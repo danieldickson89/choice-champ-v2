@@ -5,16 +5,13 @@ import './CollectionCard.css';
 
 const MAX_PREVIEW_POSTERS = 4;
 
-const CollectionCard = ({ collection, collectionsType, color }) => {
+const CollectionCard = ({ collection, collectionsType, color, interactive = true }) => {
     const items = Array.isArray(collection.items) ? collection.items : [];
     const previewItems = items.filter(item => item && item.poster).slice(0, MAX_PREVIEW_POSTERS);
     const itemCount = items.length;
 
-    return (
-        <Link
-            to={`/collections/${collectionsType}/${collection._id}`}
-            className='collection-card'
-        >
+    const content = (
+        <>
             <div className='collection-card-accent' style={{ backgroundColor: color }} />
             <div className='collection-card-content'>
                 <div className='collection-card-name'>{collection.name}</div>
@@ -35,8 +32,21 @@ const CollectionCard = ({ collection, collectionsType, color }) => {
                     ))}
                 </div>
             )}
-        </Link>
+        </>
     );
+
+    if (interactive) {
+        return (
+            <Link
+                to={`/collections/${collectionsType}/${collection._id}`}
+                className='collection-card'
+            >
+                {content}
+            </Link>
+        );
+    }
+
+    return <div className='collection-card collection-card-static'>{content}</div>;
 };
 
 export default CollectionCard;

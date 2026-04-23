@@ -1,4 +1,5 @@
 import React, { useRef, useState, useContext, useEffect } from 'react'
+import { BACKEND_URL } from '../../shared/config';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../shared/components/FormElements/Button';
 import { AuthContext } from '../../shared/context/auth-context';
@@ -26,7 +27,7 @@ const JoinParty = (props) => {
         const joinCode = inputRef.current.value;
 
         if(joinCode.length === 4) {
-            fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/party/exists/${joinCode}`,
+            fetch(`${BACKEND_URL}/party/exists/${joinCode}`,
             {
                 method: 'GET',
                 headers: {

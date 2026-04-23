@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { BACKEND_URL } from './shared/config';
 import {
   BrowserRouter as Router,
   Route,
@@ -52,7 +53,7 @@ function App() {
 
     if(storedUserId) {
       // Check if user exists in database
-      fetch('https://choice-champ-backend-181ffd005e9f.herokuapp.com/user/checkUser', {
+      fetch(`${BACKEND_URL}/user/checkUser`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -113,7 +114,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const newSocket = io('https://choice-champ-backend-181ffd005e9f.herokuapp.com');
+    const newSocket = io(BACKEND_URL);
     setSocket(newSocket);
 
     return () => newSocket.close();

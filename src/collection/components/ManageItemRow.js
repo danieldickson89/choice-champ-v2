@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Trash } from 'lucide-react';
 
 import './ManageItemRow.css';
 
@@ -41,7 +41,7 @@ const ManageItemRow = ({ item, onRemove }) => {
                 onClick={() => onRemove(item._id)}
                 aria-label={`Remove ${item.title}`}
             >
-                <Trash2 size={18} strokeWidth={2} />
+                <Trash size={20} strokeWidth={2} />
             </button>
         </div>
     );

@@ -5,14 +5,15 @@ import { Clapperboard, Gamepad2, Dices, User } from 'lucide-react';
 import RetroTv from '../Icons/RetroTv';
 import './BottomNav.css';
 
-const ICON_SIZE = 28;
+const ICON_SIZE = 32;
+const ICON_STROKE = 1.75;
 
 const tabs = [
     { to: '/collections/movie', Icon: Clapperboard, color: '#FCB016', key: 'movie' },
     { to: '/collections/tv',    Icon: RetroTv,      color: '#F04C53', key: 'tv' },
-    { to: '/collections/game',  Icon: Gamepad2,     color: '#2482C5', key: 'game' },
-    { to: '/collections/board', Icon: Dices,        color: '#45B859', key: 'board' },
     { to: '/settings',          Icon: User,         color: '#FCB016', key: 'profile' },
+    { to: '/collections/board', Icon: Dices,        color: '#45B859', key: 'board' },
+    { to: '/collections/game',  Icon: Gamepad2,     color: '#2482C5', key: 'game' },
 ];
 
 const BottomNav = () => {
@@ -59,7 +60,7 @@ const BottomNav = () => {
                                 opacity: isActive ? 1 : (isLoading ? 0.45 : 0),
                             }}
                         />
-                        <tab.Icon size={ICON_SIZE} style={iconStyle} />
+                        <tab.Icon size={ICON_SIZE} strokeWidth={ICON_STROKE} style={iconStyle} />
                     </a>
                 );
             })}

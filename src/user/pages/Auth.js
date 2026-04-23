@@ -1,4 +1,5 @@
 import React, {useContext, useState} from 'react';
+import { BACKEND_URL } from '../../shared/config';
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +26,7 @@ const Auth = props => {
 
         // Either login or create account
         if(isLoginMode) {
-            fetch('https://choice-champ-backend-181ffd005e9f.herokuapp.com/user/signIn', {
+            fetch(`${BACKEND_URL}/user/signIn`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -55,7 +56,7 @@ const Auth = props => {
                 console.log(err);
             });
         } else {
-            fetch('https://choice-champ-backend-181ffd005e9f.herokuapp.com/user', {
+            fetch(`${BACKEND_URL}/user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

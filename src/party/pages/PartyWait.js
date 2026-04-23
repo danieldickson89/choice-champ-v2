@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext, useRef }  from 'react';
+import { BACKEND_URL } from '../../shared/config';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 
@@ -35,7 +36,7 @@ const PartyWait = ({ socket }) => {
     useEffect(() => {
         auth.showFooterHandler(false);
         // Make a fetch request to the backend to get all the collectionItems for the party
-        fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/party/${code}?userId=${auth.userId}`,
+        fetch(`${BACKEND_URL}/party/${code}?userId=${auth.userId}`,
         {
             method: 'GET',
             headers: {
@@ -69,7 +70,7 @@ const PartyWait = ({ socket }) => {
 
             // Make a post request to the backend to add the user to the party
             // This is because users who join will get the member count from the backend fetch request
-            fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/party/add-member/${code}`,
+            fetch(`${BACKEND_URL}/party/add-member/${code}`,
             {
                 method: 'POST',
                 headers: {
@@ -134,7 +135,7 @@ const PartyWait = ({ socket }) => {
     const navBack = async () => {
         if(userType === 'owner') {
             // Make a fetch request to the backend delete the party
-            fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/party/${code}`,
+            fetch(`${BACKEND_URL}/party/${code}`,
             {
                 method: 'DELETE',
                 headers: {
@@ -159,7 +160,7 @@ const PartyWait = ({ socket }) => {
             socket.emit('member-remote-decrement', `waiting${code}`);
 
             // Make a post request to the backend to remove the user from the party
-            await fetch(`https://choice-champ-backend-181ffd005e9f.herokuapp.com/party/remove-member/${code}`,
+            await fetch(`${BACKEND_URL}/party/remove-member/${code}`,
             {
                 method: 'POST',
                 headers: {
