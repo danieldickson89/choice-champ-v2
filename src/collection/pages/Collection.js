@@ -191,6 +191,24 @@ const Collection = ({ socket }) => {
             setShareCode(data.shareCode);
             setCollectionName(data.name);
 
+            if(collectionType === 'game' && ordered.length > 0) {
+                const payload = ordered.map(i => ({ id: i.itemId, title: i.title }));
+                fetch(`${BACKEND_URL}/media/game-posters`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                    .then(res => res.json())
+                    .then(({ posters = {} }) => {
+                        const next = itemsRef.current.map(item => (
+                            posters[item.itemId] ? { ...item, poster: posters[item.itemId] } : item
+                        ));
+                        itemsRef.current = next;
+                        setItems(next);
+                    })
+                    .catch(err => console.log('poster upgrade skipped:', err.message));
+            }
+
             // Give a little time for the items to load
             setTimeout(() => {
                 setIsLoading(false);
