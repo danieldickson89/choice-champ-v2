@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search as SearchIcon, X } from 'lucide-react';
 
-import { SUBTABS, fetchDiscover, fetchSearch } from './discoverApi';
+import { SUBTABS, fetchDiscover, fetchSearch, fetchGamePosters } from './discoverApi';
 import './Discover.css';
 
-const SUPPORTED_TYPES = ['movie', 'tv', 'board'];
+const SUPPORTED_TYPES = ['movie', 'tv', 'game', 'board'];
 
 const Discover = ({ collectionType, color }) => {
     if(!SUPPORTED_TYPES.includes(collectionType)) {
@@ -48,8 +48,20 @@ const DiscoverFeed = ({ collectionType, color }) => {
         request
             .then(data => {
                 if(cancelled) return;
-                setItems(data.results || []);
+                const results = data.results || [];
+                setItems(results);
                 setIsLoading(false);
+
+                if(collectionType === 'game' && results.length > 0) {
+                    fetchGamePosters(results)
+                        .then(posters => {
+                            if(cancelled) return;
+                            setItems(prev => prev.map(item => (
+                                posters[item.id] ? { ...item, poster: posters[item.id] } : item
+                            )));
+                        })
+                        .catch(err => console.log('poster upgrade skipped:', err.message));
+                }
             })
             .catch(err => {
                 if(cancelled) return;
@@ -66,31 +78,8 @@ const DiscoverFeed = ({ collectionType, color }) => {
 
     return (
         <div className='discover'>
-            <div className='discover-toolbar'>
-                <div className='discover-search'>
-                    <SearchIcon size={18} strokeWidth={2} className='discover-search-icon' aria-hidden='true' />
-                    <input
-                        className='discover-search-input'
-                        type='text'
-                        placeholder='Search'
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        autoComplete='off'
-                    />
-                    {query && (
-                        <button
-                            type='button'
-                            className='discover-search-clear'
-                            onClick={() => setQuery('')}
-                            aria-label='Clear search'
-                            style={{ color }}
-                        >
-                            <X size={18} strokeWidth={2.5} />
-                        </button>
-                    )}
-                </div>
-
-                {!isSearching && subtabs.length > 1 && (
+            {!isSearching && subtabs.length > 1 && (
+                <div className='discover-toolbar'>
                     <div className='discover-subtabs'>
                         {subtabs.map(tab => {
                             const isActive = tab.key === activeSubtab;
@@ -106,6 +95,29 @@ const DiscoverFeed = ({ collectionType, color }) => {
                             );
                         })}
                     </div>
+                </div>
+            )}
+
+            <div className='floating-search'>
+                <SearchIcon size={18} strokeWidth={2} className='floating-search-icon' aria-hidden='true' />
+                <input
+                    className='floating-search-input'
+                    type='text'
+                    placeholder='Search'
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    autoComplete='off'
+                />
+                {query && (
+                    <button
+                        type='button'
+                        className='floating-search-clear'
+                        onClick={() => setQuery('')}
+                        aria-label='Clear search'
+                        style={{ color }}
+                    >
+                        <X size={18} strokeWidth={2.5} />
+                    </button>
                 )}
             </div>
 

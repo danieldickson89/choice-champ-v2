@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, User, PartyPopper } from 'lucide-react';
-import { Menu, MenuItem } from '@mui/material';
+import { PartyPopper, User } from 'lucide-react';
 
 import { AuthContext } from '../../shared/context/auth-context';
 import SegmentedToggle from '../../shared/components/SegmentedToggle/SegmentedToggle';
@@ -22,20 +21,11 @@ const PartyHome = () => {
     const navigate = useNavigate();
     const [view, setView] = useState('create');
     const [online, setOnline] = useState(true);
-    const [kebabAnchor, setKebabAnchor] = useState(null);
 
     useEffect(() => {
         auth.showFooterHandler(true);
         if (!navigator.onLine) setOnline(false);
     }, [auth]);
-
-    const openKebab = (e) => setKebabAnchor(e.currentTarget);
-    const closeKebab = () => setKebabAnchor(null);
-
-    const handleGoToProfile = () => {
-        closeKebab();
-        navigate('/profile');
-    };
 
     if(!online) {
         return (
@@ -49,8 +39,8 @@ const PartyHome = () => {
         <div className='content party-home'>
             <div className='party-home-sticky-header'>
                 <div className='party-home-top-row'>
-                    <button className='icon-btn' onClick={openKebab} aria-label='More'>
-                        <MoreVertical size={22} strokeWidth={2.5} />
+                    <button className='icon-btn' onClick={() => navigate('/profile')} aria-label='Profile'>
+                        <User size={22} strokeWidth={2} />
                     </button>
                 </div>
                 <h1 className='party-home-title' style={{ color: PARTY_COLOR }}>
@@ -68,20 +58,6 @@ const PartyHome = () => {
             <div className='party-home-body'>
                 {view === 'create' ? <CreateParty /> : <JoinParty embedded />}
             </div>
-
-            <Menu
-                anchorEl={kebabAnchor}
-                open={Boolean(kebabAnchor)}
-                onClose={closeKebab}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                PaperProps={{ className: 'collection-menu-paper' }}
-            >
-                <MenuItem onClick={handleGoToProfile} className='collection-menu-item'>
-                    <User size={18} strokeWidth={2} style={{ marginRight: 12 }} />
-                    Profile
-                </MenuItem>
-            </Menu>
         </div>
     );
 };

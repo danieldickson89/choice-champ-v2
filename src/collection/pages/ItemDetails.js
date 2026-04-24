@@ -148,6 +148,9 @@ const ItemDetails = () => {
     } else if(collectionType === 'tv') {
         infoRows.push({ label: 'Seasons', value: details.runtime > 0 ? `${details.runtime} season${details.runtime === 1 ? '' : 's'}` : 'N/A' });
         infoRows.push({ label: 'Rating', value: details.rating != null ? `${details.rating} / 10` : 'N/A' });
+    } else if(collectionType === 'game') {
+        infoRows.push({ label: 'Avg Playtime', value: details.runtime > 0 ? `${details.runtime} hour${details.runtime === 1 ? '' : 's'}` : 'N/A' });
+        infoRows.push({ label: 'Rating', value: details.rating != null ? `${details.rating} / 10` : 'N/A' });
     } else if(collectionType === 'board') {
         infoRows.push({ label: 'Play Time', value: details.runtime ? `${details.runtime} minute${details.runtime === '1' || details.runtime === 1 ? '' : 's'}` : 'N/A' });
         infoRows.push({ label: 'Players', value: (details.minPlayers && details.maxPlayers) ? `${details.minPlayers}–${details.maxPlayers}` : 'N/A' });

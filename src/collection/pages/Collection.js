@@ -150,7 +150,7 @@ const Collection = ({ socket }) => {
     const itemsRef = useRef(items);
 
     useEffect(() => {
-        auth.showFooterHandler(false);
+        auth.showFooterHandler(true);
 
         if(collectionType === 'movie') {
             setCollectionTypeColor('#FCB016');
@@ -190,6 +190,24 @@ const Collection = ({ socket }) => {
             itemsRef.current = ordered;
             setShareCode(data.shareCode);
             setCollectionName(data.name);
+
+            if(collectionType === 'game' && ordered.length > 0) {
+                const payload = ordered.map(i => ({ id: i.itemId, title: i.title }));
+                fetch(`${BACKEND_URL}/media/game-posters`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                    .then(res => res.json())
+                    .then(({ posters = {} }) => {
+                        const next = itemsRef.current.map(item => (
+                            posters[item.itemId] ? { ...item, poster: posters[item.itemId] } : item
+                        ));
+                        itemsRef.current = next;
+                        setItems(next);
+                    })
+                    .catch(err => console.log('poster upgrade skipped:', err.message));
+            }
 
             // Give a little time for the items to load
             setTimeout(() => {
@@ -383,27 +401,6 @@ const Collection = ({ socket }) => {
                     </div>
 
                     <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>
-
-                    <div className='coll-search'>
-                        <input
-                            className='coll-search-input'
-                            placeholder='Search'
-                            value={query}
-                            onChange={e => setQuery(e.target.value)}
-                        />
-                        {query !== '' ? (
-                            <button
-                                type='button'
-                                className='coll-search-clear'
-                                onClick={() => setQuery('')}
-                                aria-label='Clear search'
-                            >
-                                <X size={18} strokeWidth={2.5} />
-                            </button>
-                        ) : (
-                            <Search size={18} strokeWidth={2} className='coll-search-icon' aria-hidden='true' />
-                        )}
-                    </div>
                 </div>
 
                 {isLoading ? (
@@ -452,6 +449,27 @@ const Collection = ({ socket }) => {
                         ))}
                     </div>
                 )}
+
+                <div className='floating-search'>
+                    <Search size={18} strokeWidth={2} className='floating-search-icon' aria-hidden='true' />
+                    <input
+                        className='floating-search-input'
+                        placeholder='Search'
+                        value={query}
+                        onChange={e => setQuery(e.target.value)}
+                    />
+                    {query !== '' && (
+                        <button
+                            type='button'
+                            className='floating-search-clear'
+                            onClick={() => setQuery('')}
+                            aria-label='Clear search'
+                            style={{ color: collectionTypeColor }}
+                        >
+                            <X size={18} strokeWidth={2.5} />
+                        </button>
+                    )}
+                </div>
             </div>
             <Menu
                 anchorEl={kebabAnchor}

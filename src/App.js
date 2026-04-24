@@ -19,7 +19,6 @@ import { AuthContext } from './shared/context/auth-context';
 // This is useful for components that are not needed right away, but are needed later on. 
 // This can help with performance by only loading what is needed at the time.
 const Collection = lazy(() => import('./collection/pages/Collection'));
-const Search = lazy(() => import('./collection/pages/Search'));
 const ItemDetails = lazy(() => import('./collection/pages/ItemDetails'));
 const Auth = lazy(() => import('./user/pages/Auth'));
 const Welcome = lazy(() => import('./welcome/pages/Welcome'));
@@ -187,7 +186,6 @@ function App() {
           <Route path="/welcome/info" element={<Welcome />} exact />
           <Route path="/collections/:type" element={<MediaTabByType />} exact />
           <Route path="/collections/:type/:id" element={<Collection socket={socket} />} exact />
-          <Route path="/collections/:type/:id/add" element={<Search socket={socket} />} exact />
           <Route path="/items/:type/:itemId" element={<ItemDetails />} exact />
           <Route path="/party" element={<PartyHome />} exact />
           <Route path="/party/wait/:code" element={<PartyWait socket={socket} />} exact />
