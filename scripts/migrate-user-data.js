@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 /*
- * One-off migration script: bring a Mongo user's owned collections (and their
- * items) over to the Supabase schema. Skips collections owned by others.
+ * Migrate a Mongo user's owned collections to Supabase.
+ *
+ * Modes:
+ *   - If a Supabase auth user with MIGRATE_EMAIL already exists, reuse their UUID.
+ *   - Otherwise, create one via Admin API (inviteUserByEmail sends a set-password email).
+ *
+ * For each migrated collection, also adds cross-membership for any OTHER
+ * already-migrated Supabase users (via the KNOWN_USERS map below) who had
+ * that collection in their Mongo collection arrays.
  *
  * Usage:
- *   MIGRATE_USERNAME=danield MIGRATE_EMAIL=danieldickson89@gmail.com \
+ *   MIGRATE_USERNAME=jfdickson MIGRATE_EMAIL=jfdickson25@gmail.com \
  *     node scripts/migrate-user-data.js
- *
- * Requires /server/.env to contain SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
- * The Supabase user must already exist (sign up first, then run this).
  */
 
 const fs = require('fs');
@@ -20,21 +24,37 @@ const { createClient } = require('@supabase/supabase-js');
 
 const MIGRATE_USERNAME = process.env.MIGRATE_USERNAME;
 const MIGRATE_EMAIL = process.env.MIGRATE_EMAIL;
-
 if (!MIGRATE_USERNAME || !MIGRATE_EMAIL) {
     console.error('Set MIGRATE_USERNAME and MIGRATE_EMAIL env vars.');
     process.exit(1);
 }
 
+// Mongo _id → Supabase UUID for users already migrated. When we migrate a new
+// user and one of their collections was shared with someone in this map,
+// that person gets added as a collection_member automatically.
+const KNOWN_USERS = {
+    '643b828f270b5fbc90be1220': '6546972d-9d13-4b29-a71b-3e212ca01f75', // Daniel (danieldickson89@gmail.com)
+    '644578bafbb5cae4dee6bae0': '26693c67-6e1d-4e96-86b8-e3c259891a10', // Jordan (jfdickson25@gmail.com)
+    '64e6ca05f61f2867e6b5044f': 'db6eceb0-720f-47ee-b7e5-fc078121eea8', // Seth   (sethford09@gmail.com)
+    '643b82b9270b5fbc90be1290': 'cf0e6cd1-ae58-423c-9ac3-0139dcd30541', // Kyle   (kyledickson7@gmail.com) — no invite email sent (rate limited)
+};
+
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
 });
 
-// Mongo ObjectId → Date. First 4 bytes (8 hex) = seconds since epoch.
 const objectIdToDate = (oid) => {
     if (typeof oid !== 'string' || oid.length < 8) return null;
     const secs = parseInt(oid.substring(0, 8), 16);
     return Number.isNaN(secs) ? null : new Date(secs * 1000);
+};
+
+const userHasCollection = (mongoUser, collectionId) => {
+    const arrays = [
+        mongoUser.movieCollections, mongoUser.tvCollections,
+        mongoUser.videoGameCollections, mongoUser.boardGameCollections,
+    ];
+    return arrays.some(arr => Array.isArray(arr) && arr.includes(collectionId));
 };
 
 async function main() {
@@ -49,35 +69,55 @@ async function main() {
     if (!mongoUser) throw new Error(`No Mongo user with username "${MIGRATE_USERNAME}"`);
     const mongoUserId = mongoUser._id;
 
-    // Find the matching Supabase auth user by email.
-    const { data: authList, error: authErr } = await supabase.auth.admin.listUsers();
-    if (authErr) throw authErr;
-    const authUser = authList.users.find(u => u.email === MIGRATE_EMAIL);
-    if (!authUser) throw new Error(`No Supabase auth user with email "${MIGRATE_EMAIL}" — sign up first`);
-    const supabaseUserId = authUser.id;
+    // Find or create the Supabase auth user.
+    const { data: authList, error: listErr } = await supabase.auth.admin.listUsers();
+    if (listErr) throw listErr;
+    let supabaseUserId = authList.users.find(u => u.email === MIGRATE_EMAIL)?.id;
 
-    console.log(`Mongo user:    ${mongoUser.username} (${mongoUserId})`);
-    console.log(`Supabase user: ${MIGRATE_EMAIL} (${supabaseUserId})`);
+    if (supabaseUserId) {
+        console.log(`Reusing existing Supabase user: ${MIGRATE_EMAIL} (${supabaseUserId})`);
+    } else {
+        console.log(`Creating Supabase user for ${MIGRATE_EMAIL}...`);
+        try {
+            const { data, error } = await supabase.auth.admin.inviteUserByEmail(MIGRATE_EMAIL, {
+                data: { username: MIGRATE_USERNAME },
+            });
+            if (error) throw error;
+            supabaseUserId = data.user.id;
+            console.log(`  ✓ created (${supabaseUserId}); invite email sent`);
+        } catch (err) {
+            const isRateLimit = /rate limit/i.test(err.message || '');
+            if (!isRateLimit) throw err;
+            console.log(`  ⚠  email rate limit hit; creating user without invite`);
+            const { data, error } = await supabase.auth.admin.createUser({
+                email: MIGRATE_EMAIL,
+                email_confirm: true,
+                user_metadata: { username: MIGRATE_USERNAME },
+            });
+            if (error) throw error;
+            supabaseUserId = data.user.id;
+            console.log(`  ✓ created (${supabaseUserId}); NO email — send invite later`);
+        }
+    }
 
     const owned = collections.filter(c => c.owner === mongoUserId);
-    console.log(`Collections owned: ${owned.length}`);
-    const totalItems = owned.reduce((sum, c) => sum + (c.items || []).length, 0);
-    console.log(`Total items:       ${totalItems}`);
+    console.log(`Mongo user:  ${mongoUser.username} (${mongoUserId})`);
+    console.log(`Collections: ${owned.length}`);
+    console.log(`Items total: ${owned.reduce((s, c) => s + (c.items || []).length, 0)}`);
 
     let migratedCollections = 0;
     let migratedItems = 0;
+    let crossMemberships = 0;
 
     for (const c of owned) {
-        console.log(`\n→ ${c.name} [${c.type}] (${(c.items || []).length} items, share=${c.shareCode})`);
-
-        // Skip if already migrated (share_code unique check).
+        // Idempotency: skip if share code already exists.
         const { data: existing } = await supabase
             .from('collections')
             .select('id')
             .eq('share_code', String(c.shareCode))
             .maybeSingle();
         if (existing) {
-            console.log(`   already migrated (share_code ${c.shareCode}) — skipping`);
+            console.log(`  ⏭  ${c.name} [${c.type}] — already migrated (share ${c.shareCode})`);
             continue;
         }
 
@@ -94,38 +134,59 @@ async function main() {
             })
             .select()
             .single();
-        if (colErr) throw new Error(`Collection insert failed: ${colErr.message}`);
+        if (colErr) throw new Error(`Collection insert failed (${c.name}): ${colErr.message}`);
 
-        const { error: memErr } = await supabase
-            .from('collection_members')
-            .insert({ collection_id: newCol.id, user_id: supabaseUserId, joined_at: collectionCreatedAt.toISOString() });
-        if (memErr) throw new Error(`Member insert failed: ${memErr.message}`);
+        // Owner self-membership.
+        const memberships = [{
+            collection_id: newCol.id,
+            user_id: supabaseUserId,
+            joined_at: collectionCreatedAt.toISOString(),
+        }];
 
-        const itemRows = (c.items || []).map(item => {
-            const addedAt = objectIdToDate(item._id) || collectionCreatedAt;
-            return {
-                collection_id: newCol.id,
-                item_id: String(item.itemId),
-                media_type: c.type,
-                title: item.title,
-                poster: item.poster || null,
-                complete: Boolean(item.watched),
-                added_at: addedAt.toISOString(),
-            };
-        });
+        // Cross-memberships: other Mongo users who had this collection AND
+        // are already migrated to Supabase.
+        for (const otherMongoUser of users) {
+            if (otherMongoUser._id === mongoUserId) continue;
+            if (!KNOWN_USERS[otherMongoUser._id]) continue;
+            if (userHasCollection(otherMongoUser, c._id)) {
+                memberships.push({
+                    collection_id: newCol.id,
+                    user_id: KNOWN_USERS[otherMongoUser._id],
+                    joined_at: collectionCreatedAt.toISOString(),
+                });
+                crossMemberships++;
+            }
+        }
+
+        const { error: memErr } = await supabase.from('collection_members').insert(memberships);
+        if (memErr) throw new Error(`Members insert failed (${c.name}): ${memErr.message}`);
+
+        const itemRows = (c.items || []).map(item => ({
+            collection_id: newCol.id,
+            item_id: String(item.itemId),
+            media_type: c.type,
+            title: item.title,
+            poster: item.poster || null,
+            complete: Boolean(item.watched),
+            added_at: (objectIdToDate(item._id) || collectionCreatedAt).toISOString(),
+        }));
 
         if (itemRows.length > 0) {
             const { error: itemErr } = await supabase.from('collection_items').insert(itemRows);
-            if (itemErr) throw new Error(`Items insert failed: ${itemErr.message}`);
+            if (itemErr) throw new Error(`Items insert failed (${c.name}): ${itemErr.message}`);
         }
 
         migratedCollections++;
         migratedItems += itemRows.length;
-        console.log(`   ✓ ${itemRows.length} items`);
+        console.log(`  ✓ ${c.name} [${c.type}] — ${itemRows.length} items, ${memberships.length} member(s)`);
     }
 
     console.log(`\n──────────────────────────`);
     console.log(`Migrated ${migratedCollections} collections, ${migratedItems} items.`);
+    console.log(`Cross-memberships added: ${crossMemberships}`);
+    console.log(`\nNew Supabase user: ${MIGRATE_EMAIL} → ${supabaseUserId}`);
+    console.log(`Add this to KNOWN_USERS for future migrations:`);
+    console.log(`    '${mongoUserId}': '${supabaseUserId}',`);
 }
 
 main().catch(err => {
