@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { BACKEND_URL } from '../shared/config';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MoreVertical, Check, Plus, GripVertical, User } from 'lucide-react';
-import { Dialog, Menu, MenuItem } from '@mui/material';
+import { Check, Plus, GripVertical, User } from 'lucide-react';
+import { Dialog } from '@mui/material';
 
 import SegmentedToggle from '../shared/components/SegmentedToggle/SegmentedToggle';
 import Collections from '../collections/pages/Collections';
@@ -57,10 +57,6 @@ const MediaTab = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isReorder, setIsReorder] = useState(false);
 
-    const [kebabAnchor, setKebabAnchor] = useState(null);
-    const openKebab = (e) => setKebabAnchor(e.currentTarget);
-    const closeKebab = () => setKebabAnchor(null);
-
     const [dialogOpen, setDialogOpen] = useState(false);
     const [nameError, setNameError] = useState(false);
     const [nameErrorText, setNameErrorText] = useState('');
@@ -107,19 +103,12 @@ const MediaTab = () => {
 
     const handleNewCollection = () => {
         setDialogOpen(true);
-        closeKebab();
-    };
-
-    const handleGoToProfile = () => {
-        closeKebab();
-        navigate('/profile');
     };
 
     const handleReorderStart = () => {
         setIsReorder(true);
         setView('collections');
         persistView(type, 'collections');
-        closeKebab();
     };
 
     const exitReorder = () => setIsReorder(false);
@@ -196,8 +185,8 @@ const MediaTab = () => {
                             <Check size={24} strokeWidth={3} />
                         </button>
                     ) : (
-                        <button className='icon-btn' onClick={openKebab} aria-label='More'>
-                            <MoreVertical size={22} strokeWidth={2.5} />
+                        <button className='icon-btn' onClick={() => navigate('/profile')} aria-label='Profile'>
+                            <User size={22} strokeWidth={2} />
                         </button>
                     )}
                 </div>
@@ -232,31 +221,28 @@ const MediaTab = () => {
                 )}
             </div>
 
-            <Menu
-                anchorEl={kebabAnchor}
-                open={Boolean(kebabAnchor)}
-                onClose={closeKebab}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                PaperProps={{ className: 'collection-menu-paper' }}
-            >
-                <MenuItem onClick={handleGoToProfile} className='collection-menu-item'>
-                    <User size={18} strokeWidth={2} style={{ marginRight: 12 }} />
-                    Profile
-                </MenuItem>
-                {view === 'collections' && (
-                    <MenuItem onClick={handleNewCollection} className='collection-menu-item'>
-                        <Plus size={18} strokeWidth={2} style={{ marginRight: 12 }} />
-                        New collection
-                    </MenuItem>
-                )}
-                {view === 'collections' && (
-                    <MenuItem onClick={handleReorderStart} className='collection-menu-item'>
-                        <GripVertical size={18} strokeWidth={2} style={{ marginRight: 12 }} />
-                        Reorder
-                    </MenuItem>
-                )}
-            </Menu>
+            {view === 'collections' && !isReorder && (
+                <div className='floating-actions'>
+                    <button
+                        type='button'
+                        className='floating-action'
+                        onClick={handleNewCollection}
+                        aria-label='New collection'
+                        style={{ color: config.color }}
+                    >
+                        <Plus size={22} strokeWidth={2.5} />
+                    </button>
+                    <button
+                        type='button'
+                        className='floating-action'
+                        onClick={handleReorderStart}
+                        aria-label='Reorder collections'
+                        style={{ color: config.color }}
+                    >
+                        <GripVertical size={22} strokeWidth={2.5} />
+                    </button>
+                </div>
+            )}
 
             <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth='lg'>
                 <div className='dialog-content'>

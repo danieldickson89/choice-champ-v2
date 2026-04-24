@@ -13,6 +13,12 @@ export const SUBTABS = {
         { key: 'top_rated', label: 'Top Rated' },
         { key: 'on_air',    label: 'On Air' },
     ],
+    game: [
+        { key: 'popular',   label: 'Popular' },
+        { key: 'top_rated', label: 'Top Rated' },
+        { key: 'new',       label: 'New' },
+        { key: 'upcoming',  label: 'Upcoming' },
+    ],
     board: [
         { key: 'hot', label: 'Hot' },
     ],
@@ -39,4 +45,16 @@ export async function fetchDiscover(type, feed, page = 1) {
 export async function fetchSearch(type, query, page = 1) {
     const res = await fetch(`${BACKEND_URL}/media/discover/${type}/search?q=${encodeURIComponent(query)}&page=${page}`);
     return handleDiscoverResponse(res);
+}
+
+export async function fetchGamePosters(items) {
+    const payload = items.map(i => ({ id: i.id, title: i.title }));
+    const res = await fetch(`${BACKEND_URL}/media/game-posters`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error(`game-posters ${res.status}`);
+    const data = await res.json();
+    return data.posters || {};
 }

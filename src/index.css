@@ -219,6 +219,109 @@ button {
   padding-bottom: 4px;
 }
 
+.floating-search {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0) + 76px);
+  z-index: 20;
+  max-width: 560px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 16px;
+  background-color: rgba(30, 30, 30, 0.7);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.floating-search:focus-within {
+  background-color: rgba(40, 40, 40, 0.85);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
+}
+
+.floating-search-icon {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.floating-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 11pt;
+}
+
+.floating-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.floating-search-input:focus {
+  outline: none;
+}
+
+.floating-search-clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.floating-search-clear:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.floating-actions {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0) + 80px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.floating-action {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(20, 20, 20, 0.7);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.floating-action:hover {
+  background-color: rgba(40, 40, 40, 0.85);
+}
+
 .title {
   grid-column: 4/15;
   font-weight: 300;
