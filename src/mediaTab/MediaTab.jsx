@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { api } from '../shared/lib/api';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Check, Plus, GripVertical, User } from 'lucide-react';
+import { Check, Plus, GripVertical, User, Clapperboard, Gamepad2, Dices } from 'lucide-react';
+import RetroTv from '../shared/components/Icons/RetroTv';
 import { Dialog } from '@mui/material';
 
 import SegmentedToggle from '../shared/components/SegmentedToggle/SegmentedToggle';
@@ -13,10 +14,10 @@ import { AuthContext } from '../shared/context/auth-context';
 import './MediaTab.css';
 
 const TYPE_CONFIG = {
-    movie: { title: 'Movies',      color: '#FCB016' },
-    tv:    { title: 'TV Shows',    color: '#F04C53' },
-    game:  { title: 'Video Games', color: '#2482C5' },
-    board: { title: 'Board Games', color: '#45B859' },
+    movie: { title: 'Movies',      color: '#FCB016', Icon: Clapperboard, noun: 'movie' },
+    tv:    { title: 'TV Shows',    color: '#F04C53', Icon: RetroTv,      noun: 'show' },
+    game:  { title: 'Video Games', color: '#2482C5', Icon: Gamepad2,     noun: 'game' },
+    board: { title: 'Board Games', color: '#45B859', Icon: Dices,        noun: 'game' },
 };
 
 const VIEW_OPTIONS = [
@@ -49,7 +50,7 @@ const MediaTab = () => {
     const { type } = useParams();
     const navigate = useNavigate();
     const auth = useContext(AuthContext);
-    const config = TYPE_CONFIG[type] || { title: type, color: '#FCB016' };
+    const config = TYPE_CONFIG[type] || { title: type, color: '#FCB016', Icon: null, noun: 'item' };
     const orderKey = `choice-champ:collections-order:${type}`;
 
     const [view, setView] = useState(() => getSavedView(type));
@@ -172,11 +173,28 @@ const MediaTab = () => {
         <div className='media-tab'>
             <div className='media-tab-sticky-header'>
                 <div className='media-tab-top-row'>
+                    <div className='media-tab-title-block'>
+                        {config.Icon && <config.Icon size={30} strokeWidth={1.75} color={config.color} />}
+                        <div className='media-tab-title-text'>
+                            <h1 className='media-tab-title' style={{ color: config.color }}>{config.title}</h1>
+                            {(() => {
+                                const count = collections.length;
+                                const totalItems = collections.reduce((s, c) => s + (Array.isArray(c.items) ? c.items.length : 0), 0);
+                                if (isLoading) return <p className='media-tab-subtitle'>&nbsp;</p>;
+                                if (count === 0) return <p className='media-tab-subtitle'>No collections yet</p>;
+                                return (
+                                    <p className='media-tab-subtitle'>
+                                        {count} {count === 1 ? 'collection' : 'collections'}
+                                        {totalItems > 0 && ` · ${totalItems} ${config.noun}${totalItems === 1 ? '' : 's'}`}
+                                    </p>
+                                );
+                            })()}
+                        </div>
+                    </div>
                     <button className='icon-btn' onClick={() => navigate('/profile')} aria-label='Profile'>
                         <User size={22} strokeWidth={2} />
                     </button>
                 </div>
-                <h1 className='media-tab-title' style={{ color: config.color }}>{config.title}</h1>
                 {!isReorder && (
                     <SegmentedToggle
                         options={VIEW_OPTIONS}
@@ -209,6 +227,15 @@ const MediaTab = () => {
 
             {view === 'collections' && (
                 <div className='floating-actions'>
+                    <button
+                        type='button'
+                        className='floating-action'
+                        onClick={handleNewCollection}
+                        aria-label='New collection'
+                        style={{ color: config.color, visibility: isReorder ? 'hidden' : 'visible' }}
+                    >
+                        <Plus size={22} strokeWidth={2.5} />
+                    </button>
                     {isReorder ? (
                         <button
                             type='button'
@@ -230,15 +257,6 @@ const MediaTab = () => {
                             <GripVertical size={22} strokeWidth={2.5} />
                         </button>
                     )}
-                    <button
-                        type='button'
-                        className='floating-action'
-                        onClick={handleNewCollection}
-                        aria-label='New collection'
-                        style={{ color: config.color, visibility: isReorder ? 'hidden' : 'visible' }}
-                    >
-                        <Plus size={22} strokeWidth={2.5} />
-                    </button>
                 </div>
             )}
 

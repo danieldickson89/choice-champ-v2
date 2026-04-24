@@ -357,31 +357,6 @@ const Collection = ({ socket }) => {
         <React.Fragment>
             <div className='collection-page'>
                 <div className='collection-sticky-header'>
-                    <div className='collection-top-row'>
-                        <button className='icon-btn' onClick={navBack} aria-label='Back'>
-                            <ArrowLeft size={22} strokeWidth={2.5} />
-                        </button>
-                        <div className='collection-top-row-right'>
-                            {!isEdit && (
-                                <button className='icon-btn sort-btn' onClick={openSort} aria-label='Sort and filter'>
-                                    <SlidersHorizontal size={20} strokeWidth={2.5} />
-                                    {isFiltering && (
-                                        <span className='sort-btn-badge' style={{ backgroundColor: collectionTypeColor }} />
-                                    )}
-                                </button>
-                            )}
-                            {isEdit ? (
-                                <button className='icon-btn' onClick={exitManage} aria-label='Done'>
-                                    <Check size={24} strokeWidth={3} />
-                                </button>
-                            ) : (
-                                <button className='icon-btn' onClick={openKebab} aria-label='More'>
-                                    <MoreVertical size={22} strokeWidth={2.5} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
                     {(() => {
                         const TypeIcon = collectionType === 'movie' ? Clapperboard
                             : collectionType === 'tv' ? RetroTv
@@ -397,12 +372,36 @@ const Collection = ({ socket }) => {
                             ? 'Empty collection'
                             : `${total} ${noun}${total === 1 ? '' : 's'}${watchedCount > 0 ? ` · ${watchedCount} ${verb}` : ''}`;
                         return (
-                            <div className='collection-title-block'>
-                                <div className='collection-title-row'>
-                                    <TypeIcon size={26} strokeWidth={1.75} color={collectionTypeColor} />
-                                    <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>
+                            <div className='collection-top-row'>
+                                <button className='icon-btn' onClick={navBack} aria-label='Back'>
+                                    <ArrowLeft size={22} strokeWidth={2.5} />
+                                </button>
+                                <div className='collection-title-block'>
+                                    <div className='collection-title-row'>
+                                        <TypeIcon size={22} strokeWidth={1.75} color={collectionTypeColor} />
+                                        <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>
+                                    </div>
+                                    <p className='collection-subtitle'>{subtitle}</p>
                                 </div>
-                                <p className='collection-subtitle'>{subtitle}</p>
+                                <div className='collection-top-row-right'>
+                                    {!isEdit && (
+                                        <button className='icon-btn sort-btn' onClick={openSort} aria-label='Sort and filter'>
+                                            <SlidersHorizontal size={20} strokeWidth={2.5} />
+                                            {isFiltering && (
+                                                <span className='sort-btn-badge' style={{ backgroundColor: collectionTypeColor }} />
+                                            )}
+                                        </button>
+                                    )}
+                                    {isEdit ? (
+                                        <button className='icon-btn' onClick={exitManage} aria-label='Done'>
+                                            <Check size={24} strokeWidth={3} />
+                                        </button>
+                                    ) : (
+                                        <button className='icon-btn' onClick={openKebab} aria-label='More'>
+                                            <MoreVertical size={22} strokeWidth={2.5} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         );
                     })()}

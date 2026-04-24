@@ -15,23 +15,49 @@
     background-color: #312E2E;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .media-tab-top-row {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
+    gap: 12px;
     width: 100%;
 }
 
+.media-tab-title-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.media-tab-title-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+}
+
 .media-tab-title {
-    margin: 6px 0 0 0;
-    padding: 0 8px;
+    margin: 0;
+    padding: 0;
     font-size: 22pt;
     font-weight: 700;
+    letter-spacing: 0.3px;
+    line-height: 1.1;
+}
+
+.media-tab-subtitle {
+    margin: 4px 0 0 0;
+    font-size: 9pt;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
     letter-spacing: 0.5px;
+    text-transform: uppercase;
     text-align: center;
 }
 

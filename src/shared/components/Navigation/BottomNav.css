@@ -6,12 +6,13 @@
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    height: 64px;
+    height: calc(72px + env(safe-area-inset-bottom, 0));
     background-color: #000000;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     align-items: stretch;
     z-index: 100;
+    padding-top: 12px;
     padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
