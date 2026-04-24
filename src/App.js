@@ -16,6 +16,7 @@ import { supabase } from './shared/lib/supabase';
 const Collection = lazy(() => import('./collection/pages/Collection'));
 const ItemDetails = lazy(() => import('./collection/pages/ItemDetails'));
 const Auth = lazy(() => import('./user/pages/Auth'));
+const PasswordReset = lazy(() => import('./user/pages/PasswordReset'));
 const Welcome = lazy(() => import('./welcome/pages/Welcome'));
 const PartyHome = lazy(() => import('./party/pages/PartyHome'));
 const PartyWait = lazy(() => import('./party/pages/PartyWait'));
@@ -132,6 +133,7 @@ function App() {
           <Route path="/profile" element={<Profile />} exact />
           <Route path="/profile/attribution" element={<Attribution />} exact />
           <Route path="/profile/contact" element={<Contact />} exact />
+          <Route path="/password-reset" element={<PasswordReset />} exact />
           <Route path="*" element={<Navigate to="/collections/movie" />} />
         </Routes>
       </Suspense>
@@ -141,6 +143,7 @@ function App() {
       <Suspense fallback={<Loading color='#FCB016' />}>
         <Routes>
             <Route path="/" element={<Auth />} exact />
+            <Route path="/password-reset" element={<PasswordReset />} exact />
             <Route path="/party/joinParty" element={<JoinParty />} exact />
             <Route path="/party/wait/:code" element={<PartyWait />} exact />
             <Route path="/party/:code" element={<Party />} exact />
