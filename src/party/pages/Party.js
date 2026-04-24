@@ -8,11 +8,12 @@ import Loading from '../../shared/components/Loading';
 import { AuthContext } from '../../shared/context/auth-context';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faFlagCheckered } from '@fortawesome/free-solid-svg-icons';
-import { ArrowLeft } from 'lucide-react';
-import dice from '../../shared/assets/img/dices.png';
+import { X, Dices, Flag, Minus, Plus } from 'lucide-react';
 
 import './Party.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
+
+const MAX_RUNNER_UPS = 8;
 
 const Party = ({ socket }) => {
     const auth = useContext(AuthContext);
@@ -40,13 +41,6 @@ const Party = ({ socket }) => {
     const [randomSelected, setRandomSelected] = useState(false);
     const [finishEarly, setFinishEarly] = useState(false);
     const [finished, setFinished] = useState(false);
-    const [newCollectionName, setNewCollectionName] = useState('');
-    const [newCollectionSaving, setNewCollectionSaving] = useState(false);
-    const [newCollectionCreated, setNewCollectionCreated] = useState(false);
-
-    // Variables for watch dropdowns
-    const [activeRunnerup, setActiveRunnerup] = useState({});
-    const [loadingRunnerUpProviders, setLoadingRunnerUpProviders] = useState(false);
 
     const collectionPointRef = useRef(collectionItems);
     const votesNeededRef = useRef(votesNeeded);
@@ -65,8 +59,18 @@ const Party = ({ socket }) => {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if(!response.ok) {
+                return null;
+            }
+            return response.json();
+        })
         .then(body => {
+            if(!body || !body.party) {
+                navigate('/party');
+                return;
+            }
+
             if(body.owner) {
                 setUserType('owner');
             }
@@ -162,19 +166,8 @@ const Party = ({ socket }) => {
             setRandomSelected(true);
 
             // Set the rest of the items that are not the random item to be the runner ups
-            const runnerUpsTemp = collectionPointRef.current.filter(item => item.id !== id);
+            const runnerUpsTemp = collectionPointRef.current.filter(item => item.id !== id).slice(0, MAX_RUNNER_UPS);
             setRunnerUps(runnerUpsTemp);
-
-            if(mediaTypeRef.current === 'movie' || mediaTypeRef.current === 'tv') {
-                // Make a fetch request for the first item in the runnerUps array and add a provider property to it
-                let response = await fetch(`${BACKEND_URL}/media/getInfo/${mediaTypeRef.current}/${runnerUpsTemp[0].itemId}`);
-
-                let body = await response.json();
-                runnerUpsTemp[0].providers = body.media.providers;
-                runnerUpsTemp[0].active = true;
-
-                setActiveRunnerup(runnerUpsTemp[0]);
-            }
 
             setTimeout(() => {
                 setSlideDown(true);
@@ -236,19 +229,9 @@ const Party = ({ socket }) => {
                 } else {
                     if (filteredItems.length === 1) {
                         // Set runners up to the remaining items
-                        const runnerUpsTemp = collectionPointRef.current.filter(item => item.votes < votesNeededRef.current);
+                        const runnerUpsTemp = collectionPointRef.current.filter(item => item.votes < votesNeededRef.current).slice(0, MAX_RUNNER_UPS);
                         setRunnerUps(runnerUpsTemp);
 
-                        if(mediaTypeRef.current === 'movie' || mediaTypeRef.current === 'tv') {
-                            // Make a fetch request for the first item in the runnerUps array and add a provider property to it
-                            let response = await fetch(`${BACKEND_URL}/media/getInfo/${mediaTypeRef.current}/${runnerUpsTemp[0].itemId}`);
-
-                            let body = await response.json();
-                            runnerUpsTemp[0].providers = body.media.providers;
-                            runnerUpsTemp[0].active = true;
-
-                            setActiveRunnerup(runnerUpsTemp[0]);
-                        }
                     }
 
                     setTimeout(() => {
@@ -414,19 +397,9 @@ const Party = ({ socket }) => {
                 } else {
                     if (filteredItems.length === 1) {
                         // Set runners up to the remaining items
-                        const runnerUpsTemp = collectionItems.filter(item => item.votes < votesNeededRef.current);
+                        const runnerUpsTemp = collectionItems.filter(item => item.votes < votesNeededRef.current).slice(0, MAX_RUNNER_UPS);
                         setRunnerUps(runnerUpsTemp);
 
-                        if(mediaTypeRef.current === 'movie' || mediaTypeRef.current === 'tv') {
-                            // Make a fetch request for the first item in the runnerUps array and add a provider property to it
-                            let response = await fetch(`${BACKEND_URL}/media/getInfo/${mediaTypeRef.current}/${runnerUpsTemp[0].itemId}`);
-
-                            let body = await response.json();
-                            runnerUpsTemp[0].providers = body.media.providers;
-                            runnerUpsTemp[0].active = true;
-
-                            setActiveRunnerup(runnerUpsTemp[0]);
-                        }
                     }
 
                     setTimeout(() => {
@@ -538,20 +511,8 @@ const Party = ({ socket }) => {
         randomItem.voted = false;
 
         // Set the rest of the items that are not the random item to be the runner ups
-        const runnerUpsTemp = collectionItems.filter(item => item.id !== randomItem.id);
+        const runnerUpsTemp = collectionItems.filter(item => item.id !== randomItem.id).slice(0, MAX_RUNNER_UPS);
         setRunnerUps(runnerUpsTemp);
-
-        if(mediaTypeRef.current === 'movie' || mediaTypeRef.current === 'tv') {
-            // Make a fetch request for the first item in the runnerUps array and add a provider property to it
-            let response = await fetch(`${BACKEND_URL}/media/getInfo/${mediaTypeRef.current}/${runnerUpsTemp[0].itemId}`);
-
-            let body = await response.json();
-            runnerUpsTemp[0].providers = body.media.providers;
-
-            runnerUpsTemp[0].active = true;
-
-            setActiveRunnerup(runnerUpsTemp[0]);
-        }
 
         setTimeout(() => {
             setSlideDown(true);
@@ -602,162 +563,69 @@ const Party = ({ socket }) => {
         }, 1500);
     }
 
-    const changeActiveRunnerUp = (id) => {
-
-        const item = runnerUps.find(item => item.itemId === id);
-        const activeItem = runnerUps.find(item => item.active === true);
-
-        if(item.itemId === activeItem.itemId) {
-            return;
-        } else {
-            if(item.providers) {
-                setActiveRunnerup(item);
-                activeItem.active = false;
-                item.active = true;
-                setRunnerUps([...runnerUps]);
-                return;
-            } else {
-                activeItem.active = false;
-                item.active = true;
-                setLoadingRunnerUpProviders(true);
-                fetch(`${BACKEND_URL}/media/getInfo/${mediaTypeRef.current}/${item.itemId}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(body => {
-                    item.providers = body.media.providers;
-                    setActiveRunnerup(item);
-                    setRunnerUps([...runnerUps]);
-                    setLoadingRunnerUpProviders(false);
-                });
-            
-            }
-        }
-    }
-
-    const exportFinished = () => {
-        setNewCollectionSaving(true);
-
-        // Send new collection name to the backend
-        fetch(`${BACKEND_URL}/collections/${auth.userId}`,
-        {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: newCollectionName,
-                type: mediaType,
-            })
-        }).then(response => response.json())
-        .then(body => {
-            let items = collectionItems.map(item => {
-                return {
-                    id: item.itemId,
-                    title: item.title,
-                    poster: item.poster
-                }
-            });
-
-            // Add all the items to the collection
-            fetch(`${BACKEND_URL}/collections/items/${body.collection._id}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify([...items])
-            })
-            .then(response => {
-                setNewCollectionSaving(false);
-                setNewCollectionCreated(true);
-            });
-        });
-    }
+const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !finished;
 
   return (
-    <div className='content'>
+    <div className='content party-voting'>
         { (collectionItems.length === 1 || finished) && ( <Confetti height={Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight ) } width={window.innerWidth} style={{zIndex: -1}}/> )}
-        <div className='page-topbar'>
-            <button className="icon-btn" onClick={navToParty} aria-label="Back">
-                <ArrowLeft size={22} strokeWidth={1.75} />
-            </button>
+
+        <div className='party-voting-sticky-header'>
+            <div className='party-voting-top-row'>
+                <button className='icon-btn' onClick={navToParty} aria-label='Cancel party'>
+                    <X size={22} strokeWidth={2} />
+                </button>
+                {isOwnerVoting && (
+                    <div className='party-voting-actions'>
+                        <button className='icon-btn' onClick={selectFlag} aria-label='End voting early'>
+                            <Flag size={22} strokeWidth={2} />
+                        </button>
+                        <button className='icon-btn' onClick={selectRandom} aria-label='Random pick'>
+                            <Dices size={22} strokeWidth={2} />
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {isOwnerVoting && totalUsers > 1 && (
+                <div className='party-voting-votes-needed'>
+                    <span className='party-voting-votes-label'>Votes Needed</span>
+                    <div className='party-voting-votes-stepper'>
+                        <button
+                            type='button'
+                            className='party-voting-votes-step'
+                            onClick={() => {
+                                const next = Math.max(1, Number(votesNeeded) - 1);
+                                setVotesNeeded(next);
+                                votesNeededRef.current = next;
+                                socket.emit('votes-needed-remote', next, code);
+                            }}
+                            disabled={Number(votesNeeded) <= 1}
+                            aria-label='Decrease votes needed'
+                        >
+                            <Minus size={20} strokeWidth={3} />
+                        </button>
+                        <span className='party-voting-votes-value'>{votesNeeded}</span>
+                        <button
+                            type='button'
+                            className='party-voting-votes-step'
+                            onClick={() => {
+                                const next = Math.min(totalUsers, Number(votesNeeded) + 1);
+                                setVotesNeeded(next);
+                                votesNeededRef.current = next;
+                                socket.emit('votes-needed-remote', next, code);
+                            }}
+                            disabled={Number(votesNeeded) >= totalUsers}
+                            aria-label='Increase votes needed'
+                        >
+                            <Plus size={20} strokeWidth={3} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
-        { (userType === 'owner' && collectionItems.length > 1 && !finished) ? (
-            <div className='votes-needed-section'>
-                <p className='votes-needed-title'>Votes Needed</p>
-                <input 
-                    type='number'
-                    className='votes-needed-input'
-                    value={votesNeeded}
-                    min={1}
-                    onChange={e => {
-                        // Check if e.target.value is a number
-                        if (e.target.value === '' ) {
-                            setVotesNeeded(e.target.value);
-                            votesNeededRef.current = e.target.value;
-                        } else if(isNaN(e.target.value)) {
-                            setVotesNeeded(1);
-                            votesNeededRef.current = 1;
-                            socket.emit('votes-needed-remote', 1, code);
-                        } else if(e.target.value > totalUsersRef.current) {
-                            setVotesNeeded(totalUsersRef.current);
-                            votesNeededRef.current = totalUsersRef.current;
-                            socket.emit('votes-needed-remote', totalUsersRef.current, code);
-                        } else if(e.target.value < 1) {
-                            setVotesNeeded(1);
-                            votesNeededRef.current = 1;
-                            socket.emit('votes-needed-remote', 1, code);
-                        } else {
-                            setVotesNeeded(e.target.value);
-                            votesNeededRef.current = e.target.value;
-                            socket.emit('votes-needed-remote', e.target.value, code);
-                        }
-                    }}
-                />
-            </div>)
-            : <div className='guest-banner'></div>
-        }
-        { (userType === 'owner' && collectionItems.length > 1 && !finished) && (
-            <div className='flag-section party-icon-section clickable'>
-                <FontAwesomeIcon icon={faFlagCheckered} className="flag clickable" onClick={selectFlag} />
-            </div>
-        )}
-        { (userType === 'owner' && collectionItems.length > 1 && !finished) && (
-            <div className='dice-section party-icon-section clickable'>
-                <img src={dice} className="dice" alt='Dice' onClick={selectRandom} />
-            </div>
-        ) }
         {
             finished && (
                 <div className='finished-title'>CHOICE CHAMPIONS!</div>
-            )
-        }
-        {
-            (finished && userType === 'owner' && !newCollectionCreated && !newCollectionSaving) && (
-                <div id="export-section">
-                    <input className='text-input' id='collection-name' type='text' placeholder='Collection Name' value={newCollectionName} onChange={e => setNewCollectionName(e.target.value)} />
-                    <Button className='export-btn' onClick={exportFinished}>Create Collection</Button>
-                </div>
-            )
-        }
-        {
-            newCollectionSaving && (
-                // Loading spinner
-                <div className='collection-saving'>
-                    <Loading color='#FCB016' type='beat' className='collection-saving-loading' size={20} speed={.5} />
-                </div>
-            )
-        }
-        {
-            newCollectionCreated && (
-                <div className='collection-created'>
-                    Collection <b style={{color: '#FCB016'}}>{newCollectionName}</b> has been created!
-                </div>
             )
         }
         <div className='collection-content-other'>
@@ -774,34 +642,26 @@ const Party = ({ socket }) => {
                         />
                         {
                             (mediaType === 'movie' || mediaType === 'tv') ? (
-                                <React.Fragment>
-                                    <p className='sub-title-where-to-watch'>
-                                        Where to Watch
-                                    </p>
+                                <div className='winner-details-card'>
                                     <p className='winner-title'>{collectionItems[0].title}</p>
-                                    <div className='providers-list'>
-                                        <div className='details-provider-title'>
-                                            <span>Stream</span>
-                                        </div>
-                                        <div className='details-provider-seperator'></div>
-                                        { 
-                                            providers.stream ?
-                                            (
-                                                <div className='details-provider-list'>
-                                                    {
-                                                        providers.stream.map(provider => (
-                                                            (<div className='details-provider-item' key={provider.provider_name}>
-                                                                <img className='provider-img' src={`https://image.tmdb.org/t/p/w500${provider.logo_path}`} alt={provider.provider_name} />
-                                                            </div>)
-                                                        ))
-                                                    }
-                                                </div>
-                                            ) : (
-                                                <div className='providers-not-available'>Not available to stream</div>
-                                            )
-                                        }
+                                    <div className='details-provider-title'>
+                                        <span>Stream</span>
                                     </div>
-                                </React.Fragment>
+                                    <div className='details-provider-seperator'></div>
+                                    {
+                                        providers.stream ? (
+                                            <div className='details-provider-list'>
+                                                {providers.stream.map(provider => (
+                                                    <div className='details-provider-item' key={provider.provider_name}>
+                                                        <img className='provider-img' src={`https://image.tmdb.org/t/p/w500${provider.logo_path}`} alt={provider.provider_name} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className='providers-not-available'>Not available to stream</div>
+                                        )
+                                    }
+                                </div>
                             ) : <p className='winner-title'>{collectionItems[0].title}</p>
                         }
                         <div className='winner-divider'></div>
@@ -811,67 +671,16 @@ const Party = ({ socket }) => {
                             </p>
                             {
                                     runnerUps.length > 0 && (
-                                        <React.Fragment>
-                                            {
-                                                (mediaType === 'movie' || mediaType === 'tv') ? (
-                                                    <React.Fragment>
-                                                        <p className='sub-title-where-to-watch'>
-                                                            Where to Watch
-                                                        </p>
-                                                        <div className='runner-up-active-title'>{activeRunnerup.title}</div>
-                                                        <React.Fragment>
-                                                            { 
-                                                                !loadingRunnerUpProviders ? (
-                                                                    <div className='providers-list'>
-                                                                        <div className='details-provider-title'>
-                                                                            <span>Stream</span>
-                                                                        </div>
-                                                                        <div className='details-provider-seperator'></div>
-                                                                        { 
-                                                                            activeRunnerup.providers.stream ?
-                                                                            (
-                                                                                <div className='details-provider-list'>
-                                                                                    {
-                                                                                        activeRunnerup.providers.stream.map(provider => (
-                                                                                            (<div className='details-provider-item' key={provider.provider_name}>
-                                                                                                <img className='provider-img' src={`https://image.tmdb.org/t/p/w500${provider.logo_path}`} alt={provider.provider_name} />
-                                                                                            </div>)
-                                                                                        ))
-                                                                                    }
-                                                                                </div>
-                                                                            ) : (
-                                                                                <div className='providers-not-available'>Not available to stream</div>
-                                                                            )
-                                                                        }
-                                                                    </div> 
-                                                                ) : <Loading color='#FCB016' type='beat' className='runner-up-providers-loading' size={20} speed={.5} />
-                                                            }
-                                                        </React.Fragment>
-                                                    </React.Fragment>
-                                                ) : null
-                                            }
-                                            <div className='runner-up-watchable'>
-                                                {
-                                                    runnerUps.map(item => (
-                                                        <div key={item.id} className='runner-up-watchable-item' 
-                                                        onClick={() => { 
-                                                            if(mediaTypeRef.current === 'movie' || mediaTypeRef.current === 'tv') {
-                                                                changeActiveRunnerUp(item.itemId) 
-                                                            }
-                                                        }}>
-                                                            <img src={item.poster} alt={`${item.title} poster`} className='runner-up-watchable-img' style={item.active ? {border: 'solid 5px #FCB016'} : null } />
-                                                            { 
-                                                                item.superChoice &&
-                                                                    <FontAwesomeIcon
-                                                                        icon={faStar}
-                                                                        className='runner-up-super-choice'
-                                                                    />
-                                                            }
-                                                        </div>
-                                                    ))
-                                                }
-                                            </div>
-                                        </React.Fragment>
+                                        <div className='runner-up-watchable'>
+                                            {runnerUps.map(item => (
+                                                <div key={item.id} className='runner-up-watchable-item'>
+                                                    <img src={item.poster} alt={`${item.title} poster`} className='runner-up-watchable-img' />
+                                                    {item.superChoice && (
+                                                        <FontAwesomeIcon icon={faStar} className='runner-up-super-choice' />
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
                                     )
                                 }
                         </div>
@@ -905,7 +714,7 @@ const Party = ({ socket }) => {
         </div>
         { 
             (collectionItems.length > 1) && ( 
-                !ready ? ( (!randomSelected && !finishEarly) ? <Button className='finish-voting-btn' onClick={userReady}>Ready</Button> : null )
+                !ready ? ( (!randomSelected && !finishEarly) ? <Button className='finish-voting-btn' onClick={userReady} backgroundColor='#000' color='#fff'>Ready</Button> : null )
                 : <div 
                     className='ready-overlay' 
                     onClick={ totalUsers > 1 ? userNotReady : null} 
@@ -940,7 +749,7 @@ const Party = ({ socket }) => {
                         slideDown ? { transform: 'translateY(100vh)', transition: 'transform 2s ease-in-out' } : null
                     }
                 >
-                    <img src={dice} className='random-selected-dice' alt='Dice' />
+                    <Dices size={96} strokeWidth={1.5} color='#FCB016' className='random-selected-dice' />
                 </div>
             )
         }

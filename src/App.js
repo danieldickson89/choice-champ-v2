@@ -20,6 +20,7 @@ import { AuthContext } from './shared/context/auth-context';
 // This can help with performance by only loading what is needed at the time.
 const Collection = lazy(() => import('./collection/pages/Collection'));
 const Search = lazy(() => import('./collection/pages/Search'));
+const ItemDetails = lazy(() => import('./collection/pages/ItemDetails'));
 const Auth = lazy(() => import('./user/pages/Auth'));
 const Welcome = lazy(() => import('./welcome/pages/Welcome'));
 const PartyHome = lazy(() => import('./party/pages/PartyHome'));
@@ -187,6 +188,7 @@ function App() {
           <Route path="/collections/:type" element={<MediaTabByType />} exact />
           <Route path="/collections/:type/:id" element={<Collection socket={socket} />} exact />
           <Route path="/collections/:type/:id/add" element={<Search socket={socket} />} exact />
+          <Route path="/items/:type/:itemId" element={<ItemDetails />} exact />
           <Route path="/party" element={<PartyHome />} exact />
           <Route path="/party/wait/:code" element={<PartyWait socket={socket} />} exact />
           <Route path="/party/:code" element={<Party socket={socket} />} exact />

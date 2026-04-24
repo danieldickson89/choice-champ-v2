@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search as SearchIcon, X } from 'lucide-react';
 
 import { SUBTABS, fetchDiscover, fetchSearch } from './discoverApi';
-import ItemDetailsModal from '../collection/components/ItemDetailsModal';
 import './Discover.css';
 
 const SUPPORTED_TYPES = ['movie', 'tv', 'board'];
@@ -19,6 +19,7 @@ const Discover = ({ collectionType, color }) => {
 };
 
 const DiscoverFeed = ({ collectionType, color }) => {
+    const navigate = useNavigate();
     const subtabs = SUBTABS[collectionType];
     const [activeSubtab, setActiveSubtab] = useState(subtabs[0].key);
     const [query, setQuery] = useState('');
@@ -26,7 +27,6 @@ const DiscoverFeed = ({ collectionType, color }) => {
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedItem, setSelectedItem] = useState(null);
 
     const trimmedQuery = debouncedQuery.trim();
     const isSearching = trimmedQuery.length > 0;
@@ -61,7 +61,7 @@ const DiscoverFeed = ({ collectionType, color }) => {
     }, [activeSubtab, collectionType, trimmedQuery, isSearching]);
 
     const openItem = (item) => {
-        setSelectedItem({ itemId: item.id, title: item.title, poster: item.poster });
+        navigate(`/items/${collectionType}/${item.id}`);
     };
 
     return (
@@ -134,12 +134,6 @@ const DiscoverFeed = ({ collectionType, color }) => {
                 </div>
             )}
 
-            <ItemDetailsModal
-                open={selectedItem !== null}
-                item={selectedItem}
-                collectionType={collectionType}
-                onClose={() => setSelectedItem(null)}
-            />
         </div>
     );
 };

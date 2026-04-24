@@ -8,7 +8,6 @@ import { Menu, MenuItem, Dialog } from '@mui/material';
 
 import './Collection.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
-import ItemDetailsModal from '../components/ItemDetailsModal';
 import ManageItemRow from '../components/ManageItemRow';
 import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterPanel';
 import {
@@ -271,28 +270,13 @@ const Collection = ({ socket }) => {
         navigate(`/collections/${collectionType}`);
     }
 
-    const [activeDetailItemId, setActiveDetailItemId] = useState(null);
-    const openDetails = (id) => setActiveDetailItemId(id);
-    const closeDetails = () => setActiveDetailItemId(null);
-
-    const activeItem = useMemo(
-        () => (activeDetailItemId === null ? null : items.find(i => i.itemId === activeDetailItemId) || null),
-        [items, activeDetailItemId]
-    );
-
-    const toggleWatched = (id, currentWatched) => {
-        fetch(`${BACKEND_URL}/collections/items/${collectionId}/${id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ watched: !currentWatched }),
-        }).then(() => {
-            const next = itemsRef.current.map(item =>
-                item._id === id ? { ...item, watched: !currentWatched } : item
-            );
-            itemsRef.current = next;
-            setItems(next);
-            socket.emit('watched-remote-item', id, collectionId);
+    const openDetails = (item) => {
+        const params = new URLSearchParams({
+            cid: collectionId,
+            mid: item._id,
+            w: item.watched ? '1' : '0',
         });
+        navigate(`/items/${collectionType}/${item.itemId}?${params.toString()}`);
     };
 
     const sensors = useSensors(
@@ -454,7 +438,7 @@ const Collection = ({ socket }) => {
                                 className='collection-item'
                                 id={item.itemId}
                                 key={item.itemId}
-                                onClick={() => openDetails(item.itemId)}
+                                onClick={() => openDetails(item)}
                             >
                                 <PlaceholderImg
                                     voted={null}
@@ -469,15 +453,6 @@ const Collection = ({ socket }) => {
                     </div>
                 )}
             </div>
-            <ItemDetailsModal
-                open={activeDetailItemId !== null}
-                item={activeItem}
-                collectionType={collectionType}
-                collectionId={collectionId}
-                onClose={closeDetails}
-                onToggleWatched={toggleWatched}
-            />
-
             <Menu
                 anchorEl={kebabAnchor}
                 open={Boolean(kebabAnchor)}

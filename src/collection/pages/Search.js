@@ -9,15 +9,14 @@ import { Dialog } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXmark, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 
 import './Search.css';
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Search as SearchIcon, X } from 'lucide-react';
 
 import circle from '../../shared/assets/img/circle.png';
 import check from '../../shared/assets/img/check.png';
-import searchIcon from '../../shared/assets/img/search.svg';
 import PlaceholderImg from '../../shared/components/PlaceholderImg'
 
 const Search = ({ socket }) => {
@@ -430,14 +429,21 @@ const Search = ({ socket }) => {
                     <ArrowLeft size={22} strokeWidth={1.75} />
                 </button>
             </div>
-            <h2 className={`title color-${collectionType}`}>{collectionName}</h2>
+            <h1 className='search-title' style={{ color: collectionTypeColor }}>{collectionName}</h1>
             <div className='search-bar-container'>
-                <img src={searchIcon} alt='Search icon' className='search-icon' />
+                <SearchIcon size={18} strokeWidth={2} className='search-icon' aria-hidden='true' />
                 <input className='search-bar' id='search' placeholder='Search' onChange={changeHandler} ref={searchRef} />
-                {
-                    activeSearch &&
-                    <FontAwesomeIcon icon={faXmark} size="lg" className='clear-search clickable' onClick={() => { searchRef.current.value = ''; updateList(''); setActiveSearch(false) }} />
-                }
+                {activeSearch && (
+                    <button
+                        type='button'
+                        className='search-clear'
+                        onClick={() => { searchRef.current.value = ''; updateList(''); setActiveSearch(false); }}
+                        aria-label='Clear search'
+                        style={{ color: collectionTypeColor }}
+                    >
+                        <X size={18} strokeWidth={2.5} />
+                    </button>
+                )}
             </div>
             { noMatch && <p className='no-match'>No matches found</p>}
             {
