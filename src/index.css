@@ -538,3 +538,144 @@ button:disabled {
     width: 28%;
   }
 }
+
+/* ---------- Shared dialog pattern ------------------------------------
+   Used by all MUI <Dialog> instances. Apply
+   PaperProps={{ className: 'cc-dialog-paper' }} for the dark card, then
+   wrap contents in .cc-dialog.
+   ------------------------------------------------------------------- */
+
+.cc-dialog-paper {
+  background-color: rgb(58, 58, 58) !important;
+  border-radius: 20px !important;
+  border: 2px solid #0c0c0cad !important;
+}
+
+.cc-dialog {
+  padding: 28px 24px;
+  color: #e8e8e8;
+}
+
+.cc-dialog-title {
+  margin: 0 0 10px 0;
+  font-weight: 700;
+  color: #fff;
+  font-size: 14pt;
+  text-align: center;
+}
+
+.cc-dialog-subtitle {
+  color: #aaa;
+  font-size: 10pt;
+  margin: 0 0 20px 0;
+  text-align: center;
+  line-height: 1.45;
+}
+
+.cc-dialog-subtitle strong { color: #fff; }
+
+.cc-dialog-input {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12pt;
+  -webkit-appearance: none;
+}
+
+.cc-dialog-input:focus {
+  outline: none;
+  border-color: #FCB016;
+}
+
+.cc-dialog-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.cc-dialog-hint {
+  margin: 10px 0 0 0;
+  font-size: 10pt;
+  color: #aaa;
+  text-align: center;
+}
+
+.cc-dialog-hint strong {
+  color: #ff6b6b;
+  letter-spacing: 1px;
+}
+
+.cc-dialog-error {
+  margin: 10px 0 0 0;
+  font-size: 10pt;
+  color: #ff6b6b;
+  text-align: center;
+}
+
+.cc-dialog-divider {
+  display: flex;
+  align-items: center;
+  color: #888;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 22px 0;
+}
+
+.cc-dialog-divider::before,
+.cc-dialog-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cc-dialog-divider::before { margin-right: 12px; }
+.cc-dialog-divider::after  { margin-left: 12px; }
+
+.cc-dialog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cc-dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.cc-dialog-btn {
+  flex: 1;
+  padding: 11px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 11pt;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out, opacity 150ms ease-out;
+}
+
+.cc-dialog-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.cc-dialog-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8e8e8;
+}
+.cc-dialog-btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); }
+
+.cc-dialog-btn-primary {
+  background: #FCB016;
+  color: #000;
+}
+.cc-dialog-btn-primary:hover:not(:disabled) { background: #ffc747; }
+
+.cc-dialog-btn-danger {
+  background: #c53030;
+  color: #fff;
+}
+.cc-dialog-btn-danger:hover:not(:disabled) { background: #e53e3e; }

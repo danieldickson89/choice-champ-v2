@@ -242,28 +242,54 @@ const MediaTab = () => {
                 </div>
             )}
 
-            <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth='lg'>
-                <div className='dialog-content'>
-                    <div className='dialog-sub-content'>
+            <Dialog
+                open={dialogOpen}
+                onClose={handleCloseDialog}
+                fullWidth
+                maxWidth='xs'
+                PaperProps={{ className: 'cc-dialog-paper' }}
+            >
+                <div className='cc-dialog'>
+                    <h3 className='cc-dialog-title'>Add a Collection</h3>
+
+                    <div className='cc-dialog-section'>
                         <input
-                            className='text-input'
+                            className='cc-dialog-input'
                             type='text'
-                            placeholder='collection name'
+                            placeholder='Collection name'
                             ref={inputCollectionRef}
                         />
-                        <Button backgroundColor={config.color} onClick={handleAddCollection}>Create Collection</Button>
-                        {nameError && <p className='error' style={{ textAlign: 'center' }}>{nameErrorText}</p>}
-                        <p className='or'>OR</p>
+                        <button
+                            type='button'
+                            className='cc-dialog-btn cc-dialog-btn-primary'
+                            style={{ background: config.color }}
+                            onClick={handleAddCollection}
+                        >
+                            Create Collection
+                        </button>
+                        {nameError && <p className='cc-dialog-error'>{nameErrorText}</p>}
+                    </div>
+
+                    <div className='cc-dialog-divider'>OR</div>
+
+                    <div className='cc-dialog-section'>
                         <input
-                            className='text-input'
+                            className='cc-dialog-input'
                             type='number'
                             min={10000}
                             max={99999}
-                            placeholder='share code'
+                            placeholder='Share code'
                             ref={inputJoinRef}
                         />
-                        <Button backgroundColor={config.color} onClick={handleJoinCollection}>Join Collection</Button>
-                        <p className='error' style={{ textAlign: 'center' }}>{joinError}</p>
+                        <button
+                            type='button'
+                            className='cc-dialog-btn cc-dialog-btn-primary'
+                            style={{ background: config.color }}
+                            onClick={handleJoinCollection}
+                        >
+                            Join Collection
+                        </button>
+                        {joinError && <p className='cc-dialog-error'>{joinError}</p>}
                     </div>
                 </div>
             </Dialog>

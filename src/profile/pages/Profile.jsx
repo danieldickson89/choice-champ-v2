@@ -176,26 +176,37 @@ const Profile = () => {
                 </section>
             </div>
 
-            <Dialog open={logoutOpen} onClose={() => setLogoutOpen(false)} fullWidth maxWidth='xs'>
-                <div className='profile-confirm'>
-                    <h2>Log out?</h2>
-                    <p>You'll need to sign in again to get back to your collections.</p>
-                    <div className='profile-confirm-buttons'>
-                        <Button onClick={() => setLogoutOpen(false)}>Cancel</Button>
-                        <Button onClick={auth.logout} backgroundColor='#b31212'>Log out</Button>
+            <Dialog
+                open={logoutOpen}
+                onClose={() => setLogoutOpen(false)}
+                fullWidth
+                maxWidth='xs'
+                PaperProps={{ className: 'cc-dialog-paper' }}
+            >
+                <div className='cc-dialog'>
+                    <h3 className='cc-dialog-title'>Log out?</h3>
+                    <p className='cc-dialog-subtitle'>You'll need to sign in again to get back to your collections.</p>
+                    <div className='cc-dialog-actions'>
+                        <button type='button' className='cc-dialog-btn cc-dialog-btn-secondary' onClick={() => setLogoutOpen(false)}>Cancel</button>
+                        <button type='button' className='cc-dialog-btn cc-dialog-btn-danger' onClick={auth.logout}>Log out</button>
                     </div>
                 </div>
             </Dialog>
 
-            <Dialog open={deleteOpen} onClose={closeDeleteDialog} fullWidth maxWidth='xs'>
-                <div className='profile-confirm'>
-                    <h2>Delete account?</h2>
-                    <p>This permanently removes your account and any collections only you own. This can't be undone.</p>
-                    <p className='profile-confirm-prompt'>
-                        Type <strong>{auth.username}</strong> to confirm.
+            <Dialog
+                open={deleteOpen}
+                onClose={closeDeleteDialog}
+                fullWidth
+                maxWidth='xs'
+                PaperProps={{ className: 'cc-dialog-paper' }}
+            >
+                <div className='cc-dialog'>
+                    <h3 className='cc-dialog-title'>Delete account?</h3>
+                    <p className='cc-dialog-subtitle'>
+                        This permanently removes your account and any collections only you own. This can't be undone.
                     </p>
                     <input
-                        className='profile-confirm-input'
+                        className='cc-dialog-input'
                         type='text'
                         autoComplete='off'
                         autoCapitalize='off'
@@ -205,15 +216,17 @@ const Profile = () => {
                         onChange={(e) => setDeleteConfirm(e.target.value)}
                         placeholder={auth.username || ''}
                     />
-                    <div className='profile-confirm-buttons'>
-                        <Button onClick={closeDeleteDialog}>Cancel</Button>
-                        <Button
+                    <p className='cc-dialog-hint'>Type <strong>{auth.username}</strong> to confirm.</p>
+                    <div className='cc-dialog-actions'>
+                        <button type='button' className='cc-dialog-btn cc-dialog-btn-secondary' onClick={closeDeleteDialog}>Cancel</button>
+                        <button
+                            type='button'
+                            className='cc-dialog-btn cc-dialog-btn-danger'
                             onClick={deleteAccount}
-                            backgroundColor={canDelete ? '#b31212' : '#5a2222'}
                             disabled={!canDelete}
                         >
                             Delete
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </Dialog>

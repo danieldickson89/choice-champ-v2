@@ -523,13 +523,18 @@ const Collection = ({ socket }) => {
                 onClose={() => setShareOpen(false)}
                 fullWidth
                 maxWidth='xs'
-                PaperProps={{ className: 'share-dialog-paper' }}
+                PaperProps={{ className: 'cc-dialog-paper' }}
             >
-                <div className='share-dialog'>
-                    <h3>Share this collection</h3>
-                    <p>Send this code to someone you'd like to share with:</p>
+                <div className='cc-dialog'>
+                    <h3 className='cc-dialog-title'>Share this collection</h3>
+                    <p className='cc-dialog-subtitle'>Send this code to someone you'd like to share with:</p>
                     <div className='share-code-display'>{shareCode}</div>
-                    <button className='share-copy-btn' onClick={handleCopyCode}>
+                    <button
+                        type='button'
+                        className='cc-dialog-btn cc-dialog-btn-primary'
+                        style={{ background: collectionTypeColor, marginTop: 4 }}
+                        onClick={handleCopyCode}
+                    >
                         {copied ? 'Copied!' : 'Copy code'}
                     </button>
                 </div>
@@ -540,21 +545,23 @@ const Collection = ({ socket }) => {
                 onClose={handleRenameCancel}
                 fullWidth
                 maxWidth='xs'
-                PaperProps={{ className: 'share-dialog-paper' }}
+                PaperProps={{ className: 'cc-dialog-paper' }}
             >
-                <div className='rename-dialog'>
-                    <h3>Rename collection</h3>
+                <div className='cc-dialog'>
+                    <h3 className='cc-dialog-title'>Rename collection</h3>
                     <input
-                        className='rename-input'
+                        className='cc-dialog-input'
                         value={renameDraft}
                         onChange={(e) => setRenameDraft(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSave(); }}
                         autoFocus
                     />
-                    <div className='rename-actions'>
-                        <button className='rename-cancel-btn' onClick={handleRenameCancel}>Cancel</button>
+                    <div className='cc-dialog-actions'>
+                        <button type='button' className='cc-dialog-btn cc-dialog-btn-secondary' onClick={handleRenameCancel}>Cancel</button>
                         <button
-                            className='rename-save-btn'
+                            type='button'
+                            className='cc-dialog-btn cc-dialog-btn-primary'
+                            style={{ background: collectionTypeColor }}
                             onClick={handleRenameSave}
                             disabled={!renameDraft.trim() || renameDraft.trim() === collectionName}
                         >
@@ -569,26 +576,27 @@ const Collection = ({ socket }) => {
                 onClose={handleDeleteCancel}
                 fullWidth
                 maxWidth='xs'
-                PaperProps={{ className: 'share-dialog-paper' }}
+                PaperProps={{ className: 'cc-dialog-paper' }}
             >
-                <div className='rename-dialog'>
-                    <h3>Delete collection?</h3>
-                    <p className='delete-warning'>
+                <div className='cc-dialog'>
+                    <h3 className='cc-dialog-title'>Delete collection?</h3>
+                    <p className='cc-dialog-subtitle'>
                         This will permanently delete <strong>{collectionName}</strong> and all its items. This cannot be undone.
                     </p>
-                    <p className='delete-instructions'>Type <strong>DELETE</strong> to confirm.</p>
                     <input
-                        className='rename-input'
+                        className='cc-dialog-input'
                         value={deleteConfirm}
                         onChange={(e) => setDeleteConfirm(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter' && deleteConfirm === 'DELETE') handleDeleteConfirm(); }}
                         placeholder='DELETE'
                         autoFocus
                     />
-                    <div className='rename-actions'>
-                        <button className='rename-cancel-btn' onClick={handleDeleteCancel}>Cancel</button>
+                    <p className='cc-dialog-hint'>Type <strong>DELETE</strong> to confirm.</p>
+                    <div className='cc-dialog-actions'>
+                        <button type='button' className='cc-dialog-btn cc-dialog-btn-secondary' onClick={handleDeleteCancel}>Cancel</button>
                         <button
-                            className='delete-confirm-btn'
+                            type='button'
+                            className='cc-dialog-btn cc-dialog-btn-danger'
                             onClick={handleDeleteConfirm}
                             disabled={deleteConfirm !== 'DELETE'}
                         >
