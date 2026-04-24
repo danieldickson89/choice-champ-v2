@@ -180,14 +180,12 @@ const MediaTab = () => {
                             {(() => {
                                 const count = collections.length;
                                 const totalItems = collections.reduce((s, c) => s + (Array.isArray(c.items) ? c.items.length : 0), 0);
-                                if (isLoading) return <p className='media-tab-subtitle'>&nbsp;</p>;
-                                if (count === 0) return <p className='media-tab-subtitle'>No collections yet</p>;
-                                return (
-                                    <p className='media-tab-subtitle'>
-                                        {count} {count === 1 ? 'collection' : 'collections'}
-                                        {totalItems > 0 && ` · ${totalItems} ${config.noun}${totalItems === 1 ? '' : 's'}`}
-                                    </p>
-                                );
+                                const text = isLoading
+                                    ? ' '
+                                    : count === 0
+                                        ? 'No collections yet'
+                                        : `${count} ${count === 1 ? 'collection' : 'collections'}${totalItems > 0 ? ` · ${totalItems} ${config.noun}${totalItems === 1 ? '' : 's'}` : ''}`;
+                                return <p className='media-tab-subtitle' data-ready={!isLoading}>{text}</p>;
                             })()}
                         </div>
                     </div>

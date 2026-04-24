@@ -376,7 +376,7 @@ const Collection = ({ socket }) => {
                                 <button className='icon-btn' onClick={navBack} aria-label='Back'>
                                     <ArrowLeft size={22} strokeWidth={2.5} />
                                 </button>
-                                <div className='collection-title-block'>
+                                <div className='collection-title-block' data-ready={!isLoading}>
                                     <div className='collection-title-row'>
                                         <TypeIcon size={22} strokeWidth={1.75} color={collectionTypeColor} />
                                         <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>

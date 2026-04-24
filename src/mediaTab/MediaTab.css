@@ -59,6 +59,12 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
     text-align: center;
+    opacity: 0;
+    transition: opacity 180ms ease-out;
+}
+
+.media-tab-subtitle[data-ready="true"] {
+    opacity: 1;
 }
 
 .media-tab-content {
