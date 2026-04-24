@@ -166,12 +166,12 @@ const Collection = ({ socket }) => {
 
         api(`/collections/items/${collectionId}`)
         .then(data => {
-            let ordered = data.items;
+            let ordered = Array.isArray(data?.items) ? data.items : [];
             const savedOrderRaw = localStorage.getItem(customOrderKey);
             if (savedOrderRaw) {
                 try {
                     const savedOrder = JSON.parse(savedOrderRaw);
-                    const byId = new Map(data.items.map(i => [i._id, i]));
+                    const byId = new Map(ordered.map(i => [i._id, i]));
                     const result = [];
                     for (const id of savedOrder) {
                         const item = byId.get(id);

@@ -9,6 +9,7 @@ import {
 
 import Loading from './shared/components/Loading';
 import BottomNav from './shared/components/Navigation/BottomNav';
+import ErrorBoundary from './shared/components/ErrorBoundary';
 
 import { AuthContext } from './shared/context/auth-context';
 import { supabase } from './shared/lib/supabase';
@@ -183,7 +184,7 @@ function App() {
       <Router>
         <main>
           {loading && <Loading color='#FCB016' className='page-loading' size={100} />}
-          {!loading && routes}
+          {!loading && <ErrorBoundary>{routes}</ErrorBoundary>}
           {
             (!loading && showInstallPrompt) && (
               <div id='download-banner'

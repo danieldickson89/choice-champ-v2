@@ -37,7 +37,7 @@ const CreateParty = props => {
     useEffect(() => {
         api(`/collections/movie/${auth.userId}`)
             .then(data => {
-                setCollections(data.collections);
+                setCollections(Array.isArray(data?.collections) ? data.collections : []);
                 setIsLoading(false);
             })
             .catch(err => {
@@ -52,7 +52,7 @@ const CreateParty = props => {
         api(`/collections/${type}/${auth.userId}`)
             .then(data => {
                 setSelectAlert(false);
-                setCollections(data.collections);
+                setCollections(Array.isArray(data?.collections) ? data.collections : []);
                 setIsLoading(false);
             })
             .catch(err => {
