@@ -243,18 +243,26 @@ button {
   transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
 }
 
-/* When the keyboard is up the bottom nav is already hidden and the viewport
-   meta's `interactive-widget=resizes-content` shrinks the layout viewport
-   above the keyboard, so `bottom: 12px` is literally just above the
-   keyboard/accessory bar on iOS 17.4+ / Chrome Android 108+. */
+/* Search mode: when the floating search input is focused, pin the search
+   bar to the top of the screen and hide all other sticky/floating UI.
+   This sidesteps iOS's visual-viewport and software-keyboard quirks —
+   the top of the layout viewport is always visible above the keyboard,
+   so there's nothing to track. */
 .cc-keyboard-open .floating-search {
-  bottom: calc(env(safe-area-inset-bottom, 0) + 12px);
+  top: calc(env(safe-area-inset-top, 0) + 12px);
+  bottom: auto;
   transition: none;
 }
 
 .cc-keyboard-open .floating-filter,
 .cc-keyboard-open .floating-actions {
   display: none;
+}
+
+/* Keep layout space so the content below doesn't shift on mode change. */
+.cc-keyboard-open .collection-sticky-header,
+.cc-keyboard-open .media-tab-sticky-header {
+  visibility: hidden;
 }
 
 .floating-search:focus-within {

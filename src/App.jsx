@@ -77,22 +77,19 @@ function App() {
   }, [applyProfile]);
 
   useEffect(() => {
-    // With `interactive-widget=resizes-content` in the viewport meta, iOS
-    // (17.4+) and Chrome Android (108+) shrink the layout viewport when the
-    // software keyboard opens — so `position: fixed; bottom: N` and
-    // `position: sticky; top: 0` both behave correctly without any JS.
-    // This effect just toggles a class so CSS can switch between
-    // nav-open and keyboard-open layouts.
+    // When the floating search input is focused, enter "search mode":
+    // CSS pins the search bar to the top of the screen and hides the
+    // sticky headers and other floating UI. This sidesteps iOS's
+    // viewport quirks entirely — we don't try to keep fixed elements
+    // above the keyboard, we just move the one element we care about
+    // to the top of the visible area.
     const root = document.documentElement;
-    const isTextInput = (el) => !!el && (
-      el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
-    );
+    const isSearchInput = (el) => !!(el && el.classList && el.classList.contains('floating-search-input'));
     const onFocusIn = (e) => {
-      if (!isTextInput(e.target)) return;
-      root.classList.add('cc-keyboard-open');
+      if (isSearchInput(e.target)) root.classList.add('cc-keyboard-open');
     };
-    const onFocusOut = () => {
-      root.classList.remove('cc-keyboard-open');
+    const onFocusOut = (e) => {
+      if (isSearchInput(e.target)) root.classList.remove('cc-keyboard-open');
     };
     document.addEventListener('focusin', onFocusIn);
     document.addEventListener('focusout', onFocusOut);
