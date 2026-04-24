@@ -1,5 +1,6 @@
 
 import { BACKEND_URL } from '../../shared/config';
+import { api } from '../../shared/lib/api';
 import React, { useEffect, useState, useRef, useContext }  from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Button from '../../shared/components/FormElements/Button';
@@ -52,19 +53,8 @@ const Party = ({ socket }) => {
     useEffect(() => {
         auth.showFooterHandler(false);
         // Make a fetch request to the backend to get all the collectionItems for the party
-        fetch(`${BACKEND_URL}/party/${code}?userId=${auth.userId}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if(!response.ok) {
-                return null;
-            }
-            return response.json();
-        })
+        api(`/party/${code}?userId=${auth.userId}`)
+        .catch(err => { console.log(err); return null; })
         .then(body => {
             if(!body || !body.party) {
                 navigate('/party');
@@ -411,13 +401,7 @@ const Party = ({ socket }) => {
                                 window.scrollTo(0, 0);
 
                                 // Make a fetch request to delete the party from the database
-                                fetch(`${BACKEND_URL}/party/${code}`,
-                                {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                });
+                                api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));
 
                                 // Grab the watch options for the winner but only if the media type is movie or tv
                                 if(mediaTypeRef.current === 'movie' || mediaTypeRef.current === 'tv') {
@@ -482,10 +466,7 @@ const Party = ({ socket }) => {
 
     const navToParty = async () => {
         if(userType === 'owner' && collectionItems.length > 1) {
-            await fetch(`${BACKEND_URL}/party/${code}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            await api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));
             socket.emit('leave-room', code);
             socket.emit('party-remote-deleted', code);
         } else {
@@ -539,13 +520,7 @@ const Party = ({ socket }) => {
                 window.scrollTo(0, 0);
                 setRandomSelected(false);
 
-                fetch(`${BACKEND_URL}/party/${code}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+                api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));
             }, 2000);
         }, 1000);
 

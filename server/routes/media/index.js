@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const convert = require('xml-js');
 require('dotenv').config();
 
-const gameImageCacheModel = require('../../models/gameImageCache');
+const { supabase } = require('../../lib/supabase');
 
 const SGDB_NO_MATCH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const SGDB_LOOKUP_TIMEOUT_MS = 1500;
@@ -40,21 +40,23 @@ async function lookupSgdbPoster(title) {
 async function getSgdbPoster(rawgId, title) {
     if(!rawgId || !title) return null;
 
-    const cached = await gameImageCacheModel.findOne({ rawgId });
-    const now = Date.now();
+    const { data: cached } = await supabase
+        .from('game_image_cache')
+        .select('poster_url, updated_at')
+        .eq('rawg_id', rawgId)
+        .maybeSingle();
 
     if(cached) {
-        if(cached.posterUrl) return cached.posterUrl;
-        if(now - cached.updatedAt.getTime() < SGDB_NO_MATCH_TTL_MS) return null;
+        if(cached.poster_url) return cached.poster_url;
+        const age = Date.now() - new Date(cached.updated_at).getTime();
+        if(age < SGDB_NO_MATCH_TTL_MS) return null;
     }
 
     try {
         const posterUrl = await lookupSgdbPoster(title);
-        await gameImageCacheModel.findOneAndUpdate(
-            { rawgId },
-            { rawgId, title, posterUrl, updatedAt: new Date() },
-            { upsert: true }
-        );
+        await supabase
+            .from('game_image_cache')
+            .upsert({ rawg_id: rawgId, title, poster_url: posterUrl, updated_at: new Date().toISOString() });
         return posterUrl;
     } catch(err) {
         console.log('SGDB lookup failed for', rawgId, title, err.message);
@@ -418,16 +420,19 @@ router
         const titleById = new Map(items.map(i => [parseInt(i.id, 10), i.title]));
 
         try {
-            const cached = await gameImageCacheModel.find({ rawgId: { $in: rawgIds } });
-            const cacheMap = new Map(cached.map(c => [c.rawgId, c]));
+            const { data: cached = [] } = await supabase
+                .from('game_image_cache')
+                .select('rawg_id, poster_url, updated_at')
+                .in('rawg_id', rawgIds);
+            const cacheMap = new Map((cached || []).map(c => [c.rawg_id, c]));
             const now = Date.now();
             const uncachedIds = [];
 
             for(const id of rawgIds) {
                 const entry = cacheMap.get(id);
                 if(!entry) { uncachedIds.push(id); continue; }
-                if(entry.posterUrl) { result[id] = entry.posterUrl; continue; }
-                if(now - entry.updatedAt.getTime() > SGDB_NO_MATCH_TTL_MS) {
+                if(entry.poster_url) { result[id] = entry.poster_url; continue; }
+                if(now - new Date(entry.updated_at).getTime() > SGDB_NO_MATCH_TTL_MS) {
                     uncachedIds.push(id);
                 } else {
                     result[id] = null;

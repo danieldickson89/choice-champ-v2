@@ -1,5 +1,5 @@
 import React, { useRef, useState, useContext, useEffect } from 'react'
-import { BACKEND_URL } from '../../shared/config';
+import { api } from '../../shared/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Button from '../../shared/components/FormElements/Button';
@@ -22,16 +22,9 @@ const JoinParty = ({ embedded = false }) => {
         const joinCode = inputRef.current.value;
 
         if(joinCode.length === 4) {
-            fetch(`${BACKEND_URL}/party/exists/${joinCode}`)
-                .then(response => response.json())
-                .then(data => {
-                    if(data.code) {
-                        navigate(`/party/wait/${data.code}`);
-                    } else {
-                        setErrorMessage(data.errorMsg);
-                    }
-                })
-                .catch(err => console.log(err));
+            api(`/party/exists/${joinCode}`)
+                .then(data => navigate(`/party/wait/${data.code}`))
+                .catch(err => setErrorMessage(err.body?.errorMsg || 'No party found with that code'));
         } else {
             setErrorMessage('Join code must be 4 digits');
         }

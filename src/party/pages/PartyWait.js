@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
-import { BACKEND_URL } from '../../shared/config';
+import { api } from '../../shared/lib/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, Trophy, Dices, Flag, Star } from 'lucide-react';
 import { AuthContext } from '../../shared/context/auth-context';
@@ -29,8 +29,7 @@ const PartyWait = ({ socket }) => {
 
     useEffect(() => {
         auth.showFooterHandler(false);
-        fetch(`${BACKEND_URL}/party/${code}?userId=${auth.userId}`)
-            .then(response => response.json())
+        api(`/party/${code}?userId=${auth.userId}`)
             .then(body => {
                 let count = body.party.memberCount + 1;
                 setMediaType(body.party.mediaType);
@@ -40,12 +39,9 @@ const PartyWait = ({ socket }) => {
                 setMemberCount(count);
                 socket.emit('join-room', `waiting${code}`);
                 socket.emit('member-remote-increment', `waiting${code}`);
-                fetch(`${BACKEND_URL}/party/add-member/${code}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ partyCode: code })
-                });
-            });
+                api(`/party/add-member/${code}`, { method: 'POST' }).catch(err => console.log(err));
+            })
+            .catch(err => console.log(err));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -83,20 +79,13 @@ const PartyWait = ({ socket }) => {
 
     const navBack = async () => {
         if(userType === 'owner') {
-            await fetch(`${BACKEND_URL}/party/${code}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            await api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));
             socket.emit('party-remote-deleted', `waiting${code}`);
             socket.emit('leave-room', `waiting${code}`);
         } else {
             socket.emit('leave-room', `waiting${code}`);
             socket.emit('member-remote-decrement', `waiting${code}`);
-            await fetch(`${BACKEND_URL}/party/remove-member/${code}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ partyCode: code })
-            });
+            await api(`/party/remove-member/${code}`, { method: 'POST' }).catch(err => console.log(err));
         }
         navigate('/party');
     };

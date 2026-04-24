@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { BACKEND_URL } from '../../shared/config';
+import { api } from '../../shared/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { Clapperboard, Gamepad2, Dices } from 'lucide-react';
 
@@ -35,10 +35,13 @@ const CreateParty = props => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`${BACKEND_URL}/collections/movie/${auth.userId}`)
-            .then(res => res.json())
+        api(`/collections/movie/${auth.userId}`)
             .then(data => {
                 setCollections(data.collections);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.log(err);
                 setIsLoading(false);
             });
     }, [auth.userId]);
@@ -46,11 +49,14 @@ const CreateParty = props => {
     const loadCollections = (type) => {
         setIsLoading(true);
         setMediaType(type);
-        fetch(`${BACKEND_URL}/collections/${type}/${auth.userId}`)
-            .then(res => res.json())
+        api(`/collections/${type}/${auth.userId}`)
             .then(data => {
                 setSelectAlert(false);
                 setCollections(data.collections);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.log(err);
                 setIsLoading(false);
             });
     };
@@ -80,9 +86,8 @@ const CreateParty = props => {
             setSelectAlert(true);
             return;
         }
-        fetch(`${BACKEND_URL}/party`, {
+        api('/party', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 collections: selected.map(c => c._id),
                 mediaType,
@@ -92,8 +97,8 @@ const CreateParty = props => {
                 owner: auth.userId
             })
         })
-        .then(res => res.json())
-        .then(data => navigate(`/party/wait/${data.partyCode}`));
+        .then(data => navigate(`/party/wait/${data.partyCode}`))
+        .catch(err => console.log(err));
     };
 
     const nonEmptyCollections = collections.filter(c => Array.isArray(c.items) && c.items.length > 0);
