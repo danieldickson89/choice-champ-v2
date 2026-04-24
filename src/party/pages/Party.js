@@ -1,6 +1,7 @@
 
 import { BACKEND_URL } from '../../shared/config';
 import { api } from '../../shared/lib/api';
+import { supabase } from '../../shared/lib/supabase';
 import React, { useEffect, useState, useRef, useContext }  from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Button from '../../shared/components/FormElements/Button';
@@ -16,7 +17,7 @@ import PlaceholderImg from '../../shared/components/PlaceholderImg';
 
 const MAX_RUNNER_UPS = 8;
 
-const Party = ({ socket }) => {
+const Party = () => {
     const auth = useContext(AuthContext);
     let navigate = useNavigate();
     // Get the party code and user type from the url
@@ -48,6 +49,7 @@ const Party = ({ socket }) => {
     const usersReadyCountRef = useRef(usersReadyCount);
     const totalUsersRef = useRef(totalUsers);
     const mediaTypeRef = useRef(mediaType);
+    const channelRef = useRef(null);
   
     // Log the collections passed from the previous page using useEffect
     useEffect(() => {
@@ -99,56 +101,59 @@ const Party = ({ socket }) => {
             mediaTypeRef.current = body.party.mediaType;
             setSecretMode(body.party.secretMode);
             setSuperChoiceMode(body.party.superChoice);
-            setTotalUsers(body.party.memberCount);
-            totalUsersRef.current = body.party.memberCount;
             setCollectionItems(items);
             collectionPointRef.current = items;
-          
-            // Join the party room. This will restrict the same movie getting voted in different parties
-            socket.emit('join-room', code);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        socket.on('vote-increment', (id) => {
-            // Find item with the id and increment the vote count
-            const item = collectionPointRef.current.find(item => item.id === id);
+        const presenceKey = auth.userId || `guest-${Math.random().toString(36).slice(2, 10)}`;
+        const channel = supabase.channel(`party:${code}`, {
+            config: { presence: { key: presenceKey }, broadcast: { self: false } },
+        });
+
+        channel.on('presence', { event: 'sync' }, () => {
+            const count = Object.keys(channel.presenceState()).length;
+            setTotalUsers(count);
+            totalUsersRef.current = count;
+        });
+
+        channel.on('broadcast', { event: 'vote-increment' }, ({ payload }) => {
+            const item = collectionPointRef.current.find(i => i.id === payload.id);
+            if (!item) return;
             item.votes += 1;
             setCollectionItems([...collectionPointRef.current]);
         });
 
-        socket.on('vote-decrement', (id) => {
-            // Find item with the id and decrement the vote count
-            const item = collectionPointRef.current.find(item => item.id === id);
+        channel.on('broadcast', { event: 'vote-decrement' }, ({ payload }) => {
+            const item = collectionPointRef.current.find(i => i.id === payload.id);
+            if (!item) return;
             item.votes -= 1;
             setCollectionItems([...collectionPointRef.current]);
         });
 
-        socket.on('votes-needed', (votesNeeded) => {
-            setVotesNeeded(votesNeeded);
-            votesNeededRef.current = votesNeeded;
+        channel.on('broadcast', { event: 'votes-needed' }, ({ payload }) => {
+            setVotesNeeded(payload.n);
+            votesNeededRef.current = payload.n;
         });
 
-        socket.on('super-choice', (id) => {
-            // Find item with the id and set holdSuperChoice to true
-            const item = collectionPointRef.current.find(item => item.id === id);
-
+        channel.on('broadcast', { event: 'super-choice' }, ({ payload }) => {
+            const item = collectionPointRef.current.find(i => i.id === payload.id);
+            if (!item) return;
             item.holdSuperChoice = true;
             setCollectionItems([...collectionPointRef.current]);
         });
 
-        socket.on('remove-super-choice', (id) => {
-            // Find item with the id and set holdSuperChoice to false
-            const item = collectionPointRef.current.find(item => item.id === id);
-            
+        channel.on('broadcast', { event: 'remove-super-choice' }, ({ payload }) => {
+            const item = collectionPointRef.current.find(i => i.id === payload.id);
+            if (!item) return;
             item.holdSuperChoice = false;
             setCollectionItems([...collectionPointRef.current]);
         });
 
-        socket.on('random-selected', async (id) => {
-            socket.emit('leave-room', code);
-
+        channel.on('broadcast', { event: 'random-selected' }, async ({ payload }) => {
+            const id = payload.id;
             if(ready) {
                 setReady(false);
             }
@@ -190,8 +195,7 @@ const Party = ({ socket }) => {
             }, 1000);
         });
 
-        socket.on('finish-early', () => {
-            socket.emit('leave-room', code);
+        channel.on('broadcast', { event: 'finish-early' }, () => {
             setFinishEarly(true);
 
             setTimeout(() => {
@@ -200,7 +204,7 @@ const Party = ({ socket }) => {
             }, 1500);
         });
 
-        socket.on('user-ready', async () => {
+        channel.on('broadcast', { event: 'user-ready' }, async () => {
             usersReadyCountRef.current += 1;
             setUsersReadyCount(usersReadyCountRef.current);
 
@@ -283,38 +287,26 @@ const Party = ({ socket }) => {
             }
         });
 
-        socket.on('user-not-ready', () => {
+        channel.on('broadcast', { event: 'user-not-ready' }, () => {
             usersReadyCountRef.current -= 1;
             setUsersReadyCount(usersReadyCountRef.current);
         });
 
-        socket.on('party-member-left', () => {
-            setTotalUsers(totalUsersRef.current - 1);
-            totalUsersRef.current -= 1;
-        });
-
-        socket.on('party-deleted', () => {
-            socket.emit('leave-room', code);
-            // Redirect to the party page
+        channel.on('broadcast', { event: 'party-deleted' }, () => {
             navigate('/party');
         });
 
+        channel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') channel.track({ joined_at: new Date().toISOString() });
+        });
+        channelRef.current = channel;
+
         return () => {
-            socket.off('vote-increment');
-            socket.off('vote-decrement');
-            socket.off('votes-needed');
-            socket.off('vote-selected');
-            socket.off('random-selected');
-            socket.off('party-deleted');
-            socket.off('clear-votes');
-            socket.off('user-ready');
-            socket.off('user-not-ready');
-            socket.off('party-member-left');
-            socket.off('super-choice');
-            socket.off('remove-super-choice');
-        }
+            supabase.removeChannel(channel);
+            channelRef.current = null;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [code, auth.userId]);
 
     const changeCount = (id) => {
         // Find the item with the id and increment vote by one and save it to the state
@@ -329,33 +321,33 @@ const Party = ({ socket }) => {
                 item.votes -= 1;
                 setCollectionItems([...collectionItems]);
                 collectionPointRef.current = [...collectionItems];
-                socket.emit('vote-remote-decrement', id, code);
+                channelRef.current?.send({ type: 'broadcast', event: 'vote-decrement', payload: { id } });
             } else {
                 item.tempSuperChoice = true;
                 setCollectionItems([...collectionItems]);
                 collectionPointRef.current = [...collectionItems];
-                socket.emit('super-choice-remote', id, code);
+                channelRef.current?.send({ type: 'broadcast', event: 'super-choice', payload: { id } });
             }
         } else if (item.voted && item.superChoice) {
             item.votes -= 1;
             item.voted = false;
             setCollectionItems([...collectionItems]);
             collectionPointRef.current = [...collectionItems];
-            socket.emit('vote-remote-decrement', id, code);
+            channelRef.current?.send({ type: 'broadcast', event: 'vote-decrement', payload: { id } });
         } else if (item.tempSuperChoice && !item.superChoice) {
             item.votes -= 1;
             item.voted = false;
             item.tempSuperChoice = false;
             setCollectionItems([...collectionItems]);
             collectionPointRef.current = [...collectionItems];
-            socket.emit('vote-remote-decrement', id, code);
-            socket.emit('remove-super-choice-remote', id, code);
+            channelRef.current?.send({ type: 'broadcast', event: 'vote-decrement', payload: { id } });
+            channelRef.current?.send({ type: 'broadcast', event: 'remove-super-choice', payload: { id } });
         } else {
-            item.voted = true;        
+            item.voted = true;
             item.votes += 1;
             setCollectionItems([...collectionItems]);
             collectionPointRef.current = [...collectionItems];
-            socket.emit('vote-remote-increment', id, code);
+            channelRef.current?.send({ type: 'broadcast', event: 'vote-increment', payload: { id } });
         }
     }
 
@@ -382,7 +374,7 @@ const Party = ({ socket }) => {
                     usersReadyCountRef.current = 0;
                     setUsersReadyCount(usersReadyCountRef.current);
                     // Still emit so other users will be reset
-                    socket.emit('user-ready-remote', code);
+                    channelRef.current?.send({ type: 'broadcast', event: 'user-ready', payload: {} });
                     return;
                 } else {
                     if (filteredItems.length === 1) {
@@ -447,8 +439,8 @@ const Party = ({ socket }) => {
                 }
             }
 
-            // Emit event to the server that the user is ready
-            socket.emit('user-ready-remote', code);
+            // Emit event that the user is ready
+            channelRef.current?.send({ type: 'broadcast', event: 'user-ready', payload: {} });
         }
     }
 
@@ -460,18 +452,13 @@ const Party = ({ socket }) => {
         usersReadyCountRef.current -= 1;
         setUsersReadyCount(usersReadyCountRef.current);
 
-        // Emit event to the server that the user is not ready
-        socket.emit('user-not-ready-remote', code);
+        channelRef.current?.send({ type: 'broadcast', event: 'user-not-ready', payload: {} });
     }
 
     const navToParty = async () => {
         if(userType === 'owner' && collectionItems.length > 1) {
             await api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));
-            socket.emit('leave-room', code);
-            socket.emit('party-remote-deleted', code);
-        } else {
-            socket.emit('user-leave-party', code);
-            socket.emit('leave-room', code);
+            await channelRef.current?.send({ type: 'broadcast', event: 'party-deleted', payload: {} });
         }
         navigate('/party');
     }
@@ -524,12 +511,11 @@ const Party = ({ socket }) => {
             }, 2000);
         }, 1000);
 
-        socket.emit('random-remote-selected', randomItem.id, code);
+        channelRef.current?.send({ type: 'broadcast', event: 'random-selected', payload: { id: randomItem.id } });
     }
 
     const selectFlag = () => {
-        socket.emit('finish-early-remote', code);
-        socket.emit('leave-room', code);
+        channelRef.current?.send({ type: 'broadcast', event: 'finish-early', payload: {} });
         setFinishEarly(true);
 
         setTimeout(() => {
@@ -572,7 +558,7 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                                 const next = Math.max(1, Number(votesNeeded) - 1);
                                 setVotesNeeded(next);
                                 votesNeededRef.current = next;
-                                socket.emit('votes-needed-remote', next, code);
+                                channelRef.current?.send({ type: 'broadcast', event: 'votes-needed', payload: { n: next } });
                             }}
                             disabled={Number(votesNeeded) <= 1}
                             aria-label='Decrease votes needed'
@@ -587,7 +573,7 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                                 const next = Math.min(totalUsers, Number(votesNeeded) + 1);
                                 setVotesNeeded(next);
                                 votesNeededRef.current = next;
-                                socket.emit('votes-needed-remote', next, code);
+                                channelRef.current?.send({ type: 'broadcast', event: 'votes-needed', payload: { n: next } });
                             }}
                             disabled={Number(votesNeeded) >= totalUsers}
                             aria-label='Increase votes needed'

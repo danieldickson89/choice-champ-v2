@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useContext, useRef } from 'react';
 import { BACKEND_URL } from '../../shared/config';
 import { api } from '../../shared/lib/api';
+import { supabase } from '../../shared/lib/supabase';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
@@ -88,7 +89,6 @@ const Collection = ({ socket }) => {
         if (deleteConfirm !== 'DELETE') return;
         api(`/collections/${collectionType}/${auth.userId}/${collectionId}`, { method: 'DELETE' })
             .then(() => {
-                socket.emit('leave-room', collectionId);
                 setDeleteOpen(false);
                 navigate(`/collections/${collectionType}`);
             })
@@ -219,46 +219,40 @@ const Collection = ({ socket }) => {
                 }
             }, 500);
 
-            // Join room with the collection id
-            socket.emit('join-room', collectionId);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [auth, collectionId, socket]);
+    }, [auth, collectionId]);
 
+    // Supabase Realtime channel for cross-member collection sync.
+    // Replaces the previous Socket.IO room keyed on collectionId.
+    const channelRef = useRef(null);
     useEffect(() => {
-        socket.on('remove-item', (id) => {
-            // Find item with the id and remove it from the list
-            itemsRef.current = itemsRef.current.filter(item => item._id !== id);
+        if (!collectionId) return;
+        const channel = supabase.channel(`collection:${collectionId}`, {
+            config: { broadcast: { self: false } },
+        });
+
+        channel.on('broadcast', { event: 'remove' }, ({ payload }) => {
+            itemsRef.current = itemsRef.current.filter(item => item._id !== payload.id);
             setItems(itemsRef.current);
         });
 
-        socket.on('watched-item', (id) => {
-            // Update the item with the given id to be watched
-            itemsRef.current = itemsRef.current.map(item => {
-                if(item._id === id && item.watched === false) {
-                    item.watched = true;
-                } else if(item._id === id && item.watched === true) {
-                    item.watched = false;
-                }
-
-                return item;
-            });
-
+        channel.on('broadcast', { event: 'watched' }, ({ payload }) => {
+            itemsRef.current = itemsRef.current.map(item => (
+                item._id === payload.id ? { ...item, watched: !item.watched } : item
+            ));
             setItems(itemsRef.current);
         });
 
-        socket.on('add-item', (newItem) => {
-            // Add the new item to the list
-            itemsRef.current = [...itemsRef.current, newItem];
+        channel.on('broadcast', { event: 'add' }, ({ payload }) => {
+            itemsRef.current = [...itemsRef.current, payload.item];
             setItems(itemsRef.current);
         });
 
-        return () => {
-            socket.off('remove-item');
-            socket.off('watched-item');
-            socket.off('add-item');
-        }
-    }, [socket]);
+        channel.subscribe();
+        channelRef.current = channel;
+        return () => { supabase.removeChannel(channel); channelRef.current = null; };
+    }, [collectionId]);
 
     const exitManage = () => setIsEdit(false);
 
@@ -267,13 +261,12 @@ const Collection = ({ socket }) => {
         .then(() => {
             itemsRef.current = itemsRef.current.filter(item => item._id !== id);
             setItems(itemsRef.current);
-            socket.emit('remove-remote-item', id, collectionId);
+            channelRef.current?.send({ type: 'broadcast', event: 'remove', payload: { id } });
         })
         .catch(err => console.log(err));
     }
 
     const navBack = () => {
-        socket.emit('leave-room', collectionId);
         navigate(`/collections/${collectionType}`);
     }
 

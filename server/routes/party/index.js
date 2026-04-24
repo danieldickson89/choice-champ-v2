@@ -48,38 +48,6 @@ router
         if (!party) return res.status(404).send({ errorMsg: 'No party found with the given code' });
         res.send({ code: party.code });
     })
-    .post('/add-member/:code', async (req, res) => {
-        const { data: party, error: fetchErr } = await supabase
-            .from('parties')
-            .select('id, member_count')
-            .eq('code', req.params.code)
-            .maybeSingle();
-        if (fetchErr) return res.status(500).send({ errorMsg: fetchErr.message });
-        if (!party) return res.status(404).send({ errorMsg: 'Party not found' });
-
-        const { error } = await supabase
-            .from('parties')
-            .update({ member_count: party.member_count + 1, last_activity_at: new Date().toISOString() })
-            .eq('id', party.id);
-        if (error) return res.status(500).send({ errorMsg: error.message });
-        res.send('Success');
-    })
-    .post('/remove-member/:code', async (req, res) => {
-        const { data: party, error: fetchErr } = await supabase
-            .from('parties')
-            .select('id, member_count')
-            .eq('code', req.params.code)
-            .maybeSingle();
-        if (fetchErr) return res.status(500).send({ errorMsg: fetchErr.message });
-        if (!party) return res.status(404).send({ errorMsg: 'Party not found' });
-
-        const { error } = await supabase
-            .from('parties')
-            .update({ member_count: Math.max(0, party.member_count - 1), last_activity_at: new Date().toISOString() })
-            .eq('id', party.id);
-        if (error) return res.status(500).send({ errorMsg: error.message });
-        res.send('Success');
-    })
     .get('/:code', async (req, res) => {
         const userId = req.query.userId;
 

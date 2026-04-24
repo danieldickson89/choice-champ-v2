@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { api } from '../../shared/lib/api';
+import { supabase } from '../../shared/lib/supabase';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, Trophy, Dices, Flag, Star } from 'lucide-react';
 import { AuthContext } from '../../shared/context/auth-context';
@@ -16,7 +17,7 @@ const MEDIA_COLORS = {
     board: '#45B859',
 };
 
-const PartyWait = ({ socket }) => {
+const PartyWait = () => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
     const { code } = useParams();
@@ -24,68 +25,62 @@ const PartyWait = ({ socket }) => {
     const [memberCount, setMemberCount] = useState(0);
     const [userType, setUserType] = useState('guest');
     const [superChoiceEnabled, setSuperChoiceEnabled] = useState(false);
-    const memberCountRef = useRef(memberCount);
     const [mediaType, setMediaType] = useState('');
+    const channelRef = useRef(null);
 
     useEffect(() => {
         auth.showFooterHandler(false);
         api(`/party/${code}?userId=${auth.userId}`)
             .then(body => {
-                let count = body.party.memberCount + 1;
                 setMediaType(body.party.mediaType);
                 if(body.party.superChoice) setSuperChoiceEnabled(true);
                 if(body.owner) setUserType('owner');
-                memberCountRef.current = count;
-                setMemberCount(count);
-                socket.emit('join-room', `waiting${code}`);
-                socket.emit('member-remote-increment', `waiting${code}`);
-                api(`/party/add-member/${code}`, { method: 'POST' }).catch(err => console.log(err));
             })
             .catch(err => console.log(err));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Realtime channel for the waiting room. Presence tracks who's here;
+    // broadcast handles state transitions (start, party-deleted).
     useEffect(() => {
-        socket.on('member-increment', () => {
-            memberCountRef.current += 1;
-            setMemberCount(memberCountRef.current);
+        const presenceKey = auth.userId || `guest-${Math.random().toString(36).slice(2, 10)}`;
+        const channel = supabase.channel(`party-wait:${code}`, {
+            config: { presence: { key: presenceKey }, broadcast: { self: false } },
         });
-        socket.on('member-decrement', () => {
-            memberCountRef.current -= 1;
-            setMemberCount(memberCountRef.current);
+
+        channel.on('presence', { event: 'sync' }, () => {
+            const state = channel.presenceState();
+            setMemberCount(Object.keys(state).length);
         });
-        socket.on('start-party', () => {
-            socket.emit('leave-room', `waiting${code}`);
+
+        channel.on('broadcast', { event: 'start' }, () => {
             navigate(`/party/${code}`);
         });
-        socket.on('party-deleted', () => {
-            socket.emit('leave-room', `waiting${code}`);
+
+        channel.on('broadcast', { event: 'deleted' }, () => {
             navigate('/party');
         });
-        return () => {
-            socket.off('member-increment');
-            socket.off('member-decrement');
-            socket.off('start-party');
-            socket.off('party-deleted');
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
-    const routeToParty = () => {
-        socket.emit('start-remote-party', `waiting${code}`);
-        socket.emit('leave-room', `waiting${code}`);
+        channel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') channel.track({ joined_at: new Date().toISOString() });
+        });
+        channelRef.current = channel;
+
+        return () => {
+            supabase.removeChannel(channel);
+            channelRef.current = null;
+        };
+    }, [code, auth.userId, navigate]);
+
+    const routeToParty = async () => {
+        await channelRef.current?.send({ type: 'broadcast', event: 'start', payload: {} });
         navigate(`/party/${code}`);
     };
 
     const navBack = async () => {
         if(userType === 'owner') {
             await api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));
-            socket.emit('party-remote-deleted', `waiting${code}`);
-            socket.emit('leave-room', `waiting${code}`);
-        } else {
-            socket.emit('leave-room', `waiting${code}`);
-            socket.emit('member-remote-decrement', `waiting${code}`);
-            await api(`/party/remove-member/${code}`, { method: 'POST' }).catch(err => console.log(err));
+            await channelRef.current?.send({ type: 'broadcast', event: 'deleted', payload: {} });
         }
         navigate('/party');
     };

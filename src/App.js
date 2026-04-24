@@ -1,5 +1,4 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { BACKEND_URL } from './shared/config';
 import {
   BrowserRouter as Router,
   Route,
@@ -7,8 +6,6 @@ import {
   Routes,
   useParams
 } from 'react-router-dom';
-
-import io from 'socket.io-client';
 
 import Loading from './shared/components/Loading';
 import BottomNav from './shared/components/Navigation/BottomNav';
@@ -37,7 +34,6 @@ const MediaTabByType = () => {
 function App() {
   const [userId, setUserId] = useState(null);
   const [username, setUsername] = useState(null);
-  const [socket, setSocket] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -91,12 +87,6 @@ function App() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  useEffect(() => {
-    const newSocket = io(BACKEND_URL);
-    setSocket(newSocket);
-    return () => newSocket.close();
-  }, []);
-
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
@@ -134,11 +124,11 @@ function App() {
         <Routes>
           <Route path="/welcome/info" element={<Welcome />} exact />
           <Route path="/collections/:type" element={<MediaTabByType />} exact />
-          <Route path="/collections/:type/:id" element={<Collection socket={socket} />} exact />
+          <Route path="/collections/:type/:id" element={<Collection />} exact />
           <Route path="/items/:type/:itemId" element={<ItemDetails />} exact />
           <Route path="/party" element={<PartyHome />} exact />
-          <Route path="/party/wait/:code" element={<PartyWait socket={socket} />} exact />
-          <Route path="/party/:code" element={<Party socket={socket} />} exact />
+          <Route path="/party/wait/:code" element={<PartyWait />} exact />
+          <Route path="/party/:code" element={<Party />} exact />
           <Route path="/profile" element={<Profile />} exact />
           <Route path="/profile/attribution" element={<Attribution />} exact />
           <Route path="/profile/contact" element={<Contact />} exact />
@@ -152,8 +142,8 @@ function App() {
         <Routes>
             <Route path="/" element={<Auth />} exact />
             <Route path="/party/joinParty" element={<JoinParty />} exact />
-            <Route path="/party/wait/:code" element={<PartyWait socket={socket} />} exact />
-            <Route path="/party/:code" element={<Party socket={socket} />} exact />
+            <Route path="/party/wait/:code" element={<PartyWait />} exact />
+            <Route path="/party/:code" element={<Party />} exact />
             <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>

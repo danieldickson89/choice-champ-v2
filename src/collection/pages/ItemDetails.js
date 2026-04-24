@@ -7,6 +7,7 @@ import Loading from '../../shared/components/Loading';
 import { AuthContext } from '../../shared/context/auth-context';
 import { BACKEND_URL } from '../../shared/config';
 import { api } from '../../shared/lib/api';
+import { broadcast } from '../../shared/lib/realtime';
 import './ItemDetails.css';
 
 const TYPE_COLORS = {
@@ -98,17 +99,20 @@ const ItemDetails = () => {
             body: JSON.stringify([{ title: details.title, id: tempId, poster: details.poster }])
         })
         .then(data => {
+            const newItem = data.newItems[0];
             setCollectionList(prev => {
                 const next = [...prev];
-                if(next[index]) next[index].itemId = data.newItems[0]._id;
+                if(next[index]) next[index].itemId = newItem._id;
                 return next;
             });
+            broadcast(`collection:${addCollectionId}`, 'add', { item: newItem });
         })
         .catch(err => console.log(err));
     };
 
     const removeFromCollection = (removeCollectionId, removeItemId) => {
         api(`/collections/items/${removeCollectionId}/${removeItemId}`, { method: 'DELETE' })
+            .then(() => broadcast(`collection:${removeCollectionId}`, 'remove', { id: removeItemId }))
             .catch(err => console.log(err));
     };
 
@@ -131,7 +135,9 @@ const ItemDetails = () => {
         api(`/collections/items/${collectionId}/${mongoItemId}`, {
             method: 'POST',
             body: JSON.stringify({ watched: nextWatched })
-        }).catch(err => console.log(err));
+        })
+        .then(() => broadcast(`collection:${collectionId}`, 'watched', { id: mongoItemId }))
+        .catch(err => console.log(err));
     };
 
     const hasCollectionContext = Boolean(collectionId && mongoItemId);
