@@ -33,7 +33,9 @@ const Contact = () => {
             <h1 className='contact-title'>Contact</h1>
 
             <p className='contact-intro'>
-                Questions, comments, or requests? Reach out any time.
+                Questions, comments, or requests?
+                <br />
+                Reach out any time.
             </p>
 
             <a className='contact-email-card' href={`mailto:${CONTACT_EMAIL}`}>
