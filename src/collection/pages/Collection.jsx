@@ -208,13 +208,14 @@ const Collection = ({ socket }) => {
             setTimeout(() => {
                 setIsLoading(false);
 
-                // If there is a hash in the url, scroll to that element
+                // If there is a hash in the url, scroll to that element.
+                // Wait one more tick for the grid to render the new item
+                // nodes, then look up by id. Null-check in case the hashed
+                // item isn't in the collection (e.g., it was just removed).
                 if(hash) {
-                    // Add a little more time for the items to load
                     setTimeout(() => {
-                            // If there is a hash in the url, scroll to that element
-                            const element = document.getElementById(hash);
-                            element.scrollIntoView({ behavior: "smooth" });
+                        const element = document.getElementById(hash);
+                        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }, 500);
                 }
             }, 500);
@@ -278,6 +279,13 @@ const Collection = ({ socket }) => {
     }
 
     const openDetails = (item) => {
+        // Stamp the current Collection URL with this item's hash so back
+        // navigation from ItemDetails lands on a URL we can read to scroll
+        // the user back to exactly where they were in the grid.
+        const collectionParams = new URLSearchParams(window.location.search);
+        collectionParams.set('hash', item.itemId);
+        navigate(`${window.location.pathname}?${collectionParams.toString()}`, { replace: true });
+
         const params = new URLSearchParams({
             cid: collectionId,
             mid: item._id,
