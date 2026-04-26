@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express();
-const fetch = require('node-fetch');
 const convert = require('xml-js');
 require('dotenv').config();
 
