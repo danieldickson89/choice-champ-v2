@@ -28,7 +28,8 @@ html {
   grid-template-columns: 100%;
   align-items: center;
   justify-items: center;
-  overflow-x: clip;
+  overflow: hidden;
+  height: 100%;
 }
 
 body {
@@ -36,10 +37,22 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0;
-  overflow-x: clip;
+  height: 100%;
+  overflow: hidden;
   background: #312E2E;
   color: white;
   font-family: 'Oxanium', cursive;
+}
+
+/* Main is the only scrollable surface. This sidesteps iOS Safari/PWA
+   bugs where `position: fixed` becomes effectively absolute (and starts
+   scrolling with the page) while the software keyboard is up — when
+   the body isn't the scroll container, that bug doesn't apply. */
+main {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: clip;
+  -webkit-overflow-scrolling: touch;
 }
 
 h3 {
