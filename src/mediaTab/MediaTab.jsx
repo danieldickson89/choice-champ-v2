@@ -57,6 +57,7 @@ const MediaTab = () => {
     const [collections, setCollections] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isReorder, setIsReorder] = useState(false);
+    const [isDiscoverSearching, setIsDiscoverSearching] = useState(false);
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [nameError, setNameError] = useState(false);
@@ -171,6 +172,7 @@ const MediaTab = () => {
 
     return (
         <div className='media-tab'>
+            {!isDiscoverSearching && (
             <div className='media-tab-sticky-header'>
                 <div className='media-tab-top-row'>
                     <div className='media-tab-title-block'>
@@ -202,6 +204,7 @@ const MediaTab = () => {
                     />
                 )}
             </div>
+            )}
 
             <div className='media-tab-content'>
                 {isReorder ? (
@@ -213,7 +216,12 @@ const MediaTab = () => {
                         onReorder={handleReorder}
                     />
                 ) : view === 'discover' ? (
-                    <Discover key={type} collectionType={type} color={config.color} />
+                    <Discover
+                        key={type}
+                        collectionType={type}
+                        color={config.color}
+                        onSearchingChange={setIsDiscoverSearching}
+                    />
                 ) : (
                     <Collections
                         collections={collections}

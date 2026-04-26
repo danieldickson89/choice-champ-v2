@@ -28,8 +28,7 @@ html {
   grid-template-columns: 100%;
   align-items: center;
   justify-items: center;
-  overflow: hidden;
-  height: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -37,22 +36,10 @@ body {
   width: 100%;
   max-width: 1200px;
   margin: 0;
-  height: 100%;
-  overflow: hidden;
+  overflow-x: clip;
   background: #312E2E;
   color: white;
   font-family: 'Oxanium', cursive;
-}
-
-/* Main is the only scrollable surface. This sidesteps iOS Safari/PWA
-   bugs where `position: fixed` becomes effectively absolute (and starts
-   scrolling with the page) while the software keyboard is up — when
-   the body isn't the scroll container, that bug doesn't apply. */
-main {
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: clip;
-  -webkit-overflow-scrolling: touch;
 }
 
 h3 {
@@ -232,98 +219,33 @@ button {
   padding-bottom: 4px;
 }
 
-.floating-search {
+/* Round floating "open search" button. Mirrors .floating-filter so the
+   pair stacks visually as a coherent floating control cluster. The
+   actual search UI lives inside the sticky header when active; this
+   button is just the trigger. */
+.floating-search-btn {
   position: fixed;
-  left: 16px;
   right: 16px;
   bottom: calc(env(safe-area-inset-bottom, 0) + 96px);
   z-index: 20;
-  max-width: 560px;
-  margin: 0 auto;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 52px;
-  padding: 0 16px;
-  background-color: rgba(30, 30, 30, 0.7);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
-  color: #fff;
-  transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
-}
-
-/* Search mode: anchor the search bar at the bottom of the layout viewport
-   and translate it up by the keyboard height (tracked in --cc-kb-inset
-   from JS). transform is GPU-composited and avoids layout thrash, which
-   keeps the bar locked to the keyboard edge instead of jittering with
-   any browser-chrome animation. */
-.cc-keyboard-open .floating-search {
-  bottom: 0;
-  transform: translate3d(0, calc(-1 * (var(--cc-kb-inset, 0px) + 12px)), 0);
-  transition: none;
-  will-change: transform;
-}
-
-/* Hide everything else while searching to give the items list more
-   visible area. display: none collapses the sticky header's layout
-   space, so the items shift up under the search bar's old position. */
-.cc-keyboard-open .floating-filter,
-.cc-keyboard-open .floating-actions,
-.cc-keyboard-open .collection-sticky-header,
-.cc-keyboard-open .media-tab-sticky-header {
-  display: none;
-}
-
-.floating-search:focus-within {
-  background-color: rgba(40, 40, 40, 0.85);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
-}
-
-.floating-search-icon {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.5);
-  pointer-events: none;
-}
-
-.floating-search-input {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #fff;
-  font-family: inherit;
-  font-size: 11pt;
-}
-
-.floating-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.floating-search-input:focus {
-  outline: none;
-}
-
-.floating-search-clear {
-  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  background-color: rgba(20, 20, 20, 0.7);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  color: #fff;
   cursor: pointer;
   transition: background-color 150ms ease-out;
 }
 
-.floating-search-clear:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.floating-search-btn:hover {
+  background-color: rgba(40, 40, 40, 0.85);
 }
 
 .floating-actions {
@@ -339,7 +261,7 @@ button {
 .floating-filter {
   position: fixed;
   right: 16px;
-  bottom: calc(env(safe-area-inset-bottom, 0) + 160px);
+  bottom: calc(env(safe-area-inset-bottom, 0) + 152px);
   z-index: 21;
   width: 44px;
   height: 44px;

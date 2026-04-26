@@ -6,6 +6,67 @@
     box-sizing: border-box;
 }
 
+/* ----- Search-mode sticky header -----------------------------------
+   Replaces MediaTab's normal sticky header while the user is searching.
+   The 2px bottom border is set inline in JSX to the active media-type
+   color so each tab's search bar feels distinct. */
+.discover-search-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 11;
+    margin: 0 -16px;
+    padding: calc(env(safe-area-inset-top, 0) + 12px) 16px 12px 16px;
+    background-color: #312E2E;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #FCB016;
+}
+
+.discover-search-input-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+}
+
+.discover-search-input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-family: inherit;
+    font-size: 11pt;
+}
+
+.discover-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.discover-search-input:focus {
+    outline: none;
+}
+
+.discover-search-clear {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
 /* Poster grid */
 .discover-grid {
     display: grid;

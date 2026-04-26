@@ -304,6 +304,30 @@ const Collection = ({ socket }) => {
      * https://youtu.be/E1cklb4aeXA
      ***********************************************************/
     const [query, setQuery] = useState('');
+    const [searchModeActive, setSearchModeActive] = useState(false);
+    const searchInputRef = useRef(null);
+
+    const enterSearch = () => {
+        setSearchModeActive(true);
+        auth.showFooterHandler(false);
+    };
+
+    const exitSearch = () => {
+        setSearchModeActive(false);
+        setQuery('');
+        auth.showFooterHandler(true);
+        searchInputRef.current?.blur();
+    };
+
+    useEffect(() => {
+        if (searchModeActive) searchInputRef.current?.focus();
+    }, [searchModeActive]);
+
+    // Restore footer on unmount in case the user navigated away while in
+    // search mode (which had toggled the footer off).
+    useEffect(() => {
+        return () => auth.showFooterHandler(true);
+    }, [auth]);
 
     // Q: Why do we use useMemo here?
     // A: useMemo is used to optimize the filtering of items. It will only filter the items
@@ -356,6 +380,47 @@ const Collection = ({ socket }) => {
     return (
         <React.Fragment>
             <div className='collection-page'>
+                {searchModeActive ? (
+                    <div
+                        className='collection-search-sticky-header'
+                        style={{ borderBottomColor: collectionTypeColor }}
+                    >
+                        <button
+                            type='button'
+                            className='icon-btn'
+                            onClick={exitSearch}
+                            aria-label='Close search'
+                        >
+                            <ArrowLeft size={22} strokeWidth={2.5} />
+                        </button>
+                        <div
+                            className='collection-search-input-wrap'
+                            style={{ borderColor: collectionTypeColor }}
+                        >
+                            <Search size={18} strokeWidth={2} style={{ color: collectionTypeColor }} aria-hidden='true' />
+                            <input
+                                ref={searchInputRef}
+                                className='collection-search-input'
+                                type='text'
+                                placeholder='Search'
+                                value={query}
+                                onChange={e => setQuery(e.target.value)}
+                                autoComplete='off'
+                            />
+                            {query !== '' && (
+                                <button
+                                    type='button'
+                                    className='collection-search-clear'
+                                    onClick={() => setQuery('')}
+                                    aria-label='Clear text'
+                                    style={{ color: collectionTypeColor }}
+                                >
+                                    <X size={16} strokeWidth={2.5} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
                 <div className='collection-sticky-header'>
                     {(() => {
                         const TypeIcon = collectionType === 'movie' ? Clapperboard
@@ -398,6 +463,7 @@ const Collection = ({ socket }) => {
                         );
                     })()}
                 </div>
+                )}
 
                 {isLoading ? (
                     <div className='collection-loading'>
@@ -446,7 +512,7 @@ const Collection = ({ socket }) => {
                     </div>
                 )}
 
-                {!isEdit && (
+                {!isEdit && !searchModeActive && (
                     <button
                         type='button'
                         className='floating-filter'
@@ -460,28 +526,17 @@ const Collection = ({ socket }) => {
                     </button>
                 )}
 
-                <div className='floating-search'>
-                    <Search size={18} strokeWidth={2} className='floating-search-icon' aria-hidden='true' />
-                    <input
-                        className='floating-search-input'
-                        placeholder='Search'
-                        value={query}
-                        onChange={e => setQuery(e.target.value)}
-                        onFocus={() => auth.showFooterHandler(false)}
-                        onBlur={() => auth.showFooterHandler(true)}
-                    />
-                    {query !== '' && (
-                        <button
-                            type='button'
-                            className='floating-search-clear'
-                            onClick={() => setQuery('')}
-                            aria-label='Clear search'
-                            style={{ color: collectionTypeColor }}
-                        >
-                            <X size={18} strokeWidth={2.5} />
-                        </button>
-                    )}
-                </div>
+                {!isEdit && !searchModeActive && (
+                    <button
+                        type='button'
+                        className='floating-search-btn'
+                        onClick={enterSearch}
+                        aria-label='Search'
+                        style={{ color: collectionTypeColor }}
+                    >
+                        <Search size={20} strokeWidth={2.5} />
+                    </button>
+                )}
             </div>
             <Menu
                 anchorEl={kebabAnchor}

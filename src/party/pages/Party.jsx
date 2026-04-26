@@ -171,7 +171,7 @@ const Party = () => {
                     const item = collectionPointRef.current.find(item => item.id === id);
 
                     // Scroll user back to the top of the page
-                    document.querySelector("main")?.scrollTo(0, 0);
+                    window.scrollTo(0, 0);
                     setRandomSelected(false);
 
                     // Grab the watch options for the winner but only if the media type is movie or tv
@@ -238,7 +238,7 @@ const Party = () => {
                                 return;
                             } else if(filteredItems.length === 1) {
                                 // Scroll user back to the top of the page
-                                document.querySelector("main")?.scrollTo(0, 0);
+                                window.scrollTo(0, 0);
 
                                 // Grab the watch options for the winner but only if the media type is movie or tv
                                 if(mediaTypeRef.current === 'movie' || mediaTypeRef.current === 'tv') {
@@ -268,7 +268,7 @@ const Party = () => {
                                 });
 
                                 // Scroll user back to the top of the page
-                                document.querySelector("main")?.scrollTo(0, 0);
+                                window.scrollTo(0, 0);
 
                                 setUsersReadyCount(0);
                                 usersReadyCountRef.current = 0;
@@ -390,7 +390,7 @@ const Party = () => {
                         setTimeout(() => {
                             if(filteredItems.length === 1) {
                                 // Scroll user back to the top of the page
-                                document.querySelector("main")?.scrollTo(0, 0);
+                                window.scrollTo(0, 0);
 
                                 // Make a fetch request to delete the party from the database
                                 api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));
@@ -423,7 +423,7 @@ const Party = () => {
                                 });
 
                                 // Scroll user back to the top of the page
-                                document.querySelector("main")?.scrollTo(0, 0);
+                                window.scrollTo(0, 0);
 
                                 setUsersReadyCount(0);
                                 usersReadyCountRef.current = 0;
@@ -504,7 +504,7 @@ const Party = () => {
                 }
 
                 // Scroll user back to the top of the page
-                document.querySelector("main")?.scrollTo(0, 0);
+                window.scrollTo(0, 0);
                 setRandomSelected(false);
 
                 api(`/party/${code}`, { method: 'DELETE' }).catch(err => console.log(err));

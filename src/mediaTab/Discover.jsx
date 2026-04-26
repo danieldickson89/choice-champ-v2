@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
+import { ArrowLeft, Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
 
 import { SUBTABS, fetchDiscover, fetchSearch, fetchGamePosters } from './discoverApi';
 import SortFilterPanel from '../shared/components/SortFilterPanel/SortFilterPanel';
@@ -9,7 +9,7 @@ import './Discover.css';
 
 const SUPPORTED_TYPES = ['movie', 'tv', 'game', 'board'];
 
-const Discover = ({ collectionType, color }) => {
+const Discover = ({ collectionType, color, onSearchingChange }) => {
     if(!SUPPORTED_TYPES.includes(collectionType)) {
         return (
             <div className='discover'>
@@ -17,10 +17,10 @@ const Discover = ({ collectionType, color }) => {
             </div>
         );
     }
-    return <DiscoverFeed collectionType={collectionType} color={color} />;
+    return <DiscoverFeed collectionType={collectionType} color={color} onSearchingChange={onSearchingChange} />;
 };
 
-const DiscoverFeed = ({ collectionType, color }) => {
+const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
     const navigate = useNavigate();
     const auth = useContext(AuthContext);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -37,6 +37,8 @@ const DiscoverFeed = ({ collectionType, color }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filterAnchor, setFilterAnchor] = useState(null);
+    const [searchModeActive, setSearchModeActive] = useState(urlQuery.length > 0);
+    const inputRef = useRef(null);
 
     const trimmedQuery = debouncedQuery.trim();
     const isSearching = trimmedQuery.length > 0;
@@ -97,8 +99,30 @@ const DiscoverFeed = ({ collectionType, color }) => {
         navigate(`/items/${collectionType}/${item.id}`);
     };
 
-    const handleSearchFocus = () => auth.showFooterHandler(false);
-    const handleSearchBlur = () => auth.showFooterHandler(true);
+    const enterSearch = () => {
+        setSearchModeActive(true);
+        auth.showFooterHandler(false);
+    };
+
+    const exitSearch = () => {
+        setSearchModeActive(false);
+        setQuery('');
+        auth.showFooterHandler(true);
+        inputRef.current?.blur();
+    };
+
+    // Auto-focus the input when entering search mode. iOS opens the
+    // keyboard for programmatic focus calls that follow a user gesture
+    // synchronously through React's commit phase, so this runs as soon
+    // as the input mounts.
+    useEffect(() => {
+        if (searchModeActive) inputRef.current?.focus();
+    }, [searchModeActive]);
+
+    // Tell parent (MediaTab) whether to suppress its own sticky header.
+    useEffect(() => {
+        onSearchingChange?.(searchModeActive);
+    }, [searchModeActive, onSearchingChange]);
 
     useEffect(() => {
         return () => auth.showFooterHandler(true);
@@ -106,7 +130,46 @@ const DiscoverFeed = ({ collectionType, color }) => {
 
     return (
         <div className='discover'>
-            {!isSearching && hasMultipleSubtabs && (
+            {searchModeActive && (
+                <div
+                    className='discover-search-sticky-header'
+                    style={{ borderBottomColor: color }}
+                >
+                    <button
+                        type='button'
+                        className='icon-btn'
+                        onClick={exitSearch}
+                        aria-label='Close search'
+                    >
+                        <ArrowLeft size={22} strokeWidth={2.5} />
+                    </button>
+                    <div className='discover-search-input-wrap' style={{ borderColor: color }}>
+                        <SearchIcon size={18} strokeWidth={2} style={{ color }} aria-hidden='true' />
+                        <input
+                            ref={inputRef}
+                            className='discover-search-input'
+                            type='text'
+                            placeholder='Search'
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            autoComplete='off'
+                        />
+                        {query && (
+                            <button
+                                type='button'
+                                className='discover-search-clear'
+                                onClick={() => setQuery('')}
+                                aria-label='Clear text'
+                                style={{ color }}
+                            >
+                                <X size={16} strokeWidth={2.5} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {!searchModeActive && hasMultipleSubtabs && (
                 <button
                     type='button'
                     className='floating-filter'
@@ -120,30 +183,17 @@ const DiscoverFeed = ({ collectionType, color }) => {
                 </button>
             )}
 
-            <div className='floating-search'>
-                <SearchIcon size={18} strokeWidth={2} className='floating-search-icon' aria-hidden='true' />
-                <input
-                    className='floating-search-input'
-                    type='text'
-                    placeholder='Search'
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onFocus={handleSearchFocus}
-                    onBlur={handleSearchBlur}
-                    autoComplete='off'
-                />
-                {query && (
-                    <button
-                        type='button'
-                        className='floating-search-clear'
-                        onClick={() => setQuery('')}
-                        aria-label='Clear search'
-                        style={{ color }}
-                    >
-                        <X size={18} strokeWidth={2.5} />
-                    </button>
-                )}
-            </div>
+            {!searchModeActive && (
+                <button
+                    type='button'
+                    className='floating-search-btn'
+                    onClick={enterSearch}
+                    aria-label='Search'
+                    style={{ color }}
+                >
+                    <SearchIcon size={20} strokeWidth={2.5} />
+                </button>
+            )}
 
             <SortFilterPanel
                 anchorEl={filterAnchor}

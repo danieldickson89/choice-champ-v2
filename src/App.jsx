@@ -76,63 +76,6 @@ function App() {
     };
   }, [applyProfile]);
 
-  useEffect(() => {
-    // Search-mode: when the floating search input is focused, pin the
-    // search bar just above the software keyboard via visualViewport
-    // tracking, and hide the sticky headers / other floating UI to give
-    // the content list more room.
-    //
-    // Tracking is gated on focus (so address-bar wobble outside of
-    // search doesn't move anything) and rAF-throttled (so multiple
-    // resize/scroll events in one frame collapse to a single write).
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const root = document.documentElement;
-    let focused = false;
-    let rafId = null;
-
-    const apply = () => {
-      rafId = null;
-      if (!focused) {
-        root.style.setProperty('--cc-kb-inset', '0px');
-        root.classList.remove('cc-keyboard-open');
-        return;
-      }
-      // Keyboard height = layout viewport height minus visual viewport
-      // height. Don't subtract vv.offsetTop — iOS reports non-zero offsets
-      // during its auto-scroll-to-input animation, which inflates the
-      // inset and shoves the bar way too high. Pure (innerHeight -
-      // vv.height) ignores any vv repositioning and is stable.
-      const inset = Math.max(0, window.innerHeight - vv.height);
-      root.style.setProperty('--cc-kb-inset', `${inset}px`);
-      root.classList.toggle('cc-keyboard-open', inset > 40);
-    };
-
-    const schedule = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(apply);
-    };
-
-    const isSearchInput = (el) => !!(el && el.classList && el.classList.contains('floating-search-input'));
-    const onFocusIn = (e) => { if (isSearchInput(e.target)) { focused = true; schedule(); } };
-    const onFocusOut = (e) => { if (isSearchInput(e.target)) { focused = false; schedule(); } };
-
-    document.addEventListener('focusin', onFocusIn);
-    document.addEventListener('focusout', onFocusOut);
-    // Listen only to resize: keyboard height changes on open/close, not
-    // on scroll. vv.scroll fires constantly during page scroll and would
-    // re-trigger our apply() with stale or transient values.
-    vv.addEventListener('resize', schedule);
-
-    return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      document.removeEventListener('focusin', onFocusIn);
-      document.removeEventListener('focusout', onFocusOut);
-      vv.removeEventListener('resize', schedule);
-      root.style.removeProperty('--cc-kb-inset');
-      root.classList.remove('cc-keyboard-open');
-    };
-  }, []);
 
   useEffect(() => {
     const neverShowAppInstallBanner = localStorage.getItem('neverShowAppInstallBanner');
