@@ -96,22 +96,33 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
             : fetchDiscover(collectionType, activeSubtab);
 
         request
-            .then(data => {
+            .then(async data => {
                 if(cancelled) return;
                 const results = data.results || [];
-                setItems(results);
-                setIsLoading(false);
 
+                // For video games, RAWG returns the lower-quality default
+                // image and we then upgrade to SteamGridDB posters. The
+                // SGDB lookup is usually fast enough that swapping images
+                // mid-render reads as flickery — keep the loader up until
+                // the upgraded posters are merged in, then commit once.
                 if(collectionType === 'game' && results.length > 0) {
-                    fetchGamePosters(results)
-                        .then(posters => {
-                            if(cancelled) return;
-                            setItems(prev => prev.map(item => (
-                                posters[item.id] ? { ...item, poster: posters[item.id] } : item
-                            )));
-                        })
-                        .catch(err => console.log('poster upgrade skipped:', err.message));
+                    try {
+                        const posters = await fetchGamePosters(results);
+                        if(cancelled) return;
+                        const upgraded = results.map(item => (
+                            posters[item.id] ? { ...item, poster: posters[item.id] } : item
+                        ));
+                        setItems(upgraded);
+                    } catch(err) {
+                        console.log('poster upgrade skipped:', err.message);
+                        if(cancelled) return;
+                        setItems(results);
+                    }
+                } else {
+                    setItems(results);
                 }
+
+                setIsLoading(false);
             })
             .catch(err => {
                 if(cancelled) return;
