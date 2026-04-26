@@ -156,7 +156,7 @@ function App() {
   let routes;
   if (isLoggedIn) {
     routes = (
-      <Suspense fallback={<Loading color='#FCB016' className='page-loading' size={100} />}>
+      <Suspense fallback={<Loading color='#FCB016' className='page-loading' />}>
         <Routes>
           <Route path="/welcome/info" element={<Welcome />} exact />
           <Route path="/collections/:type" element={<MediaTabByType />} exact />
@@ -197,7 +197,7 @@ function App() {
     <AuthContext.Provider value={authValue}>
       <Router>
         <main>
-          {loading && <Loading color='#FCB016' className='page-loading' size={100} />}
+          {loading && <Loading color='#FCB016' className='page-loading' />}
           {!loading && <ErrorBoundary>{routes}</ErrorBoundary>}
           {
             (!loading && showInstallPrompt) && (

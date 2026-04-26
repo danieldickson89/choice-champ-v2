@@ -4,8 +4,8 @@ import { BounceLoader, BeatLoader, SyncLoader, PropagateLoader } from 'react-spi
 import './Loading.css';
 
 const Loading = props => {
-    let type = props.type || 'bounce';
-    let size = props.size || 100;
+    let type = props.type || 'beat';
+    let size = props.size || 20;
     let color = props.color;
     let speed = props.speed || 1;
     let loading;

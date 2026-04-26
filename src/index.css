@@ -429,6 +429,12 @@ button {
   display: grid;
   justify-content: center;
   align-items: center;
+  opacity: 0;
+  animation: cc-loading-fade-in 200ms ease-out 250ms forwards;
+}
+
+@keyframes cc-loading-fade-in {
+  to { opacity: 1; }
 }
 
 .list-loading {
