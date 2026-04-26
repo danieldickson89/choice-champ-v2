@@ -340,6 +340,33 @@ router
                     totalPages: data.count ? Math.ceil(data.count / pageSize) : 1
                 });
             } else if(type === 'board') {
+                // Batch-fetch BGG /thing for a list of game IDs and return
+                // a Map of id → full-resolution <image> URL. The /hot and
+                // /search endpoints only return small thumbnails which
+                // look blurry in our poster grid; /thing has the original.
+                // Failures fall back silently — caller uses thumbnails.
+                const fetchBoardImages = async (ids) => {
+                    const map = new Map();
+                    if (!ids.length) return map;
+                    try {
+                        const thingRes = await fetch(`https://boardgamegeek.com/xmlapi2/thing?id=${ids.join(',')}`, {
+                            headers: { Authorization: `Bearer ${process.env.BOARD_GAME_GEEK_API_TOKEN}` }
+                        });
+                        const thingXml = await thingRes.text();
+                        const thingParsed = JSON.parse(convert.xml2json(thingXml, { compact: true, spaces: 4 }));
+                        const rawThings = thingParsed.items && thingParsed.items.item ? thingParsed.items.item : [];
+                        const things = Array.isArray(rawThings) ? rawThings : [rawThings];
+                        for (const t of things) {
+                            const id = t._attributes && t._attributes.id;
+                            const image = t.image && t.image._text;
+                            if (id && image) map.set(String(id), image);
+                        }
+                    } catch (err) {
+                        console.log('BGG /thing batch failed:', err.message);
+                    }
+                    return map;
+                };
+
                 if(feed === 'search') {
                     const q = req.query.q || '';
                     if(!q.trim()) {
@@ -355,14 +382,21 @@ router
 
                     const rawItems = parsed.items && parsed.items.item ? parsed.items.item : [];
                     const itemArray = Array.isArray(rawItems) ? rawItems : [rawItems];
+                    const ids = itemArray
+                        .map(item => item._attributes && item._attributes.id)
+                        .filter(Boolean);
+                    const imageMap = await fetchBoardImages(ids);
 
-                    const results = itemArray.map(item => ({
-                        id: item._attributes && item._attributes.id,
-                        title: item.name && item.name._attributes && item.name._attributes.value,
-                        poster: null,
-                        rating: null,
-                        releaseDate: item.yearpublished && item.yearpublished._attributes && item.yearpublished._attributes.value || null
-                    }));
+                    const results = itemArray.map(item => {
+                        const id = item._attributes && item._attributes.id;
+                        return {
+                            id,
+                            title: item.name && item.name._attributes && item.name._attributes.value,
+                            poster: imageMap.get(String(id)) || null,
+                            rating: null,
+                            releaseDate: item.yearpublished && item.yearpublished._attributes && item.yearpublished._attributes.value || null
+                        };
+                    });
 
                     return res.send({
                         results,
@@ -385,19 +419,18 @@ router
 
                 const rawItems = parsed.items && parsed.items.item ? parsed.items.item : [];
                 const itemArray = Array.isArray(rawItems) ? rawItems : [rawItems];
+                const hotIds = itemArray
+                    .map(item => item._attributes && item._attributes.id)
+                    .filter(Boolean);
+                const hotImageMap = await fetchBoardImages(hotIds);
 
                 const results = itemArray.map(item => {
+                    const id = item._attributes && item._attributes.id;
                     const thumbUrl = item.thumbnail && item.thumbnail._attributes && item.thumbnail._attributes.value || null;
-                    // BGG's hot endpoint only includes the thumbnail (~75px)
-                    // which looks blurry in our poster grid. The CDN URL
-                    // pattern lets us swap "__thumb" for "__imagepage" to
-                    // get a much larger variant of the same image without
-                    // an extra API round-trip per item.
-                    const poster = thumbUrl ? thumbUrl.replace('__thumb', '__imagepage') : null;
                     return {
-                        id: item._attributes && item._attributes.id,
+                        id,
                         title: item.name && item.name._attributes && item.name._attributes.value,
-                        poster,
+                        poster: hotImageMap.get(String(id)) || thumbUrl,
                         rating: null,
                         releaseDate: item.yearpublished && item.yearpublished._attributes && item.yearpublished._attributes.value || null
                     };
