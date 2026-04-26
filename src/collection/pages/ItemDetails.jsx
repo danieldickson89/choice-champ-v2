@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Plus } from 'lucide-react';
+import { ArrowLeft, Check, Info, Plus } from 'lucide-react';
+import { Popover } from '@mui/material';
 import Showdown from 'showdown';
 
 import Loading from '../../shared/components/Loading';
@@ -38,6 +39,7 @@ const ItemDetails = () => {
     const [collectionList, setCollectionList] = useState([]);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [loadingCollections, setLoadingCollections] = useState(false);
+    const [hintAnchor, setHintAnchor] = useState(null);
 
     // Fetch the user's global watched/played status for this item.
     useEffect(() => {
@@ -269,8 +271,30 @@ const ItemDetails = () => {
                         <section className='item-details-section'>
                             <div className='item-details-section-header'>
                                 <h2 className='item-details-section-title'>My Collections</h2>
-                                <span className='item-details-section-hint'>{watchedLabel}</span>
+                                <div className='item-details-section-hint-wrap'>
+                                    <span className='item-details-section-hint'>{watchedLabel}</span>
+                                    <button
+                                        type='button'
+                                        className='item-details-section-hint-info'
+                                        onClick={(e) => setHintAnchor(e.currentTarget)}
+                                        aria-label={`What does the ${watchedLabel.toLowerCase()} toggle do?`}
+                                    >
+                                        <Info size={14} strokeWidth={2} />
+                                    </button>
+                                </div>
                             </div>
+                            <Popover
+                                open={Boolean(hintAnchor)}
+                                anchorEl={hintAnchor}
+                                onClose={() => setHintAnchor(null)}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                PaperProps={{ className: 'item-details-hint-paper' }}
+                            >
+                                <p className='item-details-hint-text'>
+                                    Tracks whether this item has been {watchedLabel.toLowerCase()} within the specific collection. Visible to everyone who shares that collection.
+                                </p>
+                            </Popover>
                             <div className='item-details-card'>
                                 {collectionList.map((collection, index) => (
                                     <div key={collection.collectionId} className='item-details-collection-row'>
