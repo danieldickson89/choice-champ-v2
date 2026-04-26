@@ -30,6 +30,8 @@ const SortFilterPanel = ({
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             PaperProps={{ className: 'sort-filter-panel-paper' }}
+            autoFocus={false}
+            disableAutoFocusItem
         >
             <div className='sort-filter-panel'>
                 {sortOptions.length > 0 && (
