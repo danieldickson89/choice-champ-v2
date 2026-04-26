@@ -77,25 +77,53 @@ function App() {
   }, [applyProfile]);
 
   useEffect(() => {
-    // When the floating search input is focused, enter "search mode":
-    // CSS pins the search bar to the top of the screen and hides the
-    // sticky headers and other floating UI. This sidesteps iOS's
-    // viewport quirks entirely — we don't try to keep fixed elements
-    // above the keyboard, we just move the one element we care about
-    // to the top of the visible area.
+    // Search-mode: when the floating search input is focused, pin the
+    // search bar just above the software keyboard via visualViewport
+    // tracking, and hide the sticky headers / other floating UI to give
+    // the content list more room.
+    //
+    // Tracking is gated on focus (so address-bar wobble outside of
+    // search doesn't move anything) and rAF-throttled (so multiple
+    // resize/scroll events in one frame collapse to a single write).
+    const vv = window.visualViewport;
+    if (!vv) return;
     const root = document.documentElement;
+    let focused = false;
+    let rafId = null;
+
+    const apply = () => {
+      rafId = null;
+      if (!focused) {
+        root.style.setProperty('--cc-kb-inset', '0px');
+        root.classList.remove('cc-keyboard-open');
+        return;
+      }
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      root.style.setProperty('--cc-kb-inset', `${inset}px`);
+      root.classList.toggle('cc-keyboard-open', inset > 40);
+    };
+
+    const schedule = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(apply);
+    };
+
     const isSearchInput = (el) => !!(el && el.classList && el.classList.contains('floating-search-input'));
-    const onFocusIn = (e) => {
-      if (isSearchInput(e.target)) root.classList.add('cc-keyboard-open');
-    };
-    const onFocusOut = (e) => {
-      if (isSearchInput(e.target)) root.classList.remove('cc-keyboard-open');
-    };
+    const onFocusIn = (e) => { if (isSearchInput(e.target)) { focused = true; schedule(); } };
+    const onFocusOut = (e) => { if (isSearchInput(e.target)) { focused = false; schedule(); } };
+
     document.addEventListener('focusin', onFocusIn);
     document.addEventListener('focusout', onFocusOut);
+    vv.addEventListener('resize', schedule);
+    vv.addEventListener('scroll', schedule);
+
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('focusout', onFocusOut);
+      vv.removeEventListener('resize', schedule);
+      vv.removeEventListener('scroll', schedule);
+      root.style.removeProperty('--cc-kb-inset');
       root.classList.remove('cc-keyboard-open');
     };
   }, []);

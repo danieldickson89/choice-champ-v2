@@ -243,26 +243,26 @@ button {
   transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
 }
 
-/* Search mode: when the floating search input is focused, pin the search
-   bar to the top of the screen and hide all other sticky/floating UI.
-   This sidesteps iOS's visual-viewport and software-keyboard quirks —
-   the top of the layout viewport is always visible above the keyboard,
-   so there's nothing to track. */
+/* Search mode: anchor the search bar at the bottom of the layout viewport
+   and translate it up by the keyboard height (tracked in --cc-kb-inset
+   from JS). transform is GPU-composited and avoids layout thrash, which
+   keeps the bar locked to the keyboard edge instead of jittering with
+   any browser-chrome animation. */
 .cc-keyboard-open .floating-search {
-  top: calc(env(safe-area-inset-top, 0) + 12px);
-  bottom: auto;
+  bottom: 0;
+  transform: translate3d(0, calc(-1 * (var(--cc-kb-inset, 0px) + 12px)), 0);
   transition: none;
+  will-change: transform;
 }
 
+/* Hide everything else while searching to give the items list more
+   visible area. display: none collapses the sticky header's layout
+   space, so the items shift up under the search bar's old position. */
 .cc-keyboard-open .floating-filter,
-.cc-keyboard-open .floating-actions {
-  display: none;
-}
-
-/* Keep layout space so the content below doesn't shift on mode change. */
+.cc-keyboard-open .floating-actions,
 .cc-keyboard-open .collection-sticky-header,
 .cc-keyboard-open .media-tab-sticky-header {
-  visibility: hidden;
+  display: none;
 }
 
 .floating-search:focus-within {
