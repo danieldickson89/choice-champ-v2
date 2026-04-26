@@ -54,6 +54,27 @@
     letter-spacing: 0.08em;
 }
 
+/* Section header with a right-aligned hint, used on My Collections to
+   label the meaning of the right-side toggle column. */
+.item-details-section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.item-details-section-header .item-details-section-title {
+    margin: 0;
+}
+
+.item-details-section-hint {
+    font-size: 9pt;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
 /* Rounded card */
 .item-details-card {
     background-color: rgba(255, 255, 255, 0.06);

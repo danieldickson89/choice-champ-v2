@@ -265,6 +265,51 @@ const ItemDetails = () => {
                         </section>
                     )}
 
+                    {collectionList.length > 0 && (
+                        <section className='item-details-section'>
+                            <div className='item-details-section-header'>
+                                <h2 className='item-details-section-title'>My Collections</h2>
+                                <span className='item-details-section-hint'>{watchedLabel}</span>
+                            </div>
+                            <div className='item-details-card'>
+                                {collectionList.map((collection, index) => (
+                                    <div key={collection.collectionId} className='item-details-collection-row'>
+                                        <button
+                                            type='button'
+                                            className='item-details-collection-toggle'
+                                            onClick={() => toggleCollection(collection, index)}
+                                            aria-label={collection.exists ? `Remove from ${collection.name}` : `Add to ${collection.name}`}
+                                        >
+                                            {collection.exists ? (
+                                                <span className='item-details-collection-checked' style={{ backgroundColor: color }}>
+                                                    <Check size={14} strokeWidth={3} color='#111' />
+                                                </span>
+                                            ) : (
+                                                <span className='item-details-collection-plus'>
+                                                    <Plus size={16} strokeWidth={2.5} />
+                                                </span>
+                                            )}
+                                        </button>
+                                        <span className='item-details-collection-name'>{collection.name}</span>
+                                        {collection.exists && (
+                                            <button
+                                                type='button'
+                                                role='switch'
+                                                aria-checked={collection.complete}
+                                                aria-label={`Toggle ${watchedLabel.toLowerCase()} for ${collection.name}`}
+                                                className={`item-details-watched-switch ${collection.complete ? 'is-on' : ''}`}
+                                                style={collection.complete ? { backgroundColor: color } : undefined}
+                                                onClick={() => toggleCollectionComplete(collection, index)}
+                                            >
+                                                <span className='item-details-watched-knob' />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     {details.overview && (
                         <section className='item-details-section'>
                             <h2 className='item-details-section-title'>Overview</h2>
@@ -306,48 +351,6 @@ const ItemDetails = () => {
                                 <div className='item-details-platforms'>
                                     {providers.platforms.map(p => p.name).join(', ')}
                                 </div>
-                            </div>
-                        </section>
-                    )}
-
-                    {collectionList.length > 0 && (
-                        <section className='item-details-section'>
-                            <h2 className='item-details-section-title'>My Collections</h2>
-                            <div className='item-details-card'>
-                                {collectionList.map((collection, index) => (
-                                    <div key={collection.collectionId} className='item-details-collection-row'>
-                                        <button
-                                            type='button'
-                                            className='item-details-collection-toggle'
-                                            onClick={() => toggleCollection(collection, index)}
-                                            aria-label={collection.exists ? `Remove from ${collection.name}` : `Add to ${collection.name}`}
-                                        >
-                                            {collection.exists ? (
-                                                <span className='item-details-collection-checked' style={{ backgroundColor: color }}>
-                                                    <Check size={14} strokeWidth={3} color='#111' />
-                                                </span>
-                                            ) : (
-                                                <span className='item-details-collection-plus'>
-                                                    <Plus size={16} strokeWidth={2.5} />
-                                                </span>
-                                            )}
-                                        </button>
-                                        <span className='item-details-collection-name'>{collection.name}</span>
-                                        {collection.exists && (
-                                            <button
-                                                type='button'
-                                                role='switch'
-                                                aria-checked={collection.complete}
-                                                aria-label={`Toggle ${watchedLabel.toLowerCase()} for ${collection.name}`}
-                                                className={`item-details-watched-switch ${collection.complete ? 'is-on' : ''}`}
-                                                style={collection.complete ? { backgroundColor: color } : undefined}
-                                                onClick={() => toggleCollectionComplete(collection, index)}
-                                            >
-                                                <span className='item-details-watched-knob' />
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
                             </div>
                         </section>
                     )}
