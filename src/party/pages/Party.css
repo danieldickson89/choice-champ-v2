@@ -22,6 +22,11 @@
 
 .party-voting {
     box-sizing: border-box;
+    /* Override .content's generous default bottom padding. The
+       Finish Voting button is fixed at safe-area + 25px and ~50px
+       tall, so 100px clears it with a small buffer — matches the
+       spacing on Discover and Collection detail. */
+    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 100px) !important;
 }
 
 .party-voting-sticky-header {
