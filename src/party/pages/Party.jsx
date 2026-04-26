@@ -8,9 +8,7 @@ import Button from '../../shared/components/FormElements/Button';
 import Confetti from 'react-confetti';
 import Loading from '../../shared/components/Loading';
 import { AuthContext } from '../../shared/context/auth-context';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faFlagCheckered } from '@fortawesome/free-solid-svg-icons';
-import { X, Dices, Flag, Minus, Plus } from 'lucide-react';
+import { X, Dices, Flag, Minus, Plus, Star } from 'lucide-react';
 
 import './Party.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
@@ -637,7 +635,7 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                                                 <div key={item.id} className='runner-up-watchable-item'>
                                                     <img src={item.poster} alt={`${item.title} poster`} className='runner-up-watchable-img' />
                                                     {item.superChoice && (
-                                                        <FontAwesomeIcon icon={faStar} className='runner-up-super-choice' />
+                                                        <Star className='runner-up-super-choice' fill='currentColor' />
                                                     )}
                                                 </div>
                                             ))}
@@ -659,9 +657,9 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                         />
                         { (item.votes > 0 && !secretMode) && <div className='item-votes'>{item.votes}</div> }
                         { 
-                            ((item.tempSuperChoice || item.superChoice) && superChoiceMode) && 
-                                <FontAwesomeIcon
-                                    icon={faStar}
+                            ((item.tempSuperChoice || item.superChoice) && superChoiceMode) &&
+                                <Star
+                                    fill='currentColor'
                                     className={
                                         item.superChoice ? 'item-super-choice' :
                                         item.tempSuperChoice ? 'item-temp-super-choice' : null
@@ -723,7 +721,7 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                         slideDown ? { transform: 'translateY(100vh)', transition: 'transform 2s ease-in-out' } : null
                     }
                 >
-                    <FontAwesomeIcon icon={faFlagCheckered} className='flag-selected' />
+                    <Flag className='flag-selected' />
                 </div>
             )
         }

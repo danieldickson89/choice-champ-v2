@@ -1,15 +1,18 @@
 import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faFlagCheckered } from '@fortawesome/free-solid-svg-icons';
 
 import { AuthContext } from '../../shared/context/auth-context';
 
 import './Attribution.css';
 
-const TMDB_LOGO = 'https://play-lh.googleusercontent.com/XXqfqs9irPSjphsMPcC-c6Q4-FY5cd8klw4IdI2lof_Ie-yXaFirqbNDzK2kJ808WXJk=w240-h480-rw';
-const BGG_LOGO = 'https://images.squarespace-cdn.com/content/v1/5902292fd482e9284cf47b8d/1567633051478-PRQ3UHYD6YFJSP80U3YV/BGG.jpeg';
+// External logo URLs. Each points to the source's own apple-touch-icon
+// (a 180x180 PNG that any modern site keeps at this stable path) so we
+// don't depend on third-party hosts like Reddit/Squarespace caches.
+const TMDB_LOGO = 'https://www.themoviedb.org/apple-touch-icon.png';
+const RAWG_LOGO = 'https://rawg.io/apple-touch-icon.png';
+const SGDB_LOGO = 'https://www.steamgriddb.com/apple-touch-icon.png';
+const BGG_LOGO = 'https://boardgamegeek.com/apple-touch-icon.png';
 
 const Attribution = () => {
     const auth = useContext(AuthContext);
@@ -45,12 +48,14 @@ const Attribution = () => {
             </section>
 
             <section className='attribution-block'>
+                <img src={RAWG_LOGO} className='attribution-logo' alt='RAWG logo' />
                 <p>
                     Video game data powered by <a href='https://rawg.io/' target='_blank' rel='noopener noreferrer'>RAWG</a>.
                 </p>
             </section>
 
             <section className='attribution-block'>
+                <img src={SGDB_LOGO} className='attribution-logo' alt='SteamGridDB logo' />
                 <p>
                     Video game posters provided by <a href='https://www.steamgriddb.com/' target='_blank' rel='noopener noreferrer'>SteamGridDB</a>.
                 </p>
@@ -63,15 +68,6 @@ const Attribution = () => {
                     certified by BoardGameGeek. All board game data is provided
                     by <a href='https://boardgamegeek.com/' target='_blank' rel='noopener noreferrer'>BoardGameGeek</a>.
                 </p>
-            </section>
-
-            <section className='attribution-block'>
-                <h2>Flaticon</h2>
-                <p className='attribution-subtitle'>A few icons in this app come from Flaticon.</p>
-                <ul className='attribution-link-list'>
-                    <li><FontAwesomeIcon icon={faStar} /><a href='https://www.flaticon.com/free-icons/rating'>Rating icons by Corner Pixel</a></li>
-                    <li><FontAwesomeIcon icon={faFlagCheckered} /><a href='https://www.flaticon.com/free-icons/finish'>Finish icons by Freepik</a></li>
-                </ul>
             </section>
         </div>
     );
