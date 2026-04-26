@@ -78,6 +78,16 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
 
     useEffect(() => {
         let cancelled = false;
+
+        // In search mode without a query, show a blank slate — the user is
+        // about to search the whole catalog, not browse the trending feed.
+        if (searchModeActive && !isSearching) {
+            setItems([]);
+            setIsLoading(false);
+            setError(null);
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
@@ -110,7 +120,7 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
             });
 
         return () => { cancelled = true; };
-    }, [activeSubtab, collectionType, trimmedQuery, isSearching]);
+    }, [activeSubtab, collectionType, trimmedQuery, isSearching, searchModeActive]);
 
     const openItem = (item) => {
         const search = item.poster
@@ -221,7 +231,11 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
             {error && <DiscoverError error={error} color={color} />}
             {!isLoading && !error && items.length === 0 && (
                 <p className='discover-empty'>
-                    {isSearching ? `No results for "${trimmedQuery}"` : 'No results available right now.'}
+                    {searchModeActive && !isSearching
+                        ? 'Type to search'
+                        : isSearching
+                            ? `No results for "${trimmedQuery}"`
+                            : 'No results available right now.'}
                 </p>
             )}
             {!isLoading && !error && items.length > 0 && (
