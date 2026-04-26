@@ -43,7 +43,7 @@ const Auth = () => {
                 setErrorMessage('Check your email to confirm your account.');
                 return;
             }
-            navigate('/welcome/info');
+            navigate('/collections/movie');
         } else if (isForgot) {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/password-reset`,

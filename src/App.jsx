@@ -44,7 +44,6 @@ const Collection = lazyWithReload(() => import('./collection/pages/Collection'))
 const ItemDetails = lazyWithReload(() => import('./collection/pages/ItemDetails'));
 const Auth = lazyWithReload(() => import('./user/pages/Auth'));
 const PasswordReset = lazyWithReload(() => import('./user/pages/PasswordReset'));
-const Welcome = lazyWithReload(() => import('./welcome/pages/Welcome'));
 const PartyHome = lazyWithReload(() => import('./party/pages/PartyHome'));
 const PartyWait = lazyWithReload(() => import('./party/pages/PartyWait'));
 const Party = lazyWithReload(() => import('./party/pages/Party'));
@@ -158,7 +157,6 @@ function App() {
     routes = (
       <Suspense fallback={<Loading color='#FCB016' className='page-loading' />}>
         <Routes>
-          <Route path="/welcome/info" element={<Welcome />} exact />
           <Route path="/collections/:type" element={<MediaTabByType />} exact />
           <Route path="/collections/:type/:id" element={<Collection />} exact />
           <Route path="/items/:type/:itemId" element={<ItemDetails />} exact />
