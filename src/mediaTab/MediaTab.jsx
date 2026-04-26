@@ -240,7 +240,7 @@ const MediaTab = () => {
                         aria-label='New collection'
                         style={{ color: config.color, visibility: isReorder ? 'hidden' : 'visible' }}
                     >
-                        <Plus size={22} strokeWidth={2.5} />
+                        <Plus size={20} strokeWidth={2.5} />
                     </button>
                     {isReorder ? (
                         <button
@@ -250,7 +250,7 @@ const MediaTab = () => {
                             aria-label='Done reordering'
                             style={{ color: config.color }}
                         >
-                            <Check size={22} strokeWidth={2.5} />
+                            <Check size={20} strokeWidth={2.5} />
                         </button>
                     ) : (
                         <button
@@ -260,7 +260,7 @@ const MediaTab = () => {
                             aria-label='Reorder collections'
                             style={{ color: config.color }}
                         >
-                            <GripVertical size={22} strokeWidth={2.5} />
+                            <GripVertical size={20} strokeWidth={2.5} />
                         </button>
                     )}
                 </div>
