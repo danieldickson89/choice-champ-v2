@@ -113,7 +113,10 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
     }, [activeSubtab, collectionType, trimmedQuery, isSearching]);
 
     const openItem = (item) => {
-        navigate(`/items/${collectionType}/${item.id}`);
+        const search = item.poster
+            ? `?p=${encodeURIComponent(item.poster)}`
+            : '';
+        navigate(`/items/${collectionType}/${item.id}${search}`);
     };
 
     const enterSearch = () => {

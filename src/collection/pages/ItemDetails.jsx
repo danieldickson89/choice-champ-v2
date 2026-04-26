@@ -25,6 +25,10 @@ const ItemDetails = () => {
     const collectionId = searchParams.get('cid');
     const mongoItemId = searchParams.get('mid');
     const initialWatched = searchParams.get('w') === '1';
+    // Poster URL passed from the source view (Discover or Collection grid)
+    // so the detail view displays exactly what the user just tapped on,
+    // sidestepping any TMDB poster-path drift between endpoints.
+    const passedPoster = searchParams.get('p') || null;
 
     const color = TYPE_COLORS[collectionType] || '#FCB016';
     const isPlayed = collectionType === 'game' || collectionType === 'board';
@@ -94,9 +98,13 @@ const ItemDetails = () => {
         if(collectionType !== 'board' && collectionType !== 'game') {
             tempId = parseInt(tempId);
         }
+        // Prefer the poster the user actually saw and tapped on (passedPoster)
+        // so the stored item matches the grid's image. Falls back to the
+        // fetched detail poster only when the page was opened directly.
+        const posterToStore = passedPoster || details.poster;
         api(`/collections/items/${addCollectionId}`, {
             method: 'POST',
-            body: JSON.stringify([{ title: details.title, id: tempId, poster: details.poster }])
+            body: JSON.stringify([{ title: details.title, id: tempId, poster: posterToStore }])
         })
         .then(data => {
             const newItem = data.newItems[0];
@@ -172,9 +180,13 @@ const ItemDetails = () => {
                 </div>
             ) : (
                 <React.Fragment>
-                    {details.poster && (
+                    {(passedPoster || details.poster) && (
                         <div className='item-details-poster-wrap'>
-                            <img className='item-details-poster' src={details.poster} alt={`${details.title} poster`} />
+                            <img
+                                className='item-details-poster'
+                                src={passedPoster || details.poster}
+                                alt={`${details.title} poster`}
+                            />
                         </div>
                     )}
                     <h1 className='item-details-title' style={{ color }}>{details.title}</h1>

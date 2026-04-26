@@ -276,6 +276,7 @@ const Collection = ({ socket }) => {
             mid: item._id,
             w: item.watched ? '1' : '0',
         });
+        if (item.poster) params.set('p', item.poster);
         navigate(`/items/${collectionType}/${item.itemId}?${params.toString()}`);
     };
 
