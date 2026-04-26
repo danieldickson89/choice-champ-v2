@@ -417,7 +417,14 @@ const Collection = ({ socket }) => {
                                 <button
                                     type='button'
                                     className='collection-search-clear'
-                                    onClick={() => setQuery('')}
+                                    // onMouseDown preventDefault keeps focus
+                                    // on the input so the user can keep
+                                    // typing immediately after clearing.
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => {
+                                        setQuery('');
+                                        searchInputRef.current?.focus();
+                                    }}
                                     aria-label='Clear text'
                                     style={{ color: collectionTypeColor }}
                                 >

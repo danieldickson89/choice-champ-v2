@@ -198,7 +198,14 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
                             <button
                                 type='button'
                                 className='discover-search-clear'
-                                onClick={() => setQuery('')}
+                                // onMouseDown preventDefault keeps focus on
+                                // the input so the user can keep typing
+                                // immediately after clearing.
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                    setQuery('');
+                                    inputRef.current?.focus();
+                                }}
                                 aria-label='Clear text'
                                 style={{ color }}
                             >
