@@ -402,7 +402,13 @@ const Collection = ({ socket }) => {
                                 ref={searchInputRef}
                                 className='collection-search-input'
                                 type='text'
-                                placeholder='Search'
+                                placeholder={
+                                    collectionType === 'movie' ? 'Search for a movie'
+                                    : collectionType === 'tv' ? 'Search for a TV show'
+                                    : collectionType === 'game' ? 'Search for a video game'
+                                    : collectionType === 'board' ? 'Search for a board game'
+                                    : 'Search'
+                                }
                                 value={query}
                                 onChange={e => setQuery(e.target.value)}
                                 autoComplete='off'

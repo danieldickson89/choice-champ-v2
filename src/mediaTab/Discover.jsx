@@ -9,6 +9,13 @@ import './Discover.css';
 
 const SUPPORTED_TYPES = ['movie', 'tv', 'game', 'board'];
 
+const SEARCH_PLACEHOLDER = {
+    movie: 'Search for a movie',
+    tv:    'Search for a TV show',
+    game:  'Search for a video game',
+    board: 'Search for a board game',
+};
+
 const Discover = ({ collectionType, color, onSearchingChange }) => {
     if(!SUPPORTED_TYPES.includes(collectionType)) {
         return (
@@ -182,7 +189,7 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
                             ref={inputRef}
                             className='discover-search-input'
                             type='text'
-                            placeholder='Search'
+                            placeholder={SEARCH_PLACEHOLDER[collectionType] || 'Search'}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             autoComplete='off'
