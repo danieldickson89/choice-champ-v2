@@ -190,14 +190,17 @@ router
         } else if (type === 'movie' || type === 'tv') {
             await Promise.all(items.map(async (it) => {
                 try {
-                    const r = await fetch(`https://api.themoviedb.org/3/${type}/${it.item_id}?api_key=${process.env.MOVIE_DB_API_KEY}`);
+                    // Pass language=en-US so we get the same regional
+                    // poster that /discover and /getInfo return — TMDB
+                    // serves different poster_paths per locale, and
+                    // omitting it returns a different (often original)
+                    // poster that won't match the Discover view.
+                    const r = await fetch(`https://api.themoviedb.org/3/${type}/${it.item_id}?api_key=${process.env.MOVIE_DB_API_KEY}&language=en-US`);
                     if (!r.ok) return;
                     const data = await r.json();
-                    // Match the size used by /discover so a refresh only
-                    // produces a different URL when the poster_path itself
-                    // actually changed — switching only the resize prefix
-                    // would otherwise inflate the "updated" count without
-                    // ever showing a different image.
+                    // Match the size used by /discover (w342) so the
+                    // resize prefix alone doesn't change the URL when
+                    // the poster_path itself is unchanged.
                     if (data.poster_path) freshById.set(String(it.item_id), `https://image.tmdb.org/t/p/w342${data.poster_path}`);
                 } catch (err) {
                     console.log('refresh TMDB failed:', err.message);
