@@ -7,7 +7,7 @@ import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
 import { ArrowLeft, Check, MoreVertical, Pencil, RefreshCw, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, X, Columns2, Columns3, Columns4, Clapperboard } from 'lucide-react';
 import RetroTv from '../../shared/components/Icons/RetroTv';
-import { Menu, MenuItem, Dialog } from '@mui/material';
+import { Menu, MenuItem, Dialog, Snackbar } from '@mui/material';
 
 import './Collection.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
@@ -66,6 +66,7 @@ const Collection = ({ socket }) => {
     const [renameDraft, setRenameDraft] = useState('');
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState('');
+    const [refreshFeedback, setRefreshFeedback] = useState(null);
 
     const openKebab = (e) => setKebabAnchor(e.currentTarget);
     const closeKebab = () => setKebabAnchor(null);
@@ -76,11 +77,21 @@ const Collection = ({ socket }) => {
     const handleManage = () => { setIsEdit(true); closeKebab(); };
     const handleRefreshPosters = () => {
         closeKebab();
+        setRefreshFeedback('Refreshing posters…');
         api(`/collections/refresh-posters/${collectionId}`, { method: 'POST' })
             .then(data => {
                 if (Array.isArray(data?.items)) setItems(data.items);
+                const count = Number(data?.updated) || 0;
+                setRefreshFeedback(
+                    count === 0
+                        ? 'Posters are already up to date'
+                        : `${count} poster${count === 1 ? '' : 's'} refreshed`
+                );
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                console.log(err);
+                setRefreshFeedback("Couldn't refresh posters");
+            });
     };
     const handleRename = () => {
         setRenameDraft(collectionName);
@@ -674,6 +685,14 @@ const Collection = ({ socket }) => {
                     </div>
                 </div>
             </Dialog>
+
+            <Snackbar
+                open={Boolean(refreshFeedback)}
+                autoHideDuration={refreshFeedback === 'Refreshing posters…' ? null : 2500}
+                onClose={() => setRefreshFeedback(null)}
+                message={refreshFeedback}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            />
         </React.Fragment>
     );
 }
