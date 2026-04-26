@@ -391,7 +391,7 @@ const Collection = ({ socket }) => {
                             onClick={exitSearch}
                             aria-label='Close search'
                         >
-                            <ArrowLeft size={22} strokeWidth={2.5} />
+                            <X size={22} strokeWidth={2.5} />
                         </button>
                         <div
                             className='collection-search-input-wrap'

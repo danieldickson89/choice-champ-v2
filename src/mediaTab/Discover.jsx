@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Columns2, Columns3, Columns4, Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
+import { Columns2, Columns3, Columns4, Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
 
 import { SUBTABS, fetchDiscover, fetchSearch, fetchGamePosters } from './discoverApi';
 import SortFilterPanel from '../shared/components/SortFilterPanel/SortFilterPanel';
@@ -158,7 +158,7 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
                         onClick={exitSearch}
                         aria-label='Close search'
                     >
-                        <ArrowLeft size={22} strokeWidth={2.5} />
+                        <X size={22} strokeWidth={2.5} />
                     </button>
                     <div className='discover-search-input-wrap' style={{ borderColor: color }}>
                         <SearchIcon size={18} strokeWidth={2} style={{ color }} aria-hidden='true' />
