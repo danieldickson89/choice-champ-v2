@@ -248,3 +248,55 @@
         padding-right: 80px;
     }
 }
+
+/* Members dialog list */
+.members-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.members-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.members-row:last-child {
+    border-bottom: none;
+}
+
+.members-name {
+    font-size: 11pt;
+    color: white;
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.members-badge {
+    flex-shrink: 0;
+    font-size: 8pt;
+    font-weight: 700;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.members-loading {
+    padding: 24px 0;
+    display: flex;
+    justify-content: center;
+}

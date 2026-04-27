@@ -5,7 +5,7 @@ import { supabase } from '../../shared/lib/supabase';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
-import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, X, Columns2, Columns3, Columns4, Clapperboard } from 'lucide-react';
+import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard } from 'lucide-react';
 import RetroTv from '../../shared/components/Icons/RetroTv';
 import { Menu, MenuItem, Dialog } from '@mui/material';
 
@@ -66,6 +66,8 @@ const Collection = ({ socket }) => {
     const [renameDraft, setRenameDraft] = useState('');
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState('');
+    const [membersOpen, setMembersOpen] = useState(false);
+    const [members, setMembers] = useState(null);
 
     const openKebab = (e) => setKebabAnchor(e.currentTarget);
     const closeKebab = () => setKebabAnchor(null);
@@ -74,6 +76,17 @@ const Collection = ({ socket }) => {
 
     const handleShare = () => { setShareOpen(true); closeKebab(); };
     const handleManage = () => { setIsEdit(true); closeKebab(); };
+    const handleMembers = () => {
+        closeKebab();
+        setMembers(null);
+        setMembersOpen(true);
+        api(`/collections/members/${collectionId}`)
+            .then(data => setMembers(Array.isArray(data?.members) ? data.members : []))
+            .catch(err => {
+                console.log(err);
+                setMembers([]);
+            });
+    };
     const handleRename = () => {
         setRenameDraft(collectionName);
         setRenameOpen(true);
@@ -618,6 +631,10 @@ const Collection = ({ socket }) => {
                     <Share2 size={18} strokeWidth={2} style={{ marginRight: 12 }} />
                     Share code
                 </MenuItem>
+                <MenuItem onClick={handleMembers} className='collection-menu-item'>
+                    <Users size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Members
+                </MenuItem>
                 <MenuItem onClick={handleDelete} className='collection-menu-item collection-menu-item-danger'>
                     <Trash size={18} strokeWidth={2} style={{ marginRight: 12 }} />
                     Delete
@@ -659,6 +676,52 @@ const Collection = ({ socket }) => {
                     >
                         {copied ? 'Copied!' : 'Copy code'}
                     </button>
+                </div>
+            </Dialog>
+
+            <Dialog
+                open={membersOpen}
+                onClose={() => setMembersOpen(false)}
+                fullWidth
+                maxWidth='xs'
+                PaperProps={{ className: 'cc-dialog-paper' }}
+            >
+                <div className='cc-dialog'>
+                    <h3 className='cc-dialog-title'>Members</h3>
+                    {members === null && (
+                        <div className='members-loading'>
+                            <Loading color={collectionTypeColor} type='beat' size={20} />
+                        </div>
+                    )}
+                    {members && members.length === 0 && (
+                        <p className='cc-dialog-subtitle'>No members found.</p>
+                    )}
+                    {members && members.length > 0 && (
+                        <ul className='members-list'>
+                            {members.map(m => (
+                                <li key={m.id} className='members-row'>
+                                    <span className='members-name'>{m.username}</span>
+                                    {m.isOwner && (
+                                        <span
+                                            className='members-badge'
+                                            style={{ backgroundColor: collectionTypeColor }}
+                                        >
+                                            Owner
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    <div className='cc-dialog-actions'>
+                        <button
+                            type='button'
+                            className='cc-dialog-btn cc-dialog-btn-secondary'
+                            onClick={() => setMembersOpen(false)}
+                        >
+                            Close
+                        </button>
+                    </div>
                 </div>
             </Dialog>
 

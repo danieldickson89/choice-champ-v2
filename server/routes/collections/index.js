@@ -189,6 +189,52 @@ router
         if (error) return res.status(500).json({ errMsg: error.message });
         res.send('Item removed');
     })
+    // List the members of a collection (owner badge included). Auth-
+    // gated to actual members so we don't leak a roster to outsiders
+    // who happened to know the collection's id.
+    .get('/members/:collectionId', async (req, res) => {
+        const userId = req.user.id;
+        const { collectionId } = req.params;
+
+        const { data: own, error: ownErr } = await supabase
+            .from('collection_members')
+            .select('user_id')
+            .eq('collection_id', collectionId)
+            .eq('user_id', userId)
+            .maybeSingle();
+        if (ownErr) return res.status(500).json({ errMsg: ownErr.message });
+        if (!own) return res.status(403).json({ errMsg: 'Not a member of this collection' });
+
+        const { data: collection, error: cErr } = await supabase
+            .from('collections')
+            .select('owner_id')
+            .eq('id', collectionId)
+            .maybeSingle();
+        if (cErr) return res.status(500).json({ errMsg: cErr.message });
+        if (!collection) return res.status(404).json({ errMsg: 'Collection not found' });
+
+        const { data: rows, error } = await supabase
+            .from('collection_members')
+            .select('user_id, joined_at, profiles(id, username)')
+            .eq('collection_id', collectionId);
+        if (error) return res.status(500).json({ errMsg: error.message });
+
+        const members = (rows || []).map(r => ({
+            id: r.user_id,
+            username: r.profiles?.username || 'Unknown',
+            isOwner: r.user_id === collection.owner_id,
+            joinedAt: r.joined_at,
+        }));
+        // Owner first, then everyone else by join order.
+        members.sort((a, b) => {
+            if (a.isOwner !== b.isOwner) return a.isOwner ? -1 : 1;
+            const at = a.joinedAt ? new Date(a.joinedAt).getTime() : 0;
+            const bt = b.joinedAt ? new Date(b.joinedAt).getTime() : 0;
+            return at - bt;
+        });
+        // joinedAt was only needed for sorting; don't expose it.
+        res.json({ members: members.map(({ id, username, isOwner }) => ({ id, username, isOwner })) });
+    })
     // Rename a collection.
     .post('/name/:id', async (req, res) => {
         const { error } = await supabase
