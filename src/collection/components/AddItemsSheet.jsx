@@ -61,7 +61,10 @@ const AddItemsSheet = ({
 
         promise.then(data => {
             if (cancelled) return;
-            setItems(Array.isArray(data?.items) ? data.items : []);
+            // Backend returns { results, page, totalPages } for both
+            // /discover and /discover/.../search — match what Discover
+            // already does rather than inventing a new contract.
+            setItems(Array.isArray(data?.results) ? data.results : []);
             setLoading(false);
         }).catch(err => {
             if (cancelled) return;
