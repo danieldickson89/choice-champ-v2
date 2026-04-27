@@ -5,9 +5,9 @@ import { supabase } from '../../shared/lib/supabase';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
-import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen } from 'lucide-react';
+import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen, Info, User } from 'lucide-react';
 import RetroTv from '../../shared/components/Icons/RetroTv';
-import { Menu, MenuItem, Dialog } from '@mui/material';
+import { Menu, MenuItem, Dialog, Popover } from '@mui/material';
 
 import './Collection.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
@@ -55,6 +55,7 @@ const Collection = ({ socket }) => {
     const [items, setItems] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
     const [isQuickEdit, setIsQuickEdit] = useState(false);
+    const [quickEditHelpAnchor, setQuickEditHelpAnchor] = useState(null);
     const [ratingTarget, setRatingTarget] = useState(null);
     const [shareCode, setShareCode] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
@@ -716,19 +717,47 @@ const Collection = ({ socket }) => {
                     sortedItems.length === 0 ? (
                         <div className='collection-empty'>{emptyMessage}</div>
                     ) : (
-                        <div className='quick-edit-list'>
-                            {sortedItems.map(item => (
-                                <QuickEditRow
-                                    key={item._id}
-                                    item={item}
-                                    color={collectionTypeColor}
-                                    watchedLabel={(collectionType === 'game' || collectionType === 'board') ? 'Played' : 'Watched'}
-                                    onToggleMine={toggleMine}
-                                    onToggleGroup={toggleGroup}
-                                    onOpenRating={openRating}
-                                />
-                            ))}
-                        </div>
+                        <React.Fragment>
+                            <div className='quick-edit-list'>
+                                <button
+                                    type='button'
+                                    className='quick-edit-help'
+                                    onClick={(e) => setQuickEditHelpAnchor(e.currentTarget)}
+                                    aria-label='What do these toggles mean?'
+                                >
+                                    <Info size={14} strokeWidth={2} />
+                                    <span>What do these mean?</span>
+                                </button>
+                                {sortedItems.map(item => (
+                                    <QuickEditRow
+                                        key={item._id}
+                                        item={item}
+                                        color={collectionTypeColor}
+                                        watchedLabel={(collectionType === 'game' || collectionType === 'board') ? 'Played' : 'Watched'}
+                                        onToggleMine={toggleMine}
+                                        onToggleGroup={toggleGroup}
+                                        onOpenRating={openRating}
+                                    />
+                                ))}
+                            </div>
+                            <Popover
+                                open={Boolean(quickEditHelpAnchor)}
+                                anchorEl={quickEditHelpAnchor}
+                                onClose={() => setQuickEditHelpAnchor(null)}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                                PaperProps={{ className: 'quick-edit-help-paper' }}
+                            >
+                                <p>
+                                    <span className='help-icon'><User size={14} strokeWidth={2} /></span>
+                                    Personal — only you see this. Tracks whether you've {(collectionType === 'game' || collectionType === 'board') ? 'played' : 'watched'} the item across any of your collections.
+                                </p>
+                                <p>
+                                    <span className='help-icon'><Users size={14} strokeWidth={2} /></span>
+                                    Group — shared with everyone in <em>this</em> collection. Use it when the whole group has finished the item together.
+                                </p>
+                            </Popover>
+                        </React.Fragment>
                     )
                 )}
 

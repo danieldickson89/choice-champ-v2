@@ -1,31 +1,39 @@
 .quick-edit-row {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 12px;
+    align-items: stretch;
     background-color: rgba(255, 255, 255, 0.04);
-    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-.quick-edit-row-top {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-}
-
+/* Poster fills the row's full height on the left, cropped to fit
+   without distortion. The width stays fixed so titles and controls
+   on the right always have a predictable amount of room. */
 .quick-edit-poster {
     flex-shrink: 0;
-    width: 44px;
-    height: 66px;
+    width: 64px;
+    align-self: stretch;
     object-fit: cover;
-    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.quick-edit-poster-placeholder {
+    /* Reserve the same width when an item has no poster image. */
+    height: auto;
+}
+
+.quick-edit-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
 }
 
 .quick-edit-title {
-    flex: 1;
-    min-width: 0;
     font-size: 11pt;
     font-weight: 600;
     color: white;
@@ -42,18 +50,20 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding-left: 56px;
 }
 
 .quick-edit-toggle {
     flex-shrink: 0;
-    padding: 6px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     background-color: rgba(255, 255, 255, 0.04);
     color: rgba(255, 255, 255, 0.85);
     font-family: inherit;
-    font-size: 10pt;
+    font-size: 9.5pt;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
@@ -101,4 +111,51 @@
     width: 100%;
     max-width: 600px;
     margin: 12px auto 0 auto;
+}
+
+/* Helper header above the list — info icon opens a popover that
+   explains what the personal/group toggles mean. Mirrors the same
+   pattern used on ItemDetails' My Collections header. */
+.quick-edit-help {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 8px 4px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.65);
+    font-family: inherit;
+    font-size: 10pt;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.quick-edit-help:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.quick-edit-help-paper {
+    background-color: #2a2727 !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 10px !important;
+    max-width: 280px !important;
+    padding: 12px 14px !important;
+    font-size: 10.5pt;
+    line-height: 1.45;
+}
+
+.quick-edit-help-paper p {
+    margin: 0;
+}
+
+.quick-edit-help-paper p + p {
+    margin-top: 8px;
+}
+
+.quick-edit-help-paper .help-icon {
+    display: inline-flex;
+    vertical-align: -3px;
+    margin-right: 4px;
+    color: rgba(255, 255, 255, 0.85);
 }
