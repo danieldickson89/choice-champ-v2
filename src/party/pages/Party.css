@@ -29,6 +29,13 @@
     padding-bottom: calc(env(safe-area-inset-bottom, 0) + 100px) !important;
 }
 
+/* Party has no floating search button, so the filter button sits at
+   the right edge (16px) instead of in its usual paired-with-search
+   slot (72px). Avoids an awkward empty gap on the right. */
+.party-voting .floating-filter {
+    right: 16px;
+}
+
 .party-voting-sticky-header {
     position: sticky;
     top: 0;
