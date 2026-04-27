@@ -50,10 +50,13 @@ const RatingDialog = ({ open, currentRating, onClose, onSave, onRemove, color = 
                     <Slider
                         value={Number(draft)}
                         onChange={(_, v) => setDraft(clampRating(v))}
+                        onChangeCommitted={(_, v) => setDraft(clampRating(v))}
                         min={1}
                         max={10}
                         step={0.1}
                         size='medium'
+                        valueLabelDisplay='auto'
+                        valueLabelFormat={(v) => v.toFixed(1)}
                         sx={{
                             color,
                             flex: 1,
