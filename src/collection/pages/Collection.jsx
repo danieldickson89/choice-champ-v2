@@ -5,7 +5,7 @@ import { supabase } from '../../shared/lib/supabase';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
-import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen, Info, User } from 'lucide-react';
+import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen, Info, User, Plus } from 'lucide-react';
 import RetroTv from '../../shared/components/Icons/RetroTv';
 import { Menu, MenuItem, Dialog, Popover } from '@mui/material';
 
@@ -14,6 +14,7 @@ import PlaceholderImg from '../../shared/components/PlaceholderImg';
 import ManageItemRow from '../components/ManageItemRow';
 import QuickEditRow from '../components/QuickEditRow';
 import RatingDialog from '../components/RatingDialog';
+import AddItemsSheet from '../components/AddItemsSheet';
 import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterPanel';
 import {
     DndContext,
@@ -57,6 +58,7 @@ const Collection = ({ socket }) => {
     const [isQuickEdit, setIsQuickEdit] = useState(false);
     const [quickEditHelpAnchor, setQuickEditHelpAnchor] = useState(null);
     const [ratingTarget, setRatingTarget] = useState(null);
+    const [addItemsOpen, setAddItemsOpen] = useState(false);
     const [shareCode, setShareCode] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [collectionName, setCollectionName] = useState('');
@@ -98,6 +100,7 @@ const Collection = ({ socket }) => {
     const handleShare = () => { setShareOpen(true); closeKebab(); };
     const handleManage = () => { setIsEdit(true); closeKebab(); };
     const handleQuickEdit = () => { setIsQuickEdit(true); closeKebab(); };
+    const handleAddItems = () => { setAddItemsOpen(true); closeKebab(); };
     const handleMembers = () => {
         closeKebab();
         setMembers(null);
@@ -432,6 +435,36 @@ const Collection = ({ socket }) => {
         .catch(err => console.log(err));
     }
 
+    // Add Items sheet — POST a single source item, append the returned
+    // server row to the local list, broadcast to other members.
+    const addItemFromSheet = async (sourceItem) => {
+        const data = await api(`/collections/items/${collectionId}`, {
+            method: 'POST',
+            body: JSON.stringify([{
+                id: sourceItem.id,
+                title: sourceItem.title,
+                poster: sourceItem.poster,
+                releaseDate: sourceItem.releaseDate || null,
+            }]),
+        });
+        const newItem = data?.newItems?.[0];
+        if (!newItem) return;
+        itemsRef.current = [...itemsRef.current, newItem];
+        setItems(itemsRef.current);
+        channelRef.current?.send({ type: 'broadcast', event: 'add', payload: { item: newItem } });
+    };
+
+    // Map a source-API item id back to its collection_items._id so the
+    // sheet can untoggle items it added without managing the mapping.
+    const removeItemBySource = async (sourceItemId) => {
+        const match = itemsRef.current.find(it => String(it.itemId) === String(sourceItemId));
+        if (!match) return;
+        await api(`/collections/items/${collectionId}/${match._id}`, { method: 'DELETE' });
+        itemsRef.current = itemsRef.current.filter(it => it._id !== match._id);
+        setItems(itemsRef.current);
+        channelRef.current?.send({ type: 'broadcast', event: 'remove', payload: { id: match._id } });
+    };
+
     const navBack = () => {
         // Honor the user's actual entry point — Profile, MediaTab, deep
         // link, etc. — by walking one step back through history. Falls
@@ -589,6 +622,22 @@ const Collection = ({ socket }) => {
         if (filterValue === 'unwatched') return 'No items in this collection';
         return 'No items in this collection';
     })();
+
+    // True empty: zero items in the collection AND nothing filtered out.
+    // Only this state shows the "Add X" CTA — when a filter or search is
+    // active, "no results" is the right message, not an invitation to add.
+    const isTrulyEmpty = items.length === 0 && filterValue === 'all' && !query.trim();
+    const addCtaLabel = (
+        collectionType === 'tv'    ? 'Add TV Shows' :
+        collectionType === 'game'  ? 'Add Video Games' :
+        collectionType === 'board' ? 'Add Board Games' :
+                                     'Add Movies'
+    );
+
+    // Set of source-API item ids currently in this collection — used by
+    // AddItemsSheet to render +/✓ states on each search result without
+    // having to re-derive on every keystroke.
+    const existingSourceItemIds = new Set(items.map(i => String(i.itemId)));
 
     return (
         <React.Fragment>
@@ -762,7 +811,22 @@ const Collection = ({ socket }) => {
                 )}
 
                 {!isLoading && !isEdit && !isQuickEdit && sortedItems.length === 0 && (
-                    <div className='collection-empty'>{emptyMessage}</div>
+                    isTrulyEmpty ? (
+                        <div className='collection-empty collection-empty-cta'>
+                            <p>{emptyMessage}</p>
+                            <button
+                                type='button'
+                                className='collection-empty-add-btn'
+                                onClick={handleAddItems}
+                                style={{ backgroundColor: collectionTypeColor, color: '#111' }}
+                            >
+                                <Plus size={18} strokeWidth={2.5} />
+                                <span>{addCtaLabel}</span>
+                            </button>
+                        </div>
+                    ) : (
+                        <div className='collection-empty'>{emptyMessage}</div>
+                    )
                 )}
 
                 {/* Always render the grid when items are available, even
@@ -844,6 +908,10 @@ const Collection = ({ socket }) => {
                 <MenuItem onClick={handleQuickEdit} className='collection-menu-item'>
                     <SquarePen size={18} strokeWidth={2} style={{ marginRight: 12 }} />
                     Quick edit
+                </MenuItem>
+                <MenuItem onClick={handleAddItems} className='collection-menu-item'>
+                    <Plus size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Add items
                 </MenuItem>
                 <MenuItem onClick={handleShare} className='collection-menu-item'>
                     <Share2 size={18} strokeWidth={2} style={{ marginRight: 12 }} />
@@ -1016,6 +1084,16 @@ const Collection = ({ socket }) => {
                 onClose={closeRating}
                 onSave={saveRating}
                 onRemove={removeRating}
+            />
+
+            <AddItemsSheet
+                open={addItemsOpen}
+                onClose={() => setAddItemsOpen(false)}
+                mediaType={collectionType}
+                color={collectionTypeColor}
+                existingItemIds={existingSourceItemIds}
+                onAdd={addItemFromSheet}
+                onRemove={removeItemBySource}
             />
         </React.Fragment>
     );

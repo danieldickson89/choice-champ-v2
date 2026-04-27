@@ -1,0 +1,180 @@
+.add-items-sheet-paper {
+    background-color: #312E2E !important;
+    color: white !important;
+    margin: 0 !important;
+    /* Edge-to-edge fullScreen on mobile; standard MUI handles desktop. */
+}
+
+.add-items-sheet {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.add-items-sheet-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: calc(env(safe-area-inset-top, 0) + 10px) 16px 12px 16px;
+    background-color: #312E2E;
+    border-bottom: 2px solid #FCB016;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.add-items-sheet-search-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+}
+
+.add-items-sheet-search-icon {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.add-items-sheet-search {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: white;
+    font-family: inherit;
+    font-size: 11pt;
+}
+
+.add-items-sheet-search:focus { outline: none; }
+
+.add-items-sheet-search::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.add-items-sheet-done {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    padding: 0 4px;
+    font-family: inherit;
+    font-size: 11pt;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.add-items-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px calc(env(safe-area-inset-bottom, 0) + 24px) 16px;
+}
+
+.add-items-sheet-loading,
+.add-items-sheet-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 16px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11pt;
+    text-align: center;
+}
+
+.add-items-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+@media (min-width: 700px) {
+    .add-items-sheet-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1100px) {
+    .add-items-sheet-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.add-items-sheet-card {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    width: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 100ms ease-out, opacity 150ms ease-out;
+}
+
+.add-items-sheet-card:active {
+    transform: scale(0.97);
+}
+
+.add-items-sheet-card.is-pending {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.add-items-sheet-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.add-items-sheet-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 10pt;
+    font-weight: 600;
+    box-sizing: border-box;
+}
+
+/* Persistent corner badge — "+" on un-added items, filled "✓" on
+   added ones. The card itself is the tap target so the badge is
+   purely visual feedback. */
+.add-items-sheet-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition: background-color 150ms ease-out, color 150ms ease-out;
+    pointer-events: none;
+}
+
+/* Subtle dim on already-added items so the un-added ones pop. */
+.add-items-sheet-card.is-added img,
+.add-items-sheet-card.is-added .add-items-sheet-placeholder {
+    opacity: 0.55;
+}

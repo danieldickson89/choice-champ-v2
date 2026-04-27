@@ -213,6 +213,44 @@
     color: #aaa;
 }
 
+/* True-empty state on a brand-new collection — show a CTA so users
+   don't have to hunt for the kebab. The text label still appears
+   above the button so the message stays the same. */
+.collection-empty-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 60px 16px;
+}
+
+.collection-empty-cta p {
+    margin: 0;
+    color: #aaa;
+}
+
+.collection-empty-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 12pt;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 150ms ease-out, transform 100ms ease-out;
+}
+
+.collection-empty-add-btn:active {
+    transform: scale(0.96);
+}
+
+.collection-empty-add-btn:hover {
+    opacity: 0.92;
+}
+
 .collection-loading {
     display: flex;
     justify-content: center;
