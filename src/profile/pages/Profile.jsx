@@ -108,20 +108,42 @@ const Profile = () => {
 
                 <section className='profile-section'>
                     <h2 className='profile-section-title'>Progress</h2>
-                    <div className='profile-activity'>
+                    <div className='profile-progress'>
+                        {stats && (stats.collections?.length ?? 0) === 0 && (
+                            <p className='profile-progress-empty'>No collections yet</p>
+                        )}
                         {MEDIA_STATS.map(({ key, label, action, color, Icon }) => {
-                            const p = stats?.progress?.[key];
-                            const hasData = p && p.total > 0;
+                            const collections = (stats?.collections || []).filter(c => c.type === key);
+                            if (collections.length === 0) return null;
                             return (
-                                <div key={key} className='profile-activity-row'>
-                                    <Icon size={22} strokeWidth={1.75} color={color} />
-                                    <div className='profile-activity-text'>
-                                        <span className='profile-activity-title'>{label}</span>
-                                        <span className='profile-activity-detail'>
-                                            {hasData
-                                                ? `${p.watched} of ${p.total} ${action}`
-                                                : (p ? `No items yet` : '—')}
-                                        </span>
+                                <div key={key} className='profile-progress-group'>
+                                    <div className='profile-progress-group-head'>
+                                        <Icon size={20} strokeWidth={1.75} color={color} />
+                                        <span className='profile-progress-group-label'>{label}</span>
+                                    </div>
+                                    <div className='profile-progress-list'>
+                                        {collections.map(c => {
+                                            const isEmpty = c.total === 0;
+                                            const isComplete = !isEmpty && c.complete === c.total;
+                                            return (
+                                                <button
+                                                    key={c.id}
+                                                    type='button'
+                                                    className='profile-progress-row'
+                                                    onClick={() => navigate(`/collections/${c.type}/${c.id}`)}
+                                                >
+                                                    <span className='profile-progress-row-name'>{c.name}</span>
+                                                    <span
+                                                        className='profile-progress-row-detail'
+                                                        style={isComplete ? { color } : undefined}
+                                                    >
+                                                        {isEmpty
+                                                            ? 'Empty'
+                                                            : `${c.complete} of ${c.total} ${action}`}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             );

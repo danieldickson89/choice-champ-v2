@@ -9,7 +9,10 @@ const { requireAuth } = require('../../middleware/auth');
 // Sign-in / sign-up / password management happen frontend-direct via supabase-js.
 
 router
-    // GET /user/me — current user's profile + collection counts + completion progress
+    // GET /user/me — current user's profile, collection counts, and a
+    // per-collection progress breakdown so the Profile page can show
+    // each collection's completion separately instead of just a
+    // rolled-up media-type aggregate.
     .get('/me', requireAuth, async (req, res) => {
         const userId = req.user.id;
 
@@ -17,7 +20,7 @@ router
             supabase.from('profiles').select('id, username, created_at').eq('id', userId).maybeSingle(),
             supabase
                 .from('collection_members')
-                .select('collection_id, collections(id, type)')
+                .select('collections(id, name, type, created_at)')
                 .eq('user_id', userId),
         ]);
 
@@ -25,41 +28,54 @@ router
         if (memErr)     return res.status(500).json({ errMsg: memErr.message });
         if (!profile)   return res.status(404).json({ errMsg: 'Profile not found' });
 
-        const collectionsByType = { movie: [], tv: [], game: [], board: [] };
-        (memberships || []).forEach(m => {
-            const c = m.collections;
-            if (c && collectionsByType[c.type]) collectionsByType[c.type].push(c.id);
-        });
+        const collections = (memberships || [])
+            .map(m => m.collections)
+            .filter(Boolean)
+            .map(c => ({
+                id: c.id,
+                name: c.name,
+                type: c.type,
+                created_at: c.created_at,
+                complete: 0,
+                total: 0,
+            }));
 
-        const progress = { movie: { watched: 0, total: 0 }, tv: { watched: 0, total: 0 }, game: { watched: 0, total: 0 }, board: { watched: 0, total: 0 } };
+        const counts = { movie: 0, tv: 0, game: 0, board: 0 };
+        collections.forEach(c => { if (counts[c.type] !== undefined) counts[c.type]++; });
 
-        const allCollectionIds = Object.values(collectionsByType).flat();
-        if (allCollectionIds.length > 0) {
+        if (collections.length > 0) {
+            const ids = collections.map(c => c.id);
             const { data: items, error: itemsErr } = await supabase
                 .from('collection_items')
-                .select('collection_id, media_type, complete')
-                .in('collection_id', allCollectionIds);
+                .select('collection_id, complete')
+                .in('collection_id', ids);
             if (itemsErr) return res.status(500).json({ errMsg: itemsErr.message });
 
+            const byId = new Map(collections.map(c => [c.id, c]));
             (items || []).forEach(it => {
-                const bucket = progress[it.media_type];
-                if (!bucket) return;
-                bucket.total++;
-                if (it.complete) bucket.watched++;
+                const c = byId.get(it.collection_id);
+                if (!c) return;
+                c.total++;
+                if (it.complete) c.complete++;
             });
         }
+
+        // Stable client-side ordering: oldest collection first within
+        // each type. Lets the Profile page render predictable lists
+        // and keeps "first-created" at the top.
+        collections.sort((a, b) => {
+            if (a.type !== b.type) return a.type.localeCompare(b.type);
+            const at = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return at - bt;
+        });
 
         res.json({
             _id: profile.id,
             username: profile.username,
             created_at: profile.created_at,
-            counts: {
-                movie: collectionsByType.movie.length,
-                tv:    collectionsByType.tv.length,
-                game:  collectionsByType.game.length,
-                board: collectionsByType.board.length,
-            },
-            progress,
+            counts,
+            collections,
         });
     })
     // POST /user/username — change the signed-in user's display name.
