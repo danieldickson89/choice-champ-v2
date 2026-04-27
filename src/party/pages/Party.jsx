@@ -8,12 +8,28 @@ import Button from '../../shared/components/FormElements/Button';
 import Confetti from 'react-confetti';
 import Loading from '../../shared/components/Loading';
 import { AuthContext } from '../../shared/context/auth-context';
-import { X, Dices, Flag, Minus, Plus, Star } from 'lucide-react';
+import { X, Dices, Flag, Minus, Plus, Star, SlidersHorizontal, Columns2, Columns3, Columns4 } from 'lucide-react';
+import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterPanel';
 
 import './Party.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
 
 const MAX_RUNNER_UPS = 8;
+
+const VIEW_STORAGE_KEY = 'choice-champ:party-view';
+
+const VIEW_OPTIONS = [
+    { value: 2, label: '2 columns', icon: Columns2 },
+    { value: 3, label: '3 columns', icon: Columns3 },
+    { value: 4, label: '4 columns', icon: Columns4 },
+];
+
+const COLOR_BY_MEDIA = {
+    movie: '#FCB016',
+    tv:    '#F04C53',
+    game:  '#2482C5',
+    board: '#45B859',
+};
 
 const Party = () => {
     const auth = useContext(AuthContext);
@@ -41,6 +57,20 @@ const Party = () => {
     const [randomSelected, setRandomSelected] = useState(false);
     const [finishEarly, setFinishEarly] = useState(false);
     const [finished, setFinished] = useState(false);
+
+    const [viewValue, setViewValue] = useState(() => {
+        const saved = localStorage.getItem(VIEW_STORAGE_KEY);
+        const parsed = saved ? parseInt(saved, 10) : 2;
+        return [2, 3, 4].includes(parsed) ? parsed : 2;
+    });
+    const [filterAnchor, setFilterAnchor] = useState(null);
+
+    const handleViewChange = (v) => {
+        setViewValue(v);
+        localStorage.setItem(VIEW_STORAGE_KEY, String(v));
+    };
+
+    const partyColor = COLOR_BY_MEDIA[mediaType] || '#FCB016';
 
     const collectionPointRef = useRef(collectionItems);
     const votesNeededRef = useRef(votesNeeded);
@@ -587,7 +617,33 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                 <div className='finished-title'>CHOICE CHAMPIONS!</div>
             )
         }
-        <div className='collection-content-other'>
+
+        {collectionItems.length > 1 && !finished && !ready && !randomSelected && !finishEarly && (
+            <button
+                type='button'
+                className='floating-filter'
+                onClick={(e) => setFilterAnchor(e.currentTarget)}
+                aria-label='View options'
+                style={{ color: partyColor }}
+            >
+                <SlidersHorizontal size={20} strokeWidth={2.5} />
+            </button>
+        )}
+
+        <SortFilterPanel
+            anchorEl={filterAnchor}
+            open={Boolean(filterAnchor)}
+            onClose={() => setFilterAnchor(null)}
+            viewOptions={VIEW_OPTIONS}
+            viewValue={viewValue}
+            onViewChange={handleViewChange}
+            activeColor={partyColor}
+        />
+
+        <div
+            className='collection-content-other'
+            style={collectionItems.length > 1 ? { gridTemplateColumns: `repeat(${viewValue}, minmax(0, 1fr))` } : undefined}
+        >
             { 
                 collectionItems.length === 1 ? (
                     <div className='winner'>

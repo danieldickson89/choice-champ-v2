@@ -152,6 +152,7 @@
     align-items: center;
     justify-items: center;
     position: relative;
+    container-type: inline-size;
 }
 
 .winner {
@@ -387,19 +388,21 @@
     align-self: baseline;
 }
 
+/* Vote/super-choice overlays scale with each item's width via container
+   queries on .party-item-section, so 3- and 4-column views keep the
+   badges proportional and don't dwarf the poster. */
 .item-votes {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 40px;
-    height: 40px;
+    top: clamp(4px, 4cqw, 10px);
+    right: clamp(4px, 4cqw, 10px);
+    width: clamp(24px, 22cqw, 40px);
+    height: clamp(24px, 22cqw, 40px);
     text-align: center;
-    background-color: rgba(17, 17, 17, 0.877);
-    color: black;
     background-color: #FCB016;
+    color: black;
     border-radius: 50%;
-    padding: 5px;
     font-weight: bold;
+    font-size: clamp(11px, 5.5cqw, 15px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -407,18 +410,18 @@
 
 .item-temp-super-choice {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    width: clamp(40px, 45cqw, 80px);
+    height: clamp(40px, 45cqw, 80px);
     opacity: .9;
     animation: zoom .5s ease-in-out;
 }
 
 .item-super-choice {
     position: absolute;
-    width: 50px;
-    height: 50px;
-    top: 5px;
-    left: 10px;
+    width: clamp(28px, 28cqw, 50px);
+    height: clamp(28px, 28cqw, 50px);
+    top: clamp(2px, 2.5cqw, 5px);
+    left: clamp(4px, 4cqw, 10px);
 }
 
 
