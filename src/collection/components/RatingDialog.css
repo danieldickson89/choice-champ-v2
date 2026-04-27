@@ -1,0 +1,65 @@
+.rating-dialog-readout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 4px 0 18px 0;
+}
+
+.rating-dialog-number {
+    font-size: 36pt;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.rating-dialog-of-ten {
+    font-size: 12pt;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+    align-self: flex-end;
+    padding-bottom: 6px;
+}
+
+.rating-dialog-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 4px;
+}
+
+.rating-dialog-nudge {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: white;
+    cursor: pointer;
+    transition: background-color 150ms ease-out, opacity 150ms ease-out;
+}
+
+.rating-dialog-nudge:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.rating-dialog-nudge:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.rating-dialog-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.rating-dialog-actions-primary {
+    display: flex;
+    gap: 10px;
+}

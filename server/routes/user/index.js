@@ -121,18 +121,24 @@ router
         const { mediaType, itemId } = req.params;
         const { data, error } = await supabase
             .from('watched_media')
-            .select('completed')
+            .select('completed, rating')
             .eq('user_id', userId)
             .eq('media_type', mediaType)
             .eq('item_id', String(itemId))
             .maybeSingle();
         if (error) return res.status(500).json({ errMsg: error.message });
-        res.json({ completed: Boolean(data?.completed) });
+        res.json({
+            completed: Boolean(data?.completed),
+            rating: data?.rating != null ? Number(data.rating) : null,
+        });
     })
     .post('/watched/:mediaType/:itemId', requireAuth, async (req, res) => {
         const userId = req.user.id;
         const { mediaType, itemId } = req.params;
         const completed = Boolean(req.body?.completed);
+        // Partial upsert: only `completed` is in the payload, so PostgREST
+        // leaves `rating` untouched on conflict (and defaults to NULL on
+        // a fresh insert).
         const { error } = await supabase
             .from('watched_media')
             .upsert(
@@ -141,6 +147,31 @@ router
             );
         if (error) return res.status(500).json({ errMsg: error.message });
         res.json({ completed });
+    })
+    // Per-user personal rating on a 1.0–10.0 scale, stored at one
+    // decimal place. `null` clears the rating. Independent of the
+    // watched flag — sharing a row in watched_media but updated via
+    // a partial upsert that doesn't disturb `completed`.
+    .post('/rating/:mediaType/:itemId', requireAuth, async (req, res) => {
+        const userId = req.user.id;
+        const { mediaType, itemId } = req.params;
+        const raw = req.body?.rating;
+        let rating = null;
+        if (raw !== null && raw !== undefined) {
+            const n = Number(raw);
+            if (!Number.isFinite(n) || n < 1 || n > 10) {
+                return res.status(400).json({ errMsg: 'rating must be between 1.0 and 10.0' });
+            }
+            rating = Math.round(n * 10) / 10;
+        }
+        const { error } = await supabase
+            .from('watched_media')
+            .upsert(
+                { user_id: userId, media_type: mediaType, item_id: String(itemId), rating, updated_at: new Date().toISOString() },
+                { onConflict: 'user_id,media_type,item_id' }
+            );
+        if (error) return res.status(500).json({ errMsg: error.message });
+        res.json({ rating });
     });
 
 module.exports = router;

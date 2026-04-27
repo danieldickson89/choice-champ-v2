@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Info, Plus } from 'lucide-react';
+import { ArrowLeft, Check, Info, Plus, Star } from 'lucide-react';
 import { Popover } from '@mui/material';
 import Showdown from 'showdown';
 
@@ -9,6 +9,7 @@ import { AuthContext } from '../../shared/context/auth-context';
 import { BACKEND_URL } from '../../shared/config';
 import { api } from '../../shared/lib/api';
 import { broadcast } from '../../shared/lib/realtime';
+import RatingDialog from '../components/RatingDialog';
 import './ItemDetails.css';
 
 const TYPE_COLORS = {
@@ -50,6 +51,8 @@ const ItemDetails = () => {
     const unwatchedLabel = isPlayed ? 'Unplayed' : 'Unwatched';
 
     const [globallyWatched, setGloballyWatched] = useState(false);
+    const [userRating, setUserRating] = useState(null);
+    const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
     const [details, setDetails] = useState({});
     const [providers, setProviders] = useState({});
     const [collectionList, setCollectionList] = useState([]);
@@ -57,12 +60,17 @@ const ItemDetails = () => {
     const [loadingCollections, setLoadingCollections] = useState(false);
     const [hintAnchor, setHintAnchor] = useState(null);
 
-    // Fetch the user's global watched/played status for this item.
+    // Fetch the user's global watched/played status + personal rating
+    // for this item. Both live on watched_media keyed by (user, item).
     useEffect(() => {
         if (!itemId) return;
         let cancelled = false;
         api(`/user/watched/${collectionType}/${itemId}`)
-            .then(data => { if (!cancelled) setGloballyWatched(Boolean(data?.completed)); })
+            .then(data => {
+                if (cancelled) return;
+                setGloballyWatched(Boolean(data?.completed));
+                setUserRating(data?.rating != null ? Number(data.rating) : null);
+            })
             .catch(err => console.log(err));
         return () => { cancelled = true; };
     }, [collectionType, itemId]);
@@ -229,6 +237,36 @@ const ItemDetails = () => {
         });
     };
 
+    // Per-user personal rating (1.0–10.0). Optimistic update with
+    // rollback on failure.
+    const saveRating = (value) => {
+        const prev = userRating;
+        setUserRating(value);
+        setRatingDialogOpen(false);
+        api(`/user/rating/${collectionType}/${itemId}`, {
+            method: 'POST',
+            body: JSON.stringify({ rating: value })
+        }).catch(err => {
+            console.log(err);
+            setUserRating(prev);
+        });
+    };
+
+    const removeRating = () => {
+        const prev = userRating;
+        setUserRating(null);
+        setRatingDialogOpen(false);
+        api(`/user/rating/${collectionType}/${itemId}`, {
+            method: 'POST',
+            body: JSON.stringify({ rating: null })
+        }).catch(err => {
+            console.log(err);
+            setUserRating(prev);
+        });
+    };
+
+    const rateLabel = isPlayed ? 'Rate this game' : (collectionType === 'tv' ? 'Rate this show' : 'Rate this movie');
+
     const isLoading = loadingDetails || loadingCollections;
 
     const infoRows = [];
@@ -320,6 +358,27 @@ const ItemDetails = () => {
                             </div>
                         </section>
                     )}
+
+                    <section className='item-details-section'>
+                        <div className='item-details-card'>
+                            <button
+                                type='button'
+                                className='item-details-rating-row'
+                                onClick={() => setRatingDialogOpen(true)}
+                                aria-label={userRating != null ? `Edit your rating, currently ${userRating.toFixed(1)} out of 10` : rateLabel}
+                            >
+                                <span className='item-details-row-label'>Your Rating</span>
+                                {userRating != null ? (
+                                    <span className='item-details-rating-pill' style={{ color }}>
+                                        <Star size={14} fill={color} stroke={color} />
+                                        <span className='item-details-rating-value'>{userRating.toFixed(1)}</span>
+                                    </span>
+                                ) : (
+                                    <span className='item-details-rating-cta' style={{ color }}>{rateLabel}</span>
+                                )}
+                            </button>
+                        </div>
+                    </section>
 
                     {collectionList.length > 0 && (
                         <section className='item-details-section'>
@@ -432,6 +491,15 @@ const ItemDetails = () => {
                     )}
                 </React.Fragment>
             )}
+
+            <RatingDialog
+                open={ratingDialogOpen}
+                currentRating={userRating}
+                color={color}
+                onClose={() => setRatingDialogOpen(false)}
+                onSave={saveRating}
+                onRemove={removeRating}
+            />
         </div>
     );
 };

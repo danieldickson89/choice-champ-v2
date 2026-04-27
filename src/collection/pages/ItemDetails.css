@@ -163,6 +163,50 @@
     padding: 12px 16px;
 }
 
+/* Rating row — full-width tap target opening the RatingDialog. */
+.item-details-rating-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 16px;
+    gap: 12px;
+    background: none;
+    border: none;
+    color: white;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+}
+
+.item-details-rating-row:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.item-details-rating-row:active {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.item-details-rating-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13pt;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.item-details-rating-value {
+    line-height: 1;
+}
+
+.item-details-rating-cta {
+    font-size: 11pt;
+    font-weight: 600;
+    opacity: 0.95;
+}
+
 .item-details-watched-control {
     display: inline-flex;
     align-items: center;
