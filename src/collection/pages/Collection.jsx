@@ -5,13 +5,15 @@ import { supabase } from '../../shared/lib/supabase';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
-import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar } from 'lucide-react';
+import { ArrowLeft, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen } from 'lucide-react';
 import RetroTv from '../../shared/components/Icons/RetroTv';
 import { Menu, MenuItem, Dialog } from '@mui/material';
 
 import './Collection.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
 import ManageItemRow from '../components/ManageItemRow';
+import QuickEditRow from '../components/QuickEditRow';
+import RatingDialog from '../components/RatingDialog';
 import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterPanel';
 import {
     DndContext,
@@ -52,6 +54,8 @@ const Collection = ({ socket }) => {
 
     const [items, setItems] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
+    const [isQuickEdit, setIsQuickEdit] = useState(false);
+    const [ratingTarget, setRatingTarget] = useState(null);
     const [shareCode, setShareCode] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [collectionName, setCollectionName] = useState('');
@@ -86,6 +90,7 @@ const Collection = ({ socket }) => {
 
     const handleShare = () => { setShareOpen(true); closeKebab(); };
     const handleManage = () => { setIsEdit(true); closeKebab(); };
+    const handleQuickEdit = () => { setIsQuickEdit(true); closeKebab(); };
     const handleMembers = () => {
         closeKebab();
         setMembers(null);
@@ -336,6 +341,79 @@ const Collection = ({ socket }) => {
     }, [collectionType]);
 
     const exitManage = () => setIsEdit(false);
+    const exitQuickEdit = () => setIsQuickEdit(false);
+
+    // Quick edit handlers — Mine = global watched, Group = collection
+    // complete. Optimistic in-place updates with rollback on failure.
+    const setItemFields = (id, patch) => {
+        itemsRef.current = itemsRef.current.map(it => (
+            it._id === id ? { ...it, ...patch } : it
+        ));
+        setItems(itemsRef.current);
+    };
+
+    const toggleMine = (item, next) => {
+        setItemFields(item._id, { globalWatched: next });
+        api(`/user/watched/${collectionType}/${item.itemId}`, {
+            method: 'POST',
+            body: JSON.stringify({ completed: next }),
+        }).catch(err => {
+            console.log(err);
+            setItemFields(item._id, { globalWatched: !next });
+        });
+    };
+
+    const toggleGroup = (item, next) => {
+        setItemFields(item._id, { watched: next });
+        api(`/collections/items/${collectionId}/${item._id}`, {
+            method: 'POST',
+            body: JSON.stringify({ watched: next }),
+        }).then(data => {
+            const completedAt = data?.completedAt ?? null;
+            setItemFields(item._id, { completedAt });
+            channelRef.current?.send({
+                type: 'broadcast',
+                event: 'watched',
+                payload: { id: item._id, watched: next, completedAt },
+            });
+        }).catch(err => {
+            console.log(err);
+            setItemFields(item._id, { watched: !next });
+        });
+    };
+
+    const openRating = (item) => setRatingTarget(item);
+    const closeRating = () => setRatingTarget(null);
+
+    const saveRating = (value) => {
+        const target = ratingTarget;
+        if (!target) return;
+        const prev = target.userRating;
+        setItemFields(target._id, { userRating: value });
+        closeRating();
+        api(`/user/rating/${collectionType}/${target.itemId}`, {
+            method: 'POST',
+            body: JSON.stringify({ rating: value }),
+        }).catch(err => {
+            console.log(err);
+            setItemFields(target._id, { userRating: prev });
+        });
+    };
+
+    const removeRating = () => {
+        const target = ratingTarget;
+        if (!target) return;
+        const prev = target.userRating;
+        setItemFields(target._id, { userRating: null });
+        closeRating();
+        api(`/user/rating/${collectionType}/${target.itemId}`, {
+            method: 'POST',
+            body: JSON.stringify({ rating: null }),
+        }).catch(err => {
+            console.log(err);
+            setItemFields(target._id, { userRating: prev });
+        });
+    };
 
     const removeItem = (id) => {
         api(`/collections/items/${collectionId}/${id}`, { method: 'DELETE' })
@@ -586,8 +664,12 @@ const Collection = ({ socket }) => {
                                     <p className='collection-subtitle'>{subtitle}</p>
                                 </div>
                                 <div className='collection-top-row-right'>
-                                    {isEdit ? (
-                                        <button className='icon-btn' onClick={exitManage} aria-label='Done'>
+                                    {isEdit || isQuickEdit ? (
+                                        <button
+                                            className='icon-btn'
+                                            onClick={isEdit ? exitManage : exitQuickEdit}
+                                            aria-label='Done'
+                                        >
                                             <Check size={24} strokeWidth={3} />
                                         </button>
                                     ) : (
@@ -626,7 +708,27 @@ const Collection = ({ socket }) => {
                     )
                 )}
 
-                {!isLoading && !isEdit && sortedItems.length === 0 && (
+                {!isLoading && isQuickEdit && (
+                    sortedItems.length === 0 ? (
+                        <div className='collection-empty'>{emptyMessage}</div>
+                    ) : (
+                        <div className='quick-edit-list'>
+                            {sortedItems.map(item => (
+                                <QuickEditRow
+                                    key={item._id}
+                                    item={item}
+                                    color={collectionTypeColor}
+                                    watchedLabel={(collectionType === 'game' || collectionType === 'board') ? 'Played' : 'Watched'}
+                                    onToggleMine={toggleMine}
+                                    onToggleGroup={toggleGroup}
+                                    onOpenRating={openRating}
+                                />
+                            ))}
+                        </div>
+                    )
+                )}
+
+                {!isLoading && !isEdit && !isQuickEdit && sortedItems.length === 0 && (
                     <div className='collection-empty'>{emptyMessage}</div>
                 )}
 
@@ -635,7 +737,7 @@ const Collection = ({ socket }) => {
                     layout (so scroll positions are computable) without
                     showing it under the loader. The loading effect flips
                     it visible right after the scroll-into-view jump. */}
-                {!isEdit && sortedItems.length > 0 && (
+                {!isEdit && !isQuickEdit && sortedItems.length > 0 && (
                     <div
                         className='collection-grid'
                         style={{
@@ -663,7 +765,7 @@ const Collection = ({ socket }) => {
                     </div>
                 )}
 
-                {!isEdit && !searchModeActive && (
+                {!isEdit && !isQuickEdit && !searchModeActive && (
                     <button
                         type='button'
                         className='floating-filter'
@@ -678,7 +780,7 @@ const Collection = ({ socket }) => {
                     </button>
                 )}
 
-                {!isEdit && !searchModeActive && (
+                {!isEdit && !isQuickEdit && !searchModeActive && (
                     <button
                         type='button'
                         className='floating-search-btn'
@@ -705,6 +807,10 @@ const Collection = ({ socket }) => {
                 <MenuItem onClick={handleManage} className='collection-menu-item'>
                     <ListOrdered size={18} strokeWidth={2} style={{ marginRight: 12 }} />
                     Manage items
+                </MenuItem>
+                <MenuItem onClick={handleQuickEdit} className='collection-menu-item'>
+                    <SquarePen size={18} strokeWidth={2} style={{ marginRight: 12 }} />
+                    Quick edit
                 </MenuItem>
                 <MenuItem onClick={handleShare} className='collection-menu-item'>
                     <Share2 size={18} strokeWidth={2} style={{ marginRight: 12 }} />
@@ -869,6 +975,15 @@ const Collection = ({ socket }) => {
                     </div>
                 </div>
             </Dialog>
+
+            <RatingDialog
+                open={Boolean(ratingTarget)}
+                currentRating={ratingTarget?.userRating ?? null}
+                color={collectionTypeColor}
+                onClose={closeRating}
+                onSave={saveRating}
+                onRemove={removeRating}
+            />
         </React.Fragment>
     );
 }

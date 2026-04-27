@@ -100,30 +100,33 @@ router
 
         const itemRows = collection.collection_items || [];
 
-        // Per-user personal ratings live on watched_media keyed by
-        // (user, media_type, item_id). Pull the requesting user's
-        // ratings for just this collection's items in one query so
-        // the Collection grid can offer a "sort by rating" option.
+        // Per-user personal state on watched_media — pull both the
+        // rating and the global watched flag in a single query keyed
+        // on (user, media_type, item_id). The Collection grid uses
+        // rating for sorting and globalWatched for the Quick edit
+        // mode's "Mine" column.
         let ratingByItemId = {};
+        let globalWatchedByItemId = {};
         if (itemRows.length > 0) {
             const itemIds = [...new Set(itemRows.map(r => String(r.item_id)))];
-            const { data: ratings } = await supabase
+            const { data: rows } = await supabase
                 .from('watched_media')
-                .select('item_id, rating')
+                .select('item_id, rating, completed')
                 .eq('user_id', userId)
                 .eq('media_type', collection.type)
                 .in('item_id', itemIds);
-            ratingByItemId = Object.fromEntries(
-                (ratings || [])
-                    .filter(r => r.rating != null)
-                    .map(r => [String(r.item_id), Number(r.rating)])
-            );
+            for (const r of rows || []) {
+                const id = String(r.item_id);
+                if (r.rating != null) ratingByItemId[id] = Number(r.rating);
+                if (r.completed) globalWatchedByItemId[id] = true;
+            }
         }
 
         res.json({
             items: itemRows.map(row => ({
                 ...itemToLegacy(row),
                 userRating: ratingByItemId[String(row.item_id)] ?? null,
+                globalWatched: Boolean(globalWatchedByItemId[String(row.item_id)]),
             })),
             shareCode: collection.share_code,
             name: collection.name,
