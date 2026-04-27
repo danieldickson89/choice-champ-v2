@@ -11,6 +11,7 @@ import {
 
 import { api } from '../../shared/lib/api';
 import { AuthContext } from '../../shared/context/auth-context';
+import Loading from '../../shared/components/Loading';
 import RetroTv from '../../shared/components/Icons/RetroTv';
 
 import './Profile.css';
@@ -86,6 +87,12 @@ const Profile = () => {
                     {memberFor && <p className='profile-member-for'>{memberFor}</p>}
                 </header>
 
+                {stats === null ? (
+                    <div className='profile-loading'>
+                        <Loading color='#FCB016' type='beat' size={20} />
+                    </div>
+                ) : (
+                <React.Fragment>
                 <section className='profile-section'>
                     <h2 className='profile-section-title'>Collection Stats</h2>
                     <div className='profile-stat-grid'>
@@ -150,6 +157,8 @@ const Profile = () => {
                         })}
                     </div>
                 </section>
+                </React.Fragment>
+                )}
 
                 <section className='profile-section'>
                     <div className='profile-link-list'>

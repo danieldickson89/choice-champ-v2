@@ -28,6 +28,17 @@
     margin-bottom: 28px;
 }
 
+/* Holds the spinner shown in place of Stats + Progress while
+   /user/me is in flight. Reserves vertical space so the link list
+   below doesn't pop up next to the header during loading. */
+.profile-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 240px;
+    margin-bottom: 28px;
+}
+
 .profile-section-title {
     margin: 0 0 12px 0;
     font-size: 13pt;
