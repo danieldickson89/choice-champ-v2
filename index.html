@@ -2,9 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/logo.png" type="image/png">
     <meta name="viewport" content="initial-scale=1, width=device-width, maximum-scale=1, viewport-fit=cover">
-    <meta name="description" content="Web site created using create-react-app">
+    <meta name="theme-color" content="#312E2E">
+    <meta name="description" content="Choice Champ — pick what to watch, play, and beat together.">
 
     <!--
       manifest.json provides metadata used when your web app is installed on a
@@ -65,9 +66,50 @@
     <link rel="apple-touch-startup-image" media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/img/10.2__iPad_portrait.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/img/9.7__iPad_Pro__7.9__iPad_mini__9.7__iPad_Air__9.7__iPad_portrait.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/img/8.3__iPad_Mini_portrait.png">
+
+    <style>
+      /* Inline splash that paints before the React bundle hydrates,
+         so first-load and PWA cold-start don't show a blank page.
+         The script in src/index.jsx removes #cc-splash once React
+         has rendered into #root. */
+      html, body { background-color: #312E2E; }
+      #cc-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background-color: #312E2E;
+        transition: opacity 320ms ease-out;
+      }
+      #cc-splash.cc-splash-hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #cc-splash img {
+        width: 110px;
+        height: 110px;
+        animation: cc-splash-spin 2.4s linear infinite;
+      }
+      #cc-splash .cc-splash-name {
+        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+      }
+      @keyframes cc-splash-spin { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="cc-splash" aria-hidden="true">
+      <img src="/logo.png" alt="" />
+      <div class="cc-splash-name">Choice Champ</div>
+    </div>
     <div id="root"></div>
 
     <!--
