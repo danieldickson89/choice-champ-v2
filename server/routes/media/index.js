@@ -288,6 +288,40 @@ router
                 const platformId = PLATFORM_IDS[req.query.platform];
                 const platformParam = platformId ? `&parent_platforms=${platformId}` : '';
 
+                // Collapse re-releases ("Game: Deluxe Edition", "Game –
+                // Game of the Year Cut", etc.) onto their base title so
+                // we don't show the same game three times. Trusts RAWG's
+                // popularity ordering and keeps the first occurrence.
+                // Doesn't touch DLCs ("Game: Shadow of the X") — those
+                // still surface separately as their own products.
+                const stripEditionSuffix = (name) => (name || '')
+                    // "<Game> [: | - ] <Adj> Edition / Cut / Version"
+                    // Word "edition" / "cut" / "version" required so we
+                    // don't accidentally strip real titles starting
+                    // with words like "Special" or "Standard".
+                    .replace(
+                        /[\s:\-–—]+(?:the\s+)?(?:complete|deluxe|ultimate|definitive|gold|premium|legendary|game of the year|goty|enhanced|anniversary|royal|extended|special|standard)\s+(?:edition|cut|version)\b.*$/i,
+                        ''
+                    )
+                    // Standalone re-release keywords: "Director's Cut",
+                    // "Remastered". Each must have a separator before it
+                    // so we don't strip into the middle of a title.
+                    .replace(/[\s:\-–—]+director'?s\s+cut\b.*$/i, '')
+                    .replace(/\s+remastered?\b.*$/i, '')
+                    .trim()
+                    .toLowerCase();
+                const dedupeEditions = (items) => {
+                    const seen = new Set();
+                    const out = [];
+                    for (const item of items) {
+                        const base = stripEditionSuffix(item.name);
+                        if (seen.has(base)) continue;
+                        seen.add(base);
+                        out.push(item);
+                    }
+                    return out;
+                };
+
                 if(feed === 'search') {
                     const q = req.query.q || '';
                     if(!q.trim()) {
@@ -296,7 +330,7 @@ router
                     const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}${platformParam}&ordering=-added&page=${page}&page_size=${pageSize}`);
                     const data = await rawgRes.json();
 
-                    const results = (data.results || []).map(item => ({
+                    const results = dedupeEditions(data.results || []).map(item => ({
                         id: item.id,
                         title: item.name,
                         poster: item.background_image || null,
@@ -334,7 +368,7 @@ router
                 const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&${queryString}${platformParam}&page=${page}&page_size=${pageSize}`);
                 const data = await rawgRes.json();
 
-                const results = (data.results || []).map(item => ({
+                const results = dedupeEditions(data.results || []).map(item => ({
                     id: item.id,
                     title: item.name,
                     poster: item.background_image || null,
