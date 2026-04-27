@@ -16,6 +16,7 @@ const Settings = () => {
     const [usernameInput, setUsernameInput] = useState(auth.username || '');
     const [usernameStatus, setUsernameStatus] = useState({ kind: 'idle', message: '' });
 
+    const [currentPwd, setCurrentPwd] = useState('');
     const [newPwd, setNewPwd] = useState('');
     const [confirmPwd, setConfirmPwd] = useState('');
     const [pwdStatus, setPwdStatus] = useState({ kind: 'idle', message: '' });
@@ -57,20 +58,44 @@ const Settings = () => {
     };
 
     const updatePassword = async () => {
+        if (!currentPwd) {
+            setPwdStatus({ kind: 'error', message: 'Current password is required' });
+            return;
+        }
         if (newPwd.length < 6) {
-            setPwdStatus({ kind: 'error', message: 'Password must be at least 6 characters' });
+            setPwdStatus({ kind: 'error', message: 'New password must be at least 6 characters' });
             return;
         }
         if (newPwd !== confirmPwd) {
-            setPwdStatus({ kind: 'error', message: 'Passwords don’t match' });
+            setPwdStatus({ kind: 'error', message: 'New passwords don’t match' });
             return;
         }
         setPwdStatus({ kind: 'saving', message: 'Saving…' });
+
+        // Re-auth check: Supabase's updateUser only requires a valid
+        // session, so without this anyone with access to an unlocked
+        // tab could change the password. Verify by trying to sign in
+        // with the current password before mutating.
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData?.user?.email) {
+            setPwdStatus({ kind: 'error', message: 'Could not verify your session' });
+            return;
+        }
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: userData.user.email,
+            password: currentPwd,
+        });
+        if (signInError) {
+            setPwdStatus({ kind: 'error', message: 'Current password is incorrect' });
+            return;
+        }
+
         const { error } = await supabase.auth.updateUser({ password: newPwd });
         if (error) {
             setPwdStatus({ kind: 'error', message: error.message || 'Could not update password' });
             return;
         }
+        setCurrentPwd('');
         setNewPwd('');
         setConfirmPwd('');
         setPwdStatus({ kind: 'success', message: 'Password updated' });
@@ -140,6 +165,17 @@ const Settings = () => {
                     <input
                         className='cc-dialog-input'
                         type='password'
+                        placeholder='Current password'
+                        autoComplete='current-password'
+                        value={currentPwd}
+                        onChange={(e) => {
+                            setCurrentPwd(e.target.value);
+                            if (pwdStatus.kind !== 'idle') setPwdStatus({ kind: 'idle', message: '' });
+                        }}
+                    />
+                    <input
+                        className='cc-dialog-input'
+                        type='password'
                         placeholder='New password'
                         autoComplete='new-password'
                         value={newPwd}
@@ -163,7 +199,7 @@ const Settings = () => {
                         type='button'
                         className='settings-action-btn'
                         onClick={updatePassword}
-                        disabled={pwdStatus.kind === 'saving' || !newPwd || !confirmPwd}
+                        disabled={pwdStatus.kind === 'saving' || !currentPwd || !newPwd || !confirmPwd}
                     >
                         {pwdStatus.kind === 'saving' ? 'Saving…' : 'Update password'}
                     </button>
