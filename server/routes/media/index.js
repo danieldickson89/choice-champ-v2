@@ -407,6 +407,25 @@ router
                         };
                     });
 
+                    // BGG returns search results alphabetically, which buries
+                    // matches like "Wingspan" deep in the W's. Re-rank by how
+                    // closely each title matches the query so exact / starts-
+                    // with hits float to the top, then fall back to alpha.
+                    const queryLower = q.trim().toLowerCase();
+                    const rankMatch = (title) => {
+                        const t = (title || '').toLowerCase();
+                        if (t === queryLower) return 0;                                  // exact
+                        if (t.startsWith(queryLower)) return 1;                          // starts with
+                        if (t.split(/\s+/).includes(queryLower)) return 2;               // whole-word match
+                        if (t.includes(queryLower)) return 3;                            // contains
+                        return 4;                                                        // BGG fuzzy hit
+                    };
+                    results.sort((a, b) => {
+                        const diff = rankMatch(a.title) - rankMatch(b.title);
+                        if (diff !== 0) return diff;
+                        return (a.title || '').localeCompare(b.title || '');
+                    });
+
                     return res.send({
                         results,
                         page: 1,
