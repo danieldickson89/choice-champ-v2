@@ -65,6 +65,12 @@ const Collection = ({ socket }) => {
     const [filterValue, setFilterValue] = useState(
         ['watched', 'unwatched'].includes(urlFilter) ? urlFilter : 'all'
     );
+    // Declared up here next to filterValue (rather than further down by
+    // the rest of the search-bar logic) so the URL-sync useEffect below
+    // can read them. Hooks evaluate top-to-bottom; the effect's
+    // dependency array would TDZ-error on a `query` defined later.
+    const [query, setQuery] = useState(urlQuery);
+    const [searchModeActive, setSearchModeActive] = useState(urlQuery.length > 0);
     const [viewValue, setViewValue] = useState(() => {
         const saved = localStorage.getItem(`choice-champ:view-count:${collectionId}`);
         const parsed = saved ? parseInt(saved, 10) : 2;
@@ -479,8 +485,6 @@ const Collection = ({ socket }) => {
      * help and direction from this youtube video Web dev simplified
      * https://youtu.be/E1cklb4aeXA
      ***********************************************************/
-    const [query, setQuery] = useState(urlQuery);
-    const [searchModeActive, setSearchModeActive] = useState(urlQuery.length > 0);
     const searchInputRef = useRef(null);
 
     const enterSearch = () => {
