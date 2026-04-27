@@ -280,12 +280,20 @@ router
             } else if(type === 'game') {
                 const pageSize = 20;
 
+                // RAWG parent_platforms IDs:
+                //   1 = PC, 2 = PlayStation, 3 = Xbox, 7 = Nintendo
+                // Maps to brand-level filtering so a request for
+                // "playstation" covers PS5/PS4/PS3/etc. transparently.
+                const PLATFORM_IDS = { pc: 1, playstation: 2, xbox: 3, nintendo: 7 };
+                const platformId = PLATFORM_IDS[req.query.platform];
+                const platformParam = platformId ? `&parent_platforms=${platformId}` : '';
+
                 if(feed === 'search') {
                     const q = req.query.q || '';
                     if(!q.trim()) {
                         return res.send({ results: [], page: 1, totalPages: 1 });
                     }
-                    const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}&ordering=-added&page=${page}&page_size=${pageSize}`);
+                    const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}${platformParam}&ordering=-added&page=${page}&page_size=${pageSize}`);
                     const data = await rawgRes.json();
 
                     const results = (data.results || []).map(item => ({
@@ -323,7 +331,7 @@ router
                     return res.status(400).send({ errMsg: `Invalid feed '${feed}' for type 'game'. Supported: popular, top_rated, new, upcoming, search.` });
                 }
 
-                const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&${queryString}&page=${page}&page_size=${pageSize}`);
+                const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&${queryString}${platformParam}&page=${page}&page_size=${pageSize}`);
                 const data = await rawgRes.json();
 
                 const results = (data.results || []).map(item => ({

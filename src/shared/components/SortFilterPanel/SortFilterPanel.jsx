@@ -16,6 +16,10 @@ const SortFilterPanel = ({
     filterValue,
     onFilterChange,
     filterLabel = 'Filter',
+    platformOptions = [],
+    platformValue,
+    onPlatformChange,
+    platformLabel = 'Platform',
     viewOptions = [],
     viewValue,
     onViewChange,
@@ -57,6 +61,20 @@ const SortFilterPanel = ({
                                 option={opt}
                                 active={filterValue === opt.value}
                                 onClick={() => onFilterChange(opt.value)}
+                                activeColor={activeColor}
+                            />
+                        ))}
+                    </div>
+                )}
+                {platformOptions.length > 0 && (
+                    <div className='sort-filter-column'>
+                        <div className='sort-filter-header'>{platformLabel}</div>
+                        {platformOptions.map(opt => (
+                            <OptionRow
+                                key={opt.value}
+                                option={opt}
+                                active={platformValue === opt.value}
+                                onClick={() => onPlatformChange(opt.value)}
                                 activeColor={activeColor}
                             />
                         ))}

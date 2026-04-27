@@ -37,13 +37,16 @@ async function handleDiscoverResponse(res) {
     return res.json();
 }
 
-export async function fetchDiscover(type, feed, page = 1) {
-    const res = await fetch(`${BACKEND_URL}/media/discover/${type}/${feed}?page=${page}`);
+// Optional `platform` (game type only): pc | playstation | xbox | nintendo
+export async function fetchDiscover(type, feed, page = 1, { platform } = {}) {
+    const platformParam = platform && platform !== 'all' ? `&platform=${platform}` : '';
+    const res = await fetch(`${BACKEND_URL}/media/discover/${type}/${feed}?page=${page}${platformParam}`);
     return handleDiscoverResponse(res);
 }
 
-export async function fetchSearch(type, query, page = 1) {
-    const res = await fetch(`${BACKEND_URL}/media/discover/${type}/search?q=${encodeURIComponent(query)}&page=${page}`);
+export async function fetchSearch(type, query, page = 1, { platform } = {}) {
+    const platformParam = platform && platform !== 'all' ? `&platform=${platform}` : '';
+    const res = await fetch(`${BACKEND_URL}/media/discover/${type}/search?q=${encodeURIComponent(query)}&page=${page}${platformParam}`);
     return handleDiscoverResponse(res);
 }
 

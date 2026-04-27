@@ -38,6 +38,7 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
     const initialSubtab = subtabs.some(t => t.key === urlTab) ? urlTab : subtabs[0].key;
 
     const viewKey = `choice-champ:discover-view:${collectionType}`;
+    const platformKey = `choice-champ:discover-platform:${collectionType}`;
 
     const [activeSubtab, setActiveSubtab] = useState(initialSubtab);
     const [query, setQuery] = useState(urlQuery);
@@ -52,6 +53,11 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
         const parsed = saved ? parseInt(saved, 10) : 2;
         return [2, 3, 4].includes(parsed) ? parsed : 2;
     });
+    const [platform, setPlatform] = useState(() => {
+        if (collectionType !== 'game') return 'all';
+        const saved = localStorage.getItem(platformKey);
+        return ['all', 'pc', 'playstation', 'xbox', 'nintendo'].includes(saved) ? saved : 'all';
+    });
     const inputRef = useRef(null);
 
     const viewOptions = [
@@ -60,9 +66,25 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
         { value: 4, label: '4 columns', icon: Columns4 },
     ];
 
+    // Game-only: brand-level platform filter passed through to RAWG's
+    // parent_platforms param so a request for "playstation" covers
+    // PS5/PS4/PS3/etc. transparently.
+    const platformOptions = collectionType === 'game' ? [
+        { value: 'all',         label: 'All platforms' },
+        { value: 'pc',          label: 'PC' },
+        { value: 'playstation', label: 'PlayStation' },
+        { value: 'xbox',        label: 'Xbox' },
+        { value: 'nintendo',    label: 'Nintendo' },
+    ] : [];
+
     const handleViewChange = (v) => {
         setViewValue(v);
         localStorage.setItem(viewKey, String(v));
+    };
+
+    const handlePlatformChange = (v) => {
+        setPlatform(v);
+        localStorage.setItem(platformKey, v);
     };
 
     const trimmedQuery = debouncedQuery.trim();
@@ -106,8 +128,8 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
         setError(null);
 
         const request = isSearching
-            ? fetchSearch(collectionType, trimmedQuery)
-            : fetchDiscover(collectionType, activeSubtab);
+            ? fetchSearch(collectionType, trimmedQuery, 1, { platform })
+            : fetchDiscover(collectionType, activeSubtab, 1, { platform });
 
         request
             .then(async data => {
@@ -145,7 +167,7 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
             });
 
         return () => { cancelled = true; };
-    }, [activeSubtab, collectionType, trimmedQuery, isSearching, searchModeActive]);
+    }, [activeSubtab, collectionType, trimmedQuery, isSearching, searchModeActive, platform]);
 
     const openItem = (item) => {
         const search = item.poster
@@ -263,6 +285,10 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
                 filterValue={activeSubtab}
                 onFilterChange={(v) => { setActiveSubtab(v); setFilterAnchor(null); }}
                 filterLabel='Category'
+                platformOptions={platformOptions}
+                platformValue={platform}
+                onPlatformChange={handlePlatformChange}
+                platformLabel='Platform'
                 viewOptions={viewOptions}
                 viewValue={viewValue}
                 onViewChange={handleViewChange}
