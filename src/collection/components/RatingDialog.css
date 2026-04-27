@@ -63,3 +63,23 @@
     display: flex;
     gap: 10px;
 }
+
+/* Subtle text link — clearing a rating is a rare, deliberate action,
+   so it doesn't earn primary-button real estate. */
+.rating-dialog-remove-link {
+    align-self: center;
+    margin-top: 4px;
+    padding: 6px 10px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 10pt;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: color 150ms ease-out;
+}
+
+.rating-dialog-remove-link:hover {
+    color: rgba(255, 120, 120, 0.95);
+    text-decoration: underline;
+}

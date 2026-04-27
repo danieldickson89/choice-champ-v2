@@ -78,15 +78,6 @@ const RatingDialog = ({ open, currentRating, onClose, onSave, onRemove, color = 
                     </button>
                 </div>
                 <div className='rating-dialog-actions'>
-                    {currentRating != null && (
-                        <button
-                            type='button'
-                            className='cc-dialog-btn cc-dialog-btn-danger'
-                            onClick={onRemove}
-                        >
-                            Remove rating
-                        </button>
-                    )}
                     <div className='rating-dialog-actions-primary'>
                         <button
                             type='button'
@@ -104,6 +95,15 @@ const RatingDialog = ({ open, currentRating, onClose, onSave, onRemove, color = 
                             Save
                         </button>
                     </div>
+                    {currentRating != null && (
+                        <button
+                            type='button'
+                            className='rating-dialog-remove-link'
+                            onClick={onRemove}
+                        >
+                            Remove rating
+                        </button>
+                    )}
                 </div>
             </div>
         </Dialog>
