@@ -11,13 +11,9 @@ import JoinParty from './JoinParty';
 
 import './PartyHome.css';
 
-// Labels are MultiColorText spans rather than plain strings — each
-// character cycles through the five media-type colors, matching the
-// FAB and the "Party Time!" heading. SegmentedToggle accepts JSX in
-// label since it just renders {option.label}.
 const VIEW_OPTIONS = [
-    { value: 'create', label: <MultiColorText>Create Party</MultiColorText> },
-    { value: 'join',   label: <MultiColorText>Join Party</MultiColorText> },
+    { value: 'create', label: 'Create Party' },
+    { value: 'join',   label: 'Join Party' },
 ];
 
 const PartyHome = () => {
