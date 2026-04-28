@@ -1,23 +1,23 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { api } from '../../shared/lib/api';
 import { useNavigate } from 'react-router-dom';
-import { Clapperboard, Gamepad2, Dices } from 'lucide-react';
-
 import './CreateParty.css';
 import Button from '../../shared/components/FormElements/Button';
 import ToggleSwitch from '../../shared/components/ToggleSwitch/ToggleSwitch';
-import RetroTv from '../../shared/components/Icons/RetroTv';
 import CollectionCard from '../../collections/components/CollectionCard';
 
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
+import { MEDIA_TYPES as MEDIA_TYPE_CONFIG, MEDIA_TYPE_ORDER } from '../../shared/lib/mediaTypes';
 
-const MEDIA_TYPES = [
-    { key: 'movie', label: 'Movies',      color: '#FCB016', Icon: Clapperboard },
-    { key: 'tv',    label: 'TV Shows',    color: '#F04C53', Icon: RetroTv },
-    { key: 'board', label: 'Board Games', color: '#45B859', Icon: Dices },
-    { key: 'game',  label: 'Video Games', color: '#2482C5', Icon: Gamepad2 },
-];
+// Source of truth comes from the shared config so a new media type
+// (Books today, podcasts tomorrow) shows up here automatically.
+const MEDIA_TYPES = MEDIA_TYPE_ORDER.map(key => ({
+    key,
+    label: MEDIA_TYPE_CONFIG[key].title,
+    color: MEDIA_TYPE_CONFIG[key].color,
+    Icon:  MEDIA_TYPE_CONFIG[key].Icon,
+}));
 
 const CreateParty = props => {
     const auth = useContext(AuthContext);

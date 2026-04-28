@@ -69,25 +69,28 @@
     line-height: 1.4;
 }
 
-/* Media tile grid */
+/* Media-type rows. Switched from a 2-col tile grid to single-column
+   horizontal rows once Books made the count five — a 2-2-1 layout
+   left an orphan tile and a 3-2 felt cramped on phones. Each row
+   reads icon | label on the left; the active row fills with the
+   media-type color. */
 .create-media-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .create-media-tile {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 96px;
-    padding: 16px 12px;
+    gap: 12px;
+    min-height: 52px;
+    padding: 10px 16px;
     border-radius: 12px;
     border: 1.5px solid transparent;
     background-color: rgba(255, 255, 255, 0.04);
     font-family: inherit;
+    text-align: left;
     cursor: pointer;
     transition: background-color 150ms ease-out, border-color 150ms ease-out;
 }
@@ -101,7 +104,7 @@
 }
 
 .create-media-tile-label {
-    font-size: 11pt;
+    font-size: 12pt;
     font-weight: 600;
 }
 

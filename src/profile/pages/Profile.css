@@ -48,17 +48,22 @@
     letter-spacing: 0.08em;
 }
 
+/* Stat rows — one per media type, stacked. Switched from a 2-col grid
+   to single-column rows once Books made the count five and a 2-2-1
+   layout left an awkward orphan. Each row reads icon | label on the
+   left, count on the right, like a settings-style list. */
 .profile-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .profile-stat-card {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 14px 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
     background-color: rgba(255, 255, 255, 0.06);
     border-radius: 12px;
 }
@@ -66,7 +71,7 @@
 .profile-stat-head {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .profile-stat-heading {
