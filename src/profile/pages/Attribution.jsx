@@ -8,6 +8,8 @@ import TMDB_LOGO from '../assets/img/tmdb-logo.png';
 import RAWG_LOGO from '../assets/img/rawg-logo.png';
 import SGDB_LOGO from '../assets/img/sgdb-logo.png';
 import BGG_LOGO from '../assets/img/bgg-logo.png';
+import GBOOKS_LOGO from '../assets/img/gbooks-logo.svg';
+import OPENLIB_LOGO from '../assets/img/openlibrary-logo.svg';
 
 import './Attribution.css';
 
@@ -68,6 +70,7 @@ const Attribution = () => {
             </section>
 
             <section className='attribution-block'>
+                <img src={GBOOKS_LOGO} className='attribution-logo attribution-logo-wide' alt='Google Books logo' />
                 <p>
                     Book metadata, descriptions, and cover thumbnails powered
                     by <a href='https://books.google.com/' target='_blank' rel='noopener noreferrer'>Google Books</a>.
@@ -83,6 +86,7 @@ const Attribution = () => {
             </section>
 
             <section className='attribution-block'>
+                <img src={OPENLIB_LOGO} className='attribution-logo attribution-logo-wide' alt='Open Library logo' />
                 <p>
                     Cover-art fallback provided by <a href='https://openlibrary.org/' target='_blank' rel='noopener noreferrer'>Open Library</a>.
                 </p>

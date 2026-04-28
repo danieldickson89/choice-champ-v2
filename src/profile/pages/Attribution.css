@@ -67,3 +67,12 @@
     flex-shrink: 0;
 }
 
+/* Landscape wordmark logos (Google Books, Open Library) — give them
+   a wider canvas than the square brand-mark logos so the text is
+   readable at the same vertical footprint. */
+.attribution-logo-wide {
+    width: 96px;
+    height: 56px;
+    border-radius: 0;
+}
+
