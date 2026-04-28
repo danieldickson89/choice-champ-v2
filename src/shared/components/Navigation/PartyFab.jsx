@@ -1,13 +1,16 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import PartyPopperWheel from '../Icons/PartyPopperWheel';
 import './PartyFab.css';
 
 // Floating action button that hovers above the bottom nav on every
 // screen except Party itself. Replaces what used to be the centered
 // Party tab in BottomNav now that Books takes a tab slot. The button
-// face is a five-color wheel matching the brand mark — the colors
-// correspond to the five media types. Tap → /party.
+// face is the lucide PartyPopper, restroked so each piece (cone,
+// trail, confetti dots, streamers) carries one of the five media-type
+// colors — keeps the familiar icon while reflecting all five media
+// types at once. Tap → /party.
 const PartyFab = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -25,8 +28,7 @@ const PartyFab = () => {
             onClick={() => navigate('/party')}
             aria-label='Start a party'
         >
-            <span className='party-fab-wheel' aria-hidden='true' />
-            <span className='party-fab-pointer' aria-hidden='true' />
+            <PartyPopperWheel size={36} strokeWidth={2} />
         </button>
     );
 };
