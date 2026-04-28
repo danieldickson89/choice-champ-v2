@@ -75,8 +75,10 @@
         transition: opacity 320ms ease-out;
         /* Center within the safe area so the logo lines up with the
            native apple-touch-startup-image, which iOS displays inset
-           by status bar / home indicator on modern iPhones. */
-        padding-top: env(safe-area-inset-top, 0);
+           by status bar / home indicator on modern iPhones. The extra
+           +16px is empirical — without it the spinning logo lands a
+           hair higher than the native launch image's logo. */
+        padding-top: calc(env(safe-area-inset-top, 0) + 16px);
         padding-bottom: env(safe-area-inset-bottom, 0);
         box-sizing: border-box;
       }
