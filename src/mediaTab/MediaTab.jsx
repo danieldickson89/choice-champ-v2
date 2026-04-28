@@ -24,9 +24,9 @@ const VIEW_STORAGE_KEY = 'choice-champ:tab-view';
 const getSavedView = (type) => {
     try {
         const saved = JSON.parse(localStorage.getItem(VIEW_STORAGE_KEY) || '{}');
-        return saved[type] === 'collections' ? 'collections' : 'discover';
+        return saved[type] === 'discover' ? 'discover' : 'collections';
     } catch {
-        return 'discover';
+        return 'collections';
     }
 };
 
