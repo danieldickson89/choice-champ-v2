@@ -24,6 +24,12 @@
     <title>Choice Champ</title>
     <link rel="apple-touch-icon" href="/img/icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- black-translucent makes the WebView extend behind the status bar
+         instead of being inset below it, so the HTML splash centers in the
+         same full-screen area as the native apple-touch-startup-image (no
+         vertical jump on hand-off). All app headers already pad with
+         env(safe-area-inset-top) to keep content clear of the status bar. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!--
       iOS PWA launch screens (portrait). Each PNG matches the inline
