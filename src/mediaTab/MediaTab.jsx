@@ -8,6 +8,7 @@ import SegmentedToggle from '../shared/components/SegmentedToggle/SegmentedToggl
 import Collections from '../collections/pages/Collections';
 import Discover from './Discover';
 import Button from '../shared/components/FormElements/Button';
+import PartyPopperWheel from '../shared/components/Icons/PartyPopperWheel';
 import { AuthContext } from '../shared/context/auth-context';
 import { getMediaType } from '../shared/lib/mediaTypes';
 
@@ -188,6 +189,9 @@ const MediaTabFull = ({ type, config }) => {
             {!isDiscoverSearching && (
             <div className='media-tab-sticky-header'>
                 <div className='media-tab-top-row'>
+                    <button className='icon-btn' onClick={() => navigate('/profile')} aria-label='Profile'>
+                        <User size={22} strokeWidth={2} />
+                    </button>
                     <div className='media-tab-title-block'>
                         {config.Icon && <config.Icon size={30} strokeWidth={1.75} color={config.color} />}
                         <div className='media-tab-title-text'>
@@ -204,8 +208,8 @@ const MediaTabFull = ({ type, config }) => {
                             })()}
                         </div>
                     </div>
-                    <button className='icon-btn' onClick={() => navigate('/profile')} aria-label='Profile'>
-                        <User size={22} strokeWidth={2} />
+                    <button className='icon-btn' onClick={() => navigate('/party')} aria-label='Start a party'>
+                        <PartyPopperWheel size={22} strokeWidth={2} />
                     </button>
                 </div>
                 {!isReorder && (

@@ -9,7 +9,6 @@ import {
 
 import Loading from './shared/components/Loading';
 import BottomNav from './shared/components/Navigation/BottomNav';
-import PartyFab from './shared/components/Navigation/PartyFab';
 import ErrorBoundary from './shared/components/ErrorBoundary';
 
 import { AuthContext } from './shared/context/auth-context';
@@ -199,12 +198,7 @@ function App() {
 
   let footer;
   if (showFooter && isLoggedIn) {
-    footer = (
-      <>
-        <BottomNav />
-        <PartyFab />
-      </>
-    );
+    footer = <BottomNav />;
   }
 
   return (
