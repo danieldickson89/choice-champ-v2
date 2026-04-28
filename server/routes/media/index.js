@@ -695,16 +695,25 @@ router
                     });
                 }
 
-                // Discover feeds: subject filters + relevance vs newest.
-                // new_releases pulls from a wide subject so the newest
-                // Google's index has surfaces (constraining to fiction
-                // would miss popular non-fiction releases). fiction /
-                // nonfiction stay relevance-sorted so well-known titles
-                // anchor the grid.
+                // Discover feeds.
+                //
+                // Google Books has two quirks here:
+                //   1. `subject:foo OR subject:bar` parses as zero hits,
+                //      so we can't OR subject filters.
+                //   2. `orderBy=newest` is unreliable on broad queries —
+                //      it surfaces classic titles, not 2025/2026 releases.
+                //
+                // Workaround: for new_releases, query `publishedDate:<year>`
+                // which actually filters by published date, and let
+                // relevance pick the popular ones. The current year is
+                // computed server-side so the feed drifts forward
+                // automatically as time passes (no annual code change).
+                // fiction / nonfiction stay simple subject queries.
+                const currentYear = new Date().getFullYear();
                 const feedQueries = {
-                    new_releases: { q: 'subject:fiction OR subject:nonfiction', orderBy: 'newest' },
-                    fiction:      { q: 'subject:fiction',                       orderBy: 'relevance' },
-                    nonfiction:   { q: 'subject:nonfiction',                    orderBy: 'relevance' }
+                    new_releases: { q: `publishedDate:${currentYear}`, orderBy: 'relevance' },
+                    fiction:      { q: 'subject:fiction',              orderBy: 'relevance' },
+                    nonfiction:   { q: 'subject:nonfiction',           orderBy: 'relevance' }
                 };
                 const cfg = feedQueries[feed];
                 if(!cfg) {
