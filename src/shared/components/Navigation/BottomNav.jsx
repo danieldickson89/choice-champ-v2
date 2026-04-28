@@ -13,12 +13,20 @@ const ICON_STROKE = 1.75;
 // high" when sized identically with Clapperboard / Dices / BookText.
 const NUDGE_Y = { tv: 3, game: 3 };
 
+// sizeBump enlarges icons whose drawn content fills less of their
+// 24×24 viewBox than Clapperboard / BookText, so all five icons read
+// at roughly the same visual weight. RetroTv has antennae padding the
+// top, Dices is a pair of small cubes with whitespace, and Gamepad2's
+// silhouette is shorter than tall.
+const SIZE_BUMP = { tv: 4, board: 4, game: 4 };
+
 const tabs = MEDIA_TYPE_ORDER.map(key => ({
     key,
     to: `/collections/${key}`,
     Icon: MEDIA_TYPES[key].Icon,
     color: MEDIA_TYPES[key].color,
     nudgeY: NUDGE_Y[key],
+    sizeBump: SIZE_BUMP[key] || 0,
 }));
 
 const BottomNav = () => {
@@ -68,7 +76,7 @@ const BottomNav = () => {
                                 opacity: isActive ? 1 : (isLoading ? 0.45 : 0),
                             }}
                         />
-                        <tab.Icon size={ICON_SIZE} strokeWidth={ICON_STROKE} style={iconStyle} />
+                        <tab.Icon size={ICON_SIZE + tab.sizeBump} strokeWidth={ICON_STROKE} style={iconStyle} />
                     </a>
                 );
             })}
