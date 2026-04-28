@@ -35,6 +35,36 @@ const Party = () => {
     // Get the party code and user type from the url
     const { code } = useParams();
 
+    // Track the full scrollable page height so the celebration
+    // confetti's canvas spans the whole document, not just the viewport
+    // — long winner pages (lots of runner-ups) should rain confetti
+    // through the full content, even on portions that aren't currently
+    // scrolled into view. ResizeObserver updates on content changes
+    // (runner-up cards arriving async, etc.).
+    const [pageSize, setPageSize] = useState(() => ({
+        w: typeof window !== 'undefined' ? window.innerWidth : 0,
+        h: typeof document !== 'undefined'
+            ? Math.max(window.innerHeight, document.documentElement.scrollHeight)
+            : 0,
+    }));
+    useEffect(() => {
+        const update = () => setPageSize({
+            w: window.innerWidth,
+            h: Math.max(window.innerHeight, document.documentElement.scrollHeight),
+        });
+        update();
+        window.addEventListener('resize', update);
+        let ro;
+        if (typeof ResizeObserver !== 'undefined') {
+            ro = new ResizeObserver(update);
+            ro.observe(document.body);
+        }
+        return () => {
+            window.removeEventListener('resize', update);
+            if (ro) ro.disconnect();
+        };
+    }, []);
+
     const [collectionItems, setCollectionItems] = useState([]);
     const [mediaType, setMediaType] = useState('');
     const [votesNeeded, setVotesNeeded] = useState(1);
@@ -556,15 +586,16 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
     <div className='content party-voting'>
         { (collectionItems.length === 1 || finished) && (
             <Confetti
-                width={window.innerWidth}
-                height={window.innerHeight}
+                width={pageSize.w}
+                height={pageSize.h}
                 numberOfPieces={200}
-                // Pin to the viewport (not the document) so the canvas
-                // never extends below the visible screen, and put it
-                // BEHIND the winner content via zIndex 0 — DOM order
-                // then naturally paints siblings on top without each
-                // one needing its own z-index lift.
-                style={{ position: 'fixed', top: 0, left: 0, zIndex: 0, pointerEvents: 'none' }}
+                // Anchor to the document (position: absolute) and size
+                // the canvas to the full scroll height so confetti rains
+                // through every runner-up below the fold, not just the
+                // visible viewport. zIndex 0 keeps the canvas behind
+                // sibling content — DOM order naturally paints the
+                // winner card on top.
+                style={{ position: 'absolute', top: 0, left: 0, zIndex: 0, pointerEvents: 'none' }}
             />
         )}
 
