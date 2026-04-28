@@ -1,20 +1,24 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PartyPopper, User } from 'lucide-react';
+import { User } from 'lucide-react';
 
 import { AuthContext } from '../../shared/context/auth-context';
 import SegmentedToggle from '../../shared/components/SegmentedToggle/SegmentedToggle';
+import MultiColorText from '../../shared/components/MultiColorText';
+import PartyPopperWheel from '../../shared/components/Icons/PartyPopperWheel';
 import { CreateParty } from './CreateParty';
 import JoinParty from './JoinParty';
 
 import './PartyHome.css';
 
+// Labels are MultiColorText spans rather than plain strings — each
+// character cycles through the five media-type colors, matching the
+// FAB and the "Party Time!" heading. SegmentedToggle accepts JSX in
+// label since it just renders {option.label}.
 const VIEW_OPTIONS = [
-    { value: 'create', label: 'Create Party' },
-    { value: 'join',   label: 'Join Party' },
+    { value: 'create', label: <MultiColorText>Create Party</MultiColorText> },
+    { value: 'join',   label: <MultiColorText>Join Party</MultiColorText> },
 ];
-
-const PARTY_COLOR = '#A855F7';
 
 const PartyHome = () => {
     const auth = useContext(AuthContext);
@@ -43,15 +47,15 @@ const PartyHome = () => {
                         <User size={22} strokeWidth={2} />
                     </button>
                 </div>
-                <h1 className='party-home-title' style={{ color: PARTY_COLOR }}>
-                    <PartyPopper size={26} strokeWidth={1.75} color={PARTY_COLOR} />
-                    Party Time!
+                <h1 className='party-home-title'>
+                    <PartyPopperWheel size={28} strokeWidth={2} />
+                    <MultiColorText>Party Time!</MultiColorText>
                 </h1>
                 <SegmentedToggle
                     options={VIEW_OPTIONS}
                     value={view}
                     onChange={setView}
-                    activeColor={PARTY_COLOR}
+                    activeColor='#000'
                 />
             </div>
 
