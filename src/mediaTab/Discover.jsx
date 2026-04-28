@@ -185,13 +185,11 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
 
     const enterSearch = () => {
         setSearchModeActive(true);
-        auth.showFooterHandler(false);
     };
 
     const exitSearch = () => {
         setSearchModeActive(false);
         setQuery('');
-        auth.showFooterHandler(true);
         inputRef.current?.blur();
     };
 
@@ -208,9 +206,14 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
         onSearchingChange?.(searchModeActive);
     }, [searchModeActive, onSearchingChange]);
 
+    // Drive the footer off searchModeActive so its visibility stays
+    // consistent on remount — e.g. when the user taps a search result,
+    // visits ItemDetails, then comes back. URL state restores
+    // searchModeActive=true, and this effect re-hides the footer.
     useEffect(() => {
+        auth.showFooterHandler(!searchModeActive);
         return () => auth.showFooterHandler(true);
-    }, [auth]);
+    }, [searchModeActive, auth]);
 
     return (
         <div className='discover'>

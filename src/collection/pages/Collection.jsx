@@ -523,13 +523,11 @@ const Collection = ({ socket }) => {
 
     const enterSearch = () => {
         setSearchModeActive(true);
-        auth.showFooterHandler(false);
     };
 
     const exitSearch = () => {
         setSearchModeActive(false);
         setQuery('');
-        auth.showFooterHandler(true);
         searchInputRef.current?.blur();
     };
 
@@ -537,11 +535,14 @@ const Collection = ({ socket }) => {
         if (searchModeActive) searchInputRef.current?.focus();
     }, [searchModeActive]);
 
-    // Restore footer on unmount in case the user navigated away while in
-    // search mode (which had toggled the footer off).
+    // Drive the footer off searchModeActive so its visibility stays
+    // consistent on remount — e.g. when the user taps a search result,
+    // visits ItemDetails, then comes back. URL state restores
+    // searchModeActive=true, and this effect re-hides the footer.
     useEffect(() => {
+        auth.showFooterHandler(!searchModeActive);
         return () => auth.showFooterHandler(true);
-    }, [auth]);
+    }, [searchModeActive, auth]);
 
     // Q: Why do we use useMemo here?
     // A: useMemo is used to optimize the filtering of items. It will only filter the items
