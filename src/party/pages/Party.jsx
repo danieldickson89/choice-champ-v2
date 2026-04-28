@@ -560,8 +560,7 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
             <Confetti
                 width={window.innerWidth}
                 height={window.innerHeight}
-                numberOfPieces={400}
-                recycle={false}
+                numberOfPieces={200}
                 style={{ zIndex: 1000, pointerEvents: 'none' }}
             />
         )}
