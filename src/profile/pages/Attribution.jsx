@@ -66,6 +66,27 @@ const Attribution = () => {
                     by <a href='https://boardgamegeek.com/' target='_blank' rel='noopener noreferrer'>BoardGameGeek</a>.
                 </p>
             </section>
+
+            <section className='attribution-block'>
+                <p>
+                    Book metadata, descriptions, and cover thumbnails powered
+                    by <a href='https://books.google.com/' target='_blank' rel='noopener noreferrer'>Google Books</a>.
+                </p>
+            </section>
+
+            <section className='attribution-block'>
+                <p>
+                    Bestseller lists provided by <a href='https://www.nytimes.com/books/best-sellers/' target='_blank' rel='noopener noreferrer'>The New York Times</a>.
+                    This product is not endorsed or certified by The New York
+                    Times.
+                </p>
+            </section>
+
+            <section className='attribution-block'>
+                <p>
+                    Cover-art fallback provided by <a href='https://openlibrary.org/' target='_blank' rel='noopener noreferrer'>Open Library</a>.
+                </p>
+            </section>
         </div>
     );
 };
