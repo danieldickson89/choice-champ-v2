@@ -458,12 +458,18 @@ router
                     // matches like "Wingspan" deep in the W's. Re-rank by how
                     // closely each title matches the query so exact / starts-
                     // with hits float to the top, then fall back to alpha.
+                    // The whole-word tier uses a word-boundary regex (not a
+                    // split-on-whitespace check) so punctuation in titles like
+                    // "Catan: Cities & Knights" doesn't sink a query for
+                    // "catan" into the contains-tier.
                     const queryLower = q.trim().toLowerCase();
+                    const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const wholeWordRe = new RegExp(`\\b${escapeRe(queryLower)}\\b`);
                     const rankMatch = (title) => {
                         const t = (title || '').toLowerCase();
                         if (t === queryLower) return 0;                                  // exact
                         if (t.startsWith(queryLower)) return 1;                          // starts with
-                        if (t.split(/\s+/).includes(queryLower)) return 2;               // whole-word match
+                        if (wholeWordRe.test(t)) return 2;                               // whole-word match
                         if (t.includes(queryLower)) return 3;                            // contains
                         return 4;                                                        // BGG fuzzy hit
                     };
