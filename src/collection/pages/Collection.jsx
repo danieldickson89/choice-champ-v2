@@ -592,7 +592,7 @@ const Collection = ({ socket }) => {
                 if (!ra && !rb) return addedAt(b) - addedAt(a);
                 if (!ra) return 1;
                 if (!rb) return -1;
-                if (ra !== rb) return ra < rb ? dir : -dir;
+                if (ra !== rb) return (ra < rb ? -1 : 1) * dir;
                 return addedAt(b) - addedAt(a);
             });
         } else if (sortValue === 'rating-desc' || sortValue === 'rating-asc') {
