@@ -332,13 +332,16 @@ router
                     if(!q.trim()) {
                         return res.send({ results: [], page: 1, totalPages: 1 });
                     }
-                    // Drop ordering=-added (popularity) — it overrides RAWG's
-                    // built-in relevance sort, which is what we want for a
-                    // text search. search_precise=true disables RAWG's fuzzy
-                    // matching that otherwise floats prefix-only hits like
-                    // "Animlab|VR" / "Anomaly" above the actual "Animal
-                    // Crossing" titles.
-                    const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}&search_precise=true${platformParam}&page=${page}&page_size=${pageSize}`);
+                    // Fetch a wider candidate pool (40 — RAWG's max page
+                    // size) so the local re-rank below has more title
+                    // matches to surface. Drop ordering=-added so RAWG's
+                    // own relevance sort applies. Avoid search_precise —
+                    // it tightens token matching enough that legitimate
+                    // matches ("Animal Crossing: New Horizons") can fall
+                    // off the page entirely; the local rerank handles
+                    // fuzzy noise just fine.
+                    const candidatePoolSize = 40;
+                    const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}${platformParam}&page=1&page_size=${candidatePoolSize}`);
                     const data = await rawgRes.json();
 
                     const results = dedupeEditions(data.results || []).map(item => ({
@@ -364,18 +367,25 @@ router
                         if (t.includes(queryLower)) return 3;
                         return 4;
                     };
-                    // Stable sort within tier preserves RAWG's relevance
-                    // order, so popular matches still beat obscure ones at
-                    // the same tier.
+                    // Within the same tier, prefer newer releases — for
+                    // "Animal Crossing" the user wants New Horizons (2020)
+                    // before Wild World (2005). Missing release dates sort
+                    // last within their tier. Falls back to RAWG's order
+                    // (popularity) for items without dates.
+                    const releaseTimestamp = (r) => {
+                        if (!r.releaseDate) return -Infinity;
+                        const t = Date.parse(r.releaseDate);
+                        return Number.isFinite(t) ? t : -Infinity;
+                    };
                     const ranked = results
-                        .map((r, i) => ({ r, i, tier: rankMatch(r.title) }))
-                        .sort((a, b) => (a.tier - b.tier) || (a.i - b.i))
+                        .map((r, i) => ({ r, i, tier: rankMatch(r.title), ts: releaseTimestamp(r) }))
+                        .sort((a, b) => (a.tier - b.tier) || (b.ts - a.ts) || (a.i - b.i))
                         .map(({ r }) => r);
 
                     return res.send({
                         results: ranked,
-                        page,
-                        totalPages: data.count ? Math.ceil(data.count / pageSize) : 1
+                        page: 1,
+                        totalPages: 1
                     });
                 }
 
