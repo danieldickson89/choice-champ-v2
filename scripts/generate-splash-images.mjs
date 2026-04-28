@@ -25,29 +25,37 @@ const BG_HEX = 0x312E2EFF;
 // the visible logo is the same size in CSS pixels.
 const LOGO_CSS_SIZE = 120;
 
+// statusBarCss is the iOS status-bar height in CSS pt for each device.
+// Used to shift the native splash logo down so it visually matches the
+// HTML splash, which centers within the WebView (inset below the status
+// bar in default status-bar-style). Values are Apple HIG approximations:
+//   - Dynamic Island iPhones: 54
+//   - Notch iPhones: 44
+//   - Pre-notch iPhones: 20
+//   - iPads: 24
 const DEVICES = [
     // iPhones (portrait), grouped by native pixel size + DPR
-    { name: 'iphone-2868', w: 1320, h: 2868, dpr: 3 }, // 16 Pro Max
-    { name: 'iphone-2796', w: 1290, h: 2796, dpr: 3 }, // 15 Pro Max / 15 Plus / 14 Pro Max
-    { name: 'iphone-2778', w: 1284, h: 2778, dpr: 3 }, // 14 Plus / 13 Pro Max / 12 Pro Max
-    { name: 'iphone-2622', w: 1206, h: 2622, dpr: 3 }, // 16 Pro
-    { name: 'iphone-2556', w: 1179, h: 2556, dpr: 3 }, // 15/16 Pro / 15
-    { name: 'iphone-2532', w: 1170, h: 2532, dpr: 3 }, // 14 / 13 / 12
-    { name: 'iphone-2436', w: 1125, h: 2436, dpr: 3 }, // 13 mini / 12 mini / 11 Pro / XS / X
-    { name: 'iphone-2688', w: 1242, h: 2688, dpr: 3 }, // 11 Pro Max / XS Max
-    { name: 'iphone-2208', w: 1242, h: 2208, dpr: 3 }, // 8 Plus / 7 Plus / 6s Plus
-    { name: 'iphone-1792', w: 828,  h: 1792, dpr: 2 }, // 11 / XR
-    { name: 'iphone-1334', w: 750,  h: 1334, dpr: 2 }, // 8 / 7 / 6s / SE
+    { name: 'iphone-2868', w: 1320, h: 2868, dpr: 3, statusBarCss: 54 }, // 16 Pro Max (DI)
+    { name: 'iphone-2796', w: 1290, h: 2796, dpr: 3, statusBarCss: 54 }, // 15 Pro Max / 15 Plus / 14 Pro Max
+    { name: 'iphone-2778', w: 1284, h: 2778, dpr: 3, statusBarCss: 47 }, // 14 Plus / 13 Pro Max / 12 Pro Max
+    { name: 'iphone-2622', w: 1206, h: 2622, dpr: 3, statusBarCss: 54 }, // 16 Pro (DI)
+    { name: 'iphone-2556', w: 1179, h: 2556, dpr: 3, statusBarCss: 54 }, // 15/16 Pro / 15 (DI)
+    { name: 'iphone-2532', w: 1170, h: 2532, dpr: 3, statusBarCss: 47 }, // 14 / 13 / 12
+    { name: 'iphone-2436', w: 1125, h: 2436, dpr: 3, statusBarCss: 44 }, // 13 mini / 12 mini / 11 Pro / XS / X
+    { name: 'iphone-2688', w: 1242, h: 2688, dpr: 3, statusBarCss: 44 }, // 11 Pro Max / XS Max
+    { name: 'iphone-2208', w: 1242, h: 2208, dpr: 3, statusBarCss: 20 }, // 8 Plus / 7 Plus / 6s Plus
+    { name: 'iphone-1792', w: 828,  h: 1792, dpr: 2, statusBarCss: 44 }, // 11 / XR
+    { name: 'iphone-1334', w: 750,  h: 1334, dpr: 2, statusBarCss: 20 }, // 8 / 7 / 6s / SE
     // iPads (portrait)
-    { name: 'ipad-2752',   w: 2064, h: 2752, dpr: 2 }, // 13" iPad Pro M4
-    { name: 'ipad-2732',   w: 2048, h: 2732, dpr: 2 }, // 12.9" iPad Pro
-    { name: 'ipad-2420',   w: 1668, h: 2420, dpr: 2 }, // 11" iPad Pro M4
-    { name: 'ipad-2388',   w: 1668, h: 2388, dpr: 2 }, // 11"/10.5" iPad Pro
-    { name: 'ipad-2360',   w: 1640, h: 2360, dpr: 2 }, // 10.9" iPad Air
-    { name: 'ipad-2224',   w: 1668, h: 2224, dpr: 2 }, // 10.5" iPad Air
-    { name: 'ipad-2266',   w: 1488, h: 2266, dpr: 2 }, // 8.3" iPad Mini
-    { name: 'ipad-2160',   w: 1620, h: 2160, dpr: 2 }, // 10.2" iPad
-    { name: 'ipad-2048',   w: 1536, h: 2048, dpr: 2 }, // 9.7" iPad / iPad Air / iPad mini
+    { name: 'ipad-2752',   w: 2064, h: 2752, dpr: 2, statusBarCss: 24 }, // 13" iPad Pro M4
+    { name: 'ipad-2732',   w: 2048, h: 2732, dpr: 2, statusBarCss: 24 }, // 12.9" iPad Pro
+    { name: 'ipad-2420',   w: 1668, h: 2420, dpr: 2, statusBarCss: 24 }, // 11" iPad Pro M4
+    { name: 'ipad-2388',   w: 1668, h: 2388, dpr: 2, statusBarCss: 24 }, // 11"/10.5" iPad Pro
+    { name: 'ipad-2360',   w: 1640, h: 2360, dpr: 2, statusBarCss: 24 }, // 10.9" iPad Air
+    { name: 'ipad-2224',   w: 1668, h: 2224, dpr: 2, statusBarCss: 24 }, // 10.5" iPad Air
+    { name: 'ipad-2266',   w: 1488, h: 2266, dpr: 2, statusBarCss: 24 }, // 8.3" iPad Mini
+    { name: 'ipad-2160',   w: 1620, h: 2160, dpr: 2, statusBarCss: 24 }, // 10.2" iPad
+    { name: 'ipad-2048',   w: 1536, h: 2048, dpr: 2, statusBarCss: 20 }, // 9.7" iPad / iPad Air / iPad mini
 ];
 
 await mkdir(OUT_DIR, { recursive: true });
@@ -81,8 +89,14 @@ for (const dev of DEVICES) {
     const logo = trimmed.clone().resize({ w: scaledW, h: scaledH });
 
     const canvas = new Jimp({ width: dev.w, height: dev.h, color: BG_HEX });
+    // The HTML splash centers within the WebView, which sits below the
+    // status bar in default status-bar-style. So the WebView's center
+    // (in screen coords) is offset down from the screen center by
+    // statusBarCss/2. Match that offset here so the native PNG's logo
+    // lands at the same pixel as the HTML splash logo at hand-off.
+    const statusBarPx = dev.statusBarCss * dev.dpr;
     const px = Math.round((dev.w - scaledW) / 2);
-    const py = Math.round((dev.h - scaledH) / 2);
+    const py = Math.round((dev.h + statusBarPx - scaledH) / 2);
     canvas.composite(logo, px, py);
 
     const outPath = join(OUT_DIR, `${dev.name}.png`);

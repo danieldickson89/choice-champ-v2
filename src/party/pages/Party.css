@@ -27,10 +27,6 @@
        tall, so 100px clears it with a small buffer — matches the
        spacing on Discover and Collection detail. */
     padding-bottom: calc(env(safe-area-inset-bottom, 0) + 100px) !important;
-    /* The sticky header below already pads itself by safe-area-inset-top,
-       so .content's matching top padding would stack and leave an empty
-       gap above the X button. Drop the inherited top padding here. */
-    padding-top: 0 !important;
 }
 
 /* Party has no floating search button, so the filter button sits at
