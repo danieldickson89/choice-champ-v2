@@ -10,7 +10,7 @@ const ICON_STROKE = 1.75;
 // nudgeY shifts certain icons down a few pixels so their optical centers
 // align with the others. RetroTv's body sits high (antennae fill the
 // upper space) and Gamepad2's grip is bottom-heavy — both feel "too
-// high" when sized identically with Clapperboard / Dices / BookOpen.
+// high" when sized identically with Clapperboard / Dices / BookText.
 const NUDGE_Y = { tv: 3, game: 3 };
 
 const tabs = MEDIA_TYPE_ORDER.map(key => ({

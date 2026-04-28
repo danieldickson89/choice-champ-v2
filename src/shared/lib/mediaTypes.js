@@ -1,4 +1,4 @@
-import { BookOpen, Clapperboard, Dices, Gamepad2 } from 'lucide-react';
+import { BookText, Clapperboard, Dices, Gamepad2 } from 'lucide-react';
 import RetroTv from '../components/Icons/RetroTv';
 
 // Single source of truth for the five media types. Multiple components
@@ -9,7 +9,7 @@ import RetroTv from '../components/Icons/RetroTv';
 // `comingSoon: true` lets MediaTab render a placeholder until the
 // type's API and Discover branches are wired up.
 export const MEDIA_TYPES = {
-    book:  { title: 'Books',       noun: 'book',  action: 'read',    color: '#A855F7', Icon: BookOpen },
+    book:  { title: 'Books',       noun: 'book',  action: 'read',    color: '#A855F7', Icon: BookText },
     tv:    { title: 'TV Shows',    noun: 'show',  action: 'watched', color: '#F04C53', Icon: RetroTv },
     movie: { title: 'Movies',      noun: 'movie', action: 'watched', color: '#FCB016', Icon: Clapperboard },
     board: { title: 'Board Games', noun: 'game',  action: 'played',  color: '#45B859', Icon: Dices },

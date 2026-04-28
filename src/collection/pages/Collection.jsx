@@ -6,7 +6,7 @@ import { getMediaType, watchedLabelFor, unwatchedLabelFor } from '../../shared/l
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
-import { ArrowLeft, BookOpen, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen, Info, User, Plus } from 'lucide-react';
+import { ArrowLeft, BookText, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen, Info, User, Plus } from 'lucide-react';
 import RetroTv from '../../shared/components/Icons/RetroTv';
 import { Menu, MenuItem, Dialog, Popover } from '@mui/material';
 
@@ -163,7 +163,7 @@ const Collection = ({ socket }) => {
     const unwatchedLabel = unwatchedLabelFor(collectionType);
     const WatchedIcon = collectionType === 'game' ? Gamepad2
         : collectionType === 'board' ? Dices
-        : collectionType === 'book' ? BookOpen
+        : collectionType === 'book' ? BookText
         : Eye;
 
     const isFiltering = filterValue !== 'all';
@@ -686,7 +686,7 @@ const Collection = ({ socket }) => {
                         const TypeIcon = collectionType === 'movie' ? Clapperboard
                             : collectionType === 'tv' ? RetroTv
                             : collectionType === 'game' ? Gamepad2
-                            : collectionType === 'book' ? BookOpen
+                            : collectionType === 'book' ? BookText
                             : Dices;
                         const total = items.length;
                         const watchedCount = items.filter(i => i.watched).length;
