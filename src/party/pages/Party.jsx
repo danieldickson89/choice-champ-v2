@@ -14,8 +14,6 @@ import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterP
 import './Party.css';
 import PlaceholderImg from '../../shared/components/PlaceholderImg';
 
-const MAX_RUNNER_UPS = 8;
-
 const VIEW_STORAGE_KEY = 'choice-champ:party-view';
 
 const VIEW_OPTIONS = [
@@ -189,7 +187,7 @@ const Party = () => {
             setRandomSelected(true);
 
             // Set the rest of the items that are not the random item to be the runner ups
-            const runnerUpsTemp = collectionPointRef.current.filter(item => item.id !== id).slice(0, MAX_RUNNER_UPS);
+            const runnerUpsTemp = collectionPointRef.current.filter(item => item.id !== id);
             setRunnerUps(runnerUpsTemp);
 
             setTimeout(() => {
@@ -251,7 +249,7 @@ const Party = () => {
                 } else {
                     if (filteredItems.length === 1) {
                         // Set runners up to the remaining items
-                        const runnerUpsTemp = collectionPointRef.current.filter(item => item.votes < votesNeededRef.current).slice(0, MAX_RUNNER_UPS);
+                        const runnerUpsTemp = collectionPointRef.current.filter(item => item.votes < votesNeededRef.current);
                         setRunnerUps(runnerUpsTemp);
 
                     }
@@ -407,7 +405,7 @@ const Party = () => {
                 } else {
                     if (filteredItems.length === 1) {
                         // Set runners up to the remaining items
-                        const runnerUpsTemp = collectionItems.filter(item => item.votes < votesNeededRef.current).slice(0, MAX_RUNNER_UPS);
+                        const runnerUpsTemp = collectionItems.filter(item => item.votes < votesNeededRef.current);
                         setRunnerUps(runnerUpsTemp);
 
                     }
@@ -507,7 +505,7 @@ const Party = () => {
         randomItem.voted = false;
 
         // Set the rest of the items that are not the random item to be the runner ups
-        const runnerUpsTemp = collectionItems.filter(item => item.id !== randomItem.id).slice(0, MAX_RUNNER_UPS);
+        const runnerUpsTemp = collectionItems.filter(item => item.id !== randomItem.id);
         setRunnerUps(runnerUpsTemp);
 
         setTimeout(() => {
