@@ -86,8 +86,26 @@ function googleBooksKey() {
 // https, and bump zoom so the image is large enough to render clearly.
 // Falls back to Open Library (free, no key) when Google has no
 // imageLinks at all but we have an ISBN-13.
-function pickBookCover(volumeInfo) {
+function pickBookCover(volumeInfo, accessInfo) {
     const links = volumeInfo && volumeInfo.imageLinks;
+    const ai = accessInfo || {};
+    const ids = (volumeInfo && volumeInfo.industryIdentifiers) || [];
+    const isbn13 = ids.find(i => i.type === 'ISBN_13');
+    const isbn10 = ids.find(i => i.type === 'ISBN_10');
+    const isbn = (isbn13 || isbn10);
+
+    // For NO_PAGES editions Google often serves a 15,567-byte
+    // "Image Not Available" placeholder even though imageLinks is
+    // populated — popular series like Harry Potter have publisher
+    // restrictions that block the cover artwork in their API. When we
+    // have an ISBN, prefer Open Library's cover for that case; OL has
+    // real covers for most well-known editions and silently serves a
+    // gray placeholder if the ISBN isn't indexed (no worse than the
+    // Google placeholder we'd otherwise show).
+    if(ai.viewability === 'NO_PAGES' && isbn) {
+        return `https://covers.openlibrary.org/b/isbn/${isbn.identifier}-L.jpg`;
+    }
+
     if(links) {
         const url = links.thumbnail || links.smallThumbnail;
         if(url) {
@@ -97,10 +115,6 @@ function pickBookCover(volumeInfo) {
                 .replace(/zoom=\d/, 'zoom=2');
         }
     }
-    const ids = (volumeInfo && volumeInfo.industryIdentifiers) || [];
-    const isbn13 = ids.find(i => i.type === 'ISBN_13');
-    const isbn10 = ids.find(i => i.type === 'ISBN_10');
-    const isbn = (isbn13 || isbn10);
     if(isbn) return `https://covers.openlibrary.org/b/isbn/${isbn.identifier}-L.jpg`;
     return null;
 }
@@ -117,13 +131,40 @@ function asIsbn(query) {
 // other media type returns ({ id, title, poster, rating, releaseDate }).
 function bookToResult(item) {
     const v = item.volumeInfo || {};
+    const a = item.accessInfo || {};
     return {
         id: item.id,
         title: v.title || '',
-        poster: pickBookCover(v),
+        poster: pickBookCover(v, a),
         rating: v.averageRating != null ? Number(v.averageRating).toFixed(1) : null,
         releaseDate: v.publishedDate || null
     };
+}
+
+// Re-rank book search results so canonical title matches float to the
+// top — same exact / starts-with / whole-word / contains tiering as
+// the board-game search. Google's relevance ordering for popular
+// series surfaces companion books and fan-fiction above the canonical
+// entries; this puts "Harry Potter and the X" above "101 Amazing
+// Harry Potter Facts" without losing the latter.
+function rankBookResults(query, results) {
+    const queryLower = String(query || '').trim().toLowerCase();
+    if (!queryLower) return results;
+    const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const wholeWordRe = new RegExp(`\\b${escapeRe(queryLower)}\\b`);
+    const rankMatch = (title) => {
+        const t = (title || '').toLowerCase();
+        if (t === queryLower) return 0;
+        if (t.startsWith(queryLower)) return 1;
+        if (wholeWordRe.test(t)) return 2;
+        if (t.includes(queryLower)) return 3;
+        return 4;
+    };
+    // Stable sort within tier preserves Google's relevance order.
+    return results
+        .map((r, i) => ({ r, i, tier: rankMatch(r.title) }))
+        .sort((a, b) => (a.tier - b.tier) || (a.i - b.i))
+        .map(({ r }) => r);
 }
 
 // Lightweight quality gate. Google Books's `printType=books` filter is
@@ -133,30 +174,26 @@ function bookToResult(item) {
 // search results are usable. Skipped for direct ISBN lookups since
 // the user explicitly asked for that exact volume.
 //
-// IMPORTANT: requires Google's own imageLinks for the cover check,
-// not pickBookCover (which falls back to Open Library by ISBN).
-// OpenLibrary returns a gray "no cover" placeholder image — not a
-// 404 — when the ISBN isn't in their index, so a URL on its own
-// isn't a guarantee the cover actually exists. The fallback still
-// runs at render time inside bookToResult; the filter just refuses
-// to count it as a real cover for inclusion purposes.
+// We deliberately do NOT drop accessInfo.viewability === 'NO_PAGES'
+// here — that would nuke canonical entries for popular series (the
+// 7 main Harry Potter books all carry NO_PAGES because of publisher
+// preview restrictions, even though they're absolutely the books
+// the user wants to see). The placeholder-cover problem those
+// records produce is handled in pickBookCover instead, by routing
+// NO_PAGES editions with an ISBN to Open Library's cover service.
 //
-// We also drop accessInfo.viewability === 'NO_PAGES' records.
-// Verified empirically: Google returns the same 15,567-byte "Image
-// Not Available" placeholder JPEG for many NO_PAGES volumes (same
-// hash across unrelated stub records), so even though imageLinks is
-// populated, the rendered grid shows "Image Not Available" tiles.
-// The canonical edition of each book usually has PARTIAL or ALL_PAGES
-// viewability with a real cover; dropping NO_PAGES keeps the well-
-// known editions and removes the noisy duplicates.
+// imageLinks must still be present (or an ISBN that lets pickBookCover
+// fall back to OL) so we never surface a literally-no-cover record.
+// authors and a non-empty title are required so government reports
+// and study-guide stubs without those fields are dropped.
 function looksLikeBook(item, { strictLanguage = false } = {}) {
     const v = item.volumeInfo || {};
-    const a = item.accessInfo || {};
     if (!v.title) return false;
-    const hasGoogleCover = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
-    if (!hasGoogleCover) return false;
     if (!Array.isArray(v.authors) || v.authors.length === 0) return false;
-    if (a.viewability === 'NO_PAGES') return false;
+    const hasGoogleCover = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
+    const ids = v.industryIdentifiers || [];
+    const hasIsbn = ids.some(i => i.type === 'ISBN_13' || i.type === 'ISBN_10');
+    if (!hasGoogleCover && !hasIsbn) return false;
     if (strictLanguage && v.language && v.language !== 'en') return false;
     return true;
 }
@@ -807,7 +844,13 @@ router
                     const filtered = isbn
                         ? items
                         : items.filter(item => looksLikeBook(item, { strictLanguage: true }));
-                    const results = filtered.map(bookToResult);
+                    const mapped = filtered.map(bookToResult);
+                    // Rerank by how well each title matches the query so
+                    // canonical entries float to the top (Google's own
+                    // ranking puts companion books and fan content above
+                    // the actual series for popular queries). Skip for
+                    // ISBN lookups since there's only one expected hit.
+                    const results = isbn ? mapped : rankBookResults(q, mapped);
                     return res.send({
                         results,
                         page: 1,
