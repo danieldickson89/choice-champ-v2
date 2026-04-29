@@ -132,10 +132,19 @@ function bookToResult(item) {
 // Drop entries that lack the basic shape of a mainstream book so
 // search results are usable. Skipped for direct ISBN lookups since
 // the user explicitly asked for that exact volume.
+//
+// IMPORTANT: requires Google's own imageLinks for the cover check,
+// not pickBookCover (which falls back to Open Library by ISBN).
+// OpenLibrary returns a gray "no cover" placeholder image — not a
+// 404 — when the ISBN isn't in their index, so a URL on its own
+// isn't a guarantee the cover actually exists. The fallback still
+// runs at render time inside bookToResult; the filter just refuses
+// to count it as a real cover for inclusion purposes.
 function looksLikeBook(item, { strictLanguage = false } = {}) {
     const v = item.volumeInfo || {};
-    const cover = pickBookCover(v); // includes ISBN→Open Library fallback
-    if (!cover) return false;
+    if (!v.title) return false;
+    const hasGoogleCover = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
+    if (!hasGoogleCover) return false;
     if (!Array.isArray(v.authors) || v.authors.length === 0) return false;
     if (strictLanguage && v.language && v.language !== 'en') return false;
     return true;
