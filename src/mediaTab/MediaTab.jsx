@@ -80,9 +80,13 @@ const MediaTabFull = ({ type, config }) => {
     const inputCollectionRef = useRef();
     const inputJoinRef = useRef();
 
-    useEffect(() => {
-        auth.showFooterHandler(true);
-    }, [auth]);
+    // No footer-handler on mount here — Discover and Collections each
+    // manage footer visibility on their own (Discover hides while
+    // searchModeActive, restores otherwise). React fires child effects
+    // before parent effects, so a parent-level showFooterHandler(true)
+    // would overwrite Discover's hidden state on every back-from-
+    // ItemDetails remount, putting the bottom nav back on screen
+    // during search.
 
     useEffect(() => {
         setIsLoading(true);
