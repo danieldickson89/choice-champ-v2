@@ -79,9 +79,24 @@
         opacity: 0;
         pointer-events: none;
       }
-      #cc-splash img {
+      /* Two-layer splash so it reads like a real wheel-of-fortune: the
+         slices rotate underneath a fixed pointer + hub. The native
+         apple-touch-startup-image PNGs and the favicon still use the
+         combined logo.png, so the hand-off from iOS's static splash to
+         this layered version frames at the same starting position
+         (rotation: 0). */
+      .cc-splash-stack {
+        position: relative;
         width: 120px;
         height: 120px;
+      }
+      .cc-splash-stack img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .cc-splash-wheel {
         animation: cc-splash-spin 2.4s linear infinite;
       }
       @keyframes cc-splash-spin { to { transform: rotate(360deg); } }
@@ -90,7 +105,10 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="cc-splash" aria-hidden="true">
-      <img src="/logo.png" alt="" />
+      <div class="cc-splash-stack">
+        <img class="cc-splash-wheel"   src="/wheel.png"   alt="" />
+        <img class="cc-splash-pointer" src="/pointer.png" alt="" />
+      </div>
     </div>
     <div id="root"></div>
 
