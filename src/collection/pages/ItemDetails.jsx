@@ -303,8 +303,19 @@ const ItemDetails = () => {
             label: details.authors && details.authors.length > 1 ? 'Authors' : 'Author',
             value: details.authors && details.authors.length > 0 ? details.authors.join(', ') : 'N/A',
         });
-        infoRows.push({ label: 'Pages', value: details.pageCount ? `${details.pageCount}` : 'N/A' });
+        // iTunes returns multiple genres but the first is the most
+        // specific ("Epic Fantasy" before "Sci-Fi & Fantasy").
+        if (details.categories && details.categories.length > 0) {
+            infoRows.push({
+                label: details.categories.length > 1 ? 'Genres' : 'Genre',
+                value: details.categories.join(', '),
+            });
+        }
         infoRows.push({ label: 'Rating', value: details.rating != null ? `${details.rating} / 5` : 'N/A' });
+        infoRows.push({
+            label: 'Reviews',
+            value: details.ratingCount ? Number(details.ratingCount).toLocaleString() : 'N/A',
+        });
     }
 
     return (

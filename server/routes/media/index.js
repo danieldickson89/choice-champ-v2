@@ -156,15 +156,43 @@ const NON_ENGLISH_STOPWORDS = new Set([
     // Czech / Slovak / Polish
     'jest', 'pro', 'při',
 ]);
-function looksNonEnglish(title) {
+// Common English function words. Any English description of even
+// modest length contains at least one of these — their *absence* in a
+// long passage is a near-perfect signal that the text is not English.
+// Used as a positive check to catch Spanish/Italian/Portuguese editions
+// whose titles have no diacritics or telltale articles.
+const ENGLISH_COMMON_WORDS_RE = /\b(?:the|and|of|to|a|in|is|that|for|with|on|by|from|this|but|not|are|was|be|or|it|as|at|an|he|she|his|her|their)\b/i;
+
+function looksNonEnglish(title, description = '') {
     if (!title) return false;
+    const desc = String(description).replace(/<[^>]*>/g, ' ').trim();
+
+    // Hard non-English letters anywhere — single occurrence is enough
+    // since these characters essentially never appear in English.
     if (HARD_NON_ENGLISH_RE.test(title)) return true;
-    const diacriticMatches = title.match(LATIN_EXTENDED_RE);
-    if (diacriticMatches && diacriticMatches.length >= 2) return true;
-    const lower = title.toLowerCase();
-    for (const word of lower.split(/[\s\-:.,;()'"!?]+/)) {
+    if (HARD_NON_ENGLISH_RE.test(desc)) return true;
+
+    // Title diacritic density — 2+ Latin Extended chars in the title
+    // alone is a strong signal (catches "Mistborn: Poselství práva"
+    // without flagging single-diacritic English borrows like "Café").
+    const titleDiacritics = (title.match(LATIN_EXTENDED_RE) || []).length;
+    if (titleDiacritics >= 2) return true;
+
+    // Title stopword check — a single non-English article in the title
+    // is enough ("La Legge Delle Lande").
+    const titleLower = title.toLowerCase();
+    for (const word of titleLower.split(/[\s\-:.,;()'"!?]+/)) {
         if (NON_ENGLISH_STOPWORDS.has(word)) return true;
     }
+
+    // Positive English check on the description — a meaningful chunk
+    // of English text always contains at least one common function
+    // word. If a 80+-char description has zero, it is almost certainly
+    // not English. Catches Spanish/Italian/Portuguese editions whose
+    // titles slip past the title-only checks because they share the
+    // Latin alphabet and avoid stopword forms.
+    if (desc.length >= 80 && !ENGLISH_COMMON_WORDS_RE.test(desc)) return true;
+
     return false;
 }
 
@@ -207,7 +235,7 @@ function looksLikeITunesBook(item) {
     if (!item.artworkUrl100) return false;
     if (hasNonLatinScript(item.trackName, item.artistName)) return false;
     if (isSummaryPublisher(item.artistName)) return false;
-    if (looksNonEnglish(item.trackName)) return false;
+    if (looksNonEnglish(item.trackName, item.description)) return false;
     return true;
 }
 
