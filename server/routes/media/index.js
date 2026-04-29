@@ -108,12 +108,30 @@ function iTunesItemToResult(item) {
     };
 }
 
+// Detect non-Latin scripts in a string. iTunes's country=US store
+// happily returns titles in Cyrillic / CJK / Arabic / Devanagari /
+// etc. and we don't currently expose a language setting, so drop
+// anything outside the Latin alphabet for now. Range list covers the
+// scripts most likely to slip through; obvious omissions like Greek
+// and accented Latin (é, ñ, ö) are intentional — those usually still
+// read fine to an English-reading user.
+//
+// TODO: replace with a per-user language preference once we add a
+// settings UI for it.
+const NON_LATIN_RE = /[Ѐ-ӿԀ-ԯ֐-׿؀-ۿ܀-ݏऀ-ॿঀ-৿฀-๿぀-ヿ㐀-鿿가-힯]/;
+function hasNonLatinScript(...strings) {
+    return strings.some(s => typeof s === 'string' && NON_LATIN_RE.test(s));
+}
+
 // Drop entries without a usable cover or title. iTunes's `media=ebook`
 // filter is already strict — the catalog is curated, not crawled — so
-// this gate barely fires, but it's belt-and-suspenders.
+// most of the rejection is around language: filter out obvious non-
+// English titles by checking the title and author for non-Latin
+// scripts (Cyrillic, CJK, Arabic, etc.).
 function looksLikeITunesBook(item) {
     if (!item.trackName) return false;
     if (!item.artworkUrl100) return false;
+    if (hasNonLatinScript(item.trackName, item.artistName)) return false;
     return true;
 }
 
