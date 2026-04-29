@@ -7,7 +7,12 @@
     background-color: rgba(255, 255, 255, 0.04);
     border-radius: 10px;
     box-sizing: border-box;
-    touch-action: none;
+    /* touch-action stays on .manage-item-handle only — applying it to
+       the whole row blocks vertical scrolling whenever a touch lands
+       on the poster/title/trash, which made the manage list feel
+       unresponsive (the user could only scroll in the gaps between
+       rows). The drag handle still has touch-action: none so dnd-kit
+       can capture drags from there cleanly. */
 }
 
 .manage-item-row-dragging {
