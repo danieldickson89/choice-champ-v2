@@ -123,15 +123,91 @@ function hasNonLatinScript(...strings) {
     return strings.some(s => typeof s === 'string' && NON_LATIN_RE.test(s));
 }
 
+// Foreign-language editions written in Latin script (Spanish,
+// Portuguese, Italian, Czech, Swedish, etc.) bypass the Cyrillic/CJK
+// filter because they use the same alphabet. Three signals layered:
+//
+//   1. Hard non-English letters — characters that essentially never
+//      appear in English (ã/õ/ç in Portuguese, ě/ů/ř/š/ž in Czech,
+//      ł/ą/ć in Polish, å/ø/æ in Scandinavian, ß in German). A single
+//      occurrence is enough.
+//   2. Diacritics density — "Café Society" has 1 non-ASCII Latin
+//      char and reads fine; "Mistborn: Poselství práva" has multiple
+//      and is clearly not English. 2+ Latin Extended chars trip it.
+//   3. Stop-word match — Italian / Spanish / Portuguese / German
+//      titles often contain function words ("il", "el", "der",
+//      "della") that essentially never appear in English titles. A
+//      whole-word match drops those even when there are no diacritics
+//      ("Mistborn Era Due - 1. La legge delle lande").
+const HARD_NON_ENGLISH_RE = /[ãõçěůřščžýňąłćśżźåøæßĐđŁł]/i;
+const LATIN_EXTENDED_RE = /[À-ɏ]/g;
+const NON_ENGLISH_STOPWORDS = new Set([
+    // Italian
+    'il', 'lo', 'gli', 'della', 'delle', 'dell', 'degli', 'nello', 'nella',
+    // Spanish / Portuguese
+    'el', 'los', 'las', 'del', 'una', 'uno', 'que', 'para', 'con',
+    'da', 'do', 'dos', 'das', 'no', 'na', 'nos', 'nas',
+    // French (skipping bare "le" / "la" / "les" — too common in English names)
+    'des', 'aux', 'leur', 'pour',
+    // Swedish / Norwegian / Danish
+    'och', 'eller', 'med', 'som',
+    // German
+    'der', 'die', 'das', 'mit', 'für', 'und',
+    // Czech / Slovak / Polish
+    'jest', 'pro', 'při',
+]);
+function looksNonEnglish(title) {
+    if (!title) return false;
+    if (HARD_NON_ENGLISH_RE.test(title)) return true;
+    const diacriticMatches = title.match(LATIN_EXTENDED_RE);
+    if (diacriticMatches && diacriticMatches.length >= 2) return true;
+    const lower = title.toLowerCase();
+    for (const word of lower.split(/[\s\-:.,;()'"!?]+/)) {
+        if (NON_ENGLISH_STOPWORDS.has(word)) return true;
+    }
+    return false;
+}
+
+// Publishers that produce book summaries / study guides — useful in
+// some contexts but mostly noise when a user is looking for the
+// actual novel. Match case-insensitively against artistName.
+const SUMMARY_PUBLISHERS = new Set([
+    'bookcaps',
+    'bookrags',
+    'sparknotes',
+    'cliffsnotes',
+    'cliffs notes',
+    'hyperink',
+    'bright summaries',
+    'brightsummaries.com',
+    'trivia-on-books',
+    'trivia on books',
+    'speed reads',
+    'speedreads',
+    'quickread',
+    'quick read',
+    'worth books',
+    'supersummary',
+    'litcharts',
+    'snap summaries',
+    'maxhelp publishing',
+    'readtrepreneur publishing',
+    '50minutes.com',
+]);
+function isSummaryPublisher(artistName) {
+    return SUMMARY_PUBLISHERS.has((artistName || '').trim().toLowerCase());
+}
+
 // Drop entries without a usable cover or title. iTunes's `media=ebook`
-// filter is already strict — the catalog is curated, not crawled — so
-// most of the rejection is around language: filter out obvious non-
-// English titles by checking the title and author for non-Latin
-// scripts (Cyrillic, CJK, Arabic, etc.).
+// filter is already strict — the catalog is curated, not crawled —
+// but the US store still sells foreign-language editions and book-
+// summary products mixed in with the original works. Filter both.
 function looksLikeITunesBook(item) {
     if (!item.trackName) return false;
     if (!item.artworkUrl100) return false;
     if (hasNonLatinScript(item.trackName, item.artistName)) return false;
+    if (isSummaryPublisher(item.artistName)) return false;
+    if (looksNonEnglish(item.trackName)) return false;
     return true;
 }
 
