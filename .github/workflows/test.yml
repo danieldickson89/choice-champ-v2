@@ -16,7 +16,7 @@ jobs:
       # runner has been stable since Node 20, so this works on any
       # currently-supported LTS.
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: 'npm'
