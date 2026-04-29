@@ -117,15 +117,42 @@ function looksLikeITunesBook(item) {
     return true;
 }
 
-// Sort iTunes results by review count desc — `userRatingCount` is the
-// strongest available signal of "canonical / well-known edition" since
-// popular books accumulate orders of magnitude more reviews than
-// companion or fan-written books with the same keywords. (Verified
-// empirically: HP Sorcerer's Stone has 10,597 reviews vs 26 for
-// "The Adventures of Harry Potter" companion book.) Books with no
-// reviews fall to the bottom but still surface, in iTunes's order.
+// Sort iTunes results by review count desc — `userRatingCount` is a
+// strong signal of "canonical / well-known edition" since popular
+// books accumulate orders of magnitude more reviews than companion or
+// fan-written books. Used by genre tabs and the NYT-bridge match
+// picker, where there's no query string to anchor relevance against.
 function sortByReviews(items) {
     return [...items].sort((a, b) => {
+        const ra = Number(a.userRatingCount) || 0;
+        const rb = Number(b.userRatingCount) || 0;
+        return rb - ra;
+    });
+}
+
+// Search-result ranking: title-relevance tier first, review count as
+// tiebreaker. Pure review sort works for "Harry Potter" (all matches
+// are popular) but buries specific titles like "Wind and Truth" under
+// more-reviewed siblings ("The Way of Kings"). Tiering pulls the exact
+// match to the top regardless of popularity, then the review count
+// breaks ties within a tier — matches the pattern we use for video
+// and board game search.
+function rankBookSearchResults(query, items) {
+    const queryLower = String(query || '').trim().toLowerCase();
+    if (!queryLower) return sortByReviews(items);
+    const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const wholeWordRe = new RegExp(`\\b${escapeRe(queryLower)}\\b`);
+    const rankMatch = (title) => {
+        const t = (title || '').toLowerCase();
+        if (t.startsWith(queryLower)) return 0;   // exact + starts-with
+        if (wholeWordRe.test(t)) return 1;        // whole-word
+        if (t.includes(queryLower)) return 2;     // contains
+        return 3;                                  // matched in author/desc
+    };
+    return [...items].sort((a, b) => {
+        const tierA = rankMatch(a.trackName);
+        const tierB = rankMatch(b.trackName);
+        if (tierA !== tierB) return tierA - tierB;
         const ra = Number(a.userRatingCount) || 0;
         const rb = Number(b.userRatingCount) || 0;
         return rb - ra;
@@ -732,11 +759,10 @@ router
                     }
                     // iTunes title-attribute search returns a tighter
                     // candidate set than the default term search (which
-                    // also matches descriptions / publisher copy). Sort
-                    // by review count so canonical editions of popular
-                    // series float to the top automatically — that's
-                    // the strongest available signal for "this is the
-                    // book everyone means."
+                    // also matches descriptions / publisher copy). Then
+                    // rank by title-relevance with reviews as the tie-
+                    // breaker so a specific query like "Wind and Truth"
+                    // surfaces THAT title above more-popular siblings.
                     const url = `https://itunes.apple.com/search?media=ebook&attribute=titleTerm&term=${encodeURIComponent(q)}&limit=50&country=US`;
                     const r = await fetch(url);
                     if(!r.ok) {
@@ -744,7 +770,7 @@ router
                     }
                     const data = await r.json();
                     const items = (data.results || []).filter(looksLikeITunesBook);
-                    const ranked = sortByReviews(items);
+                    const ranked = rankBookSearchResults(q, items);
                     const results = ranked.map(iTunesItemToResult);
                     return res.send({ results, page: 1, totalPages: 1 });
                 }
