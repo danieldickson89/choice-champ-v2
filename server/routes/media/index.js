@@ -156,12 +156,40 @@ const NON_ENGLISH_STOPWORDS = new Set([
     // Czech / Slovak / Polish
     'jest', 'pro', 'při',
 ]);
-// Common English function words. Any English description of even
-// modest length contains at least one of these — their *absence* in a
-// long passage is a near-perfect signal that the text is not English.
-// Used as a positive check to catch Spanish/Italian/Portuguese editions
-// whose titles have no diacritics or telltale articles.
-const ENGLISH_COMMON_WORDS_RE = /\b(?:the|and|of|to|a|in|is|that|for|with|on|by|from|this|but|not|are|was|be|or|it|as|at|an|he|she|his|her|their)\b/i;
+// High-confidence non-English words for body-text scanning. Verbs,
+// demonstratives, and prepositions that essentially never appear in
+// English text — distinct from NON_ENGLISH_STOPWORDS above, which is
+// articles tuned for short titles. Words that *could* appear in
+// English are deliberately excluded:
+//   • "le", "la", "el", "il", "der", "das" — common in English proper
+//     nouns ("La Mer", "Der Spiegel", "El Niño").
+//   • "von", "comme", "ela", "elle" — names / brands.
+//   • "ale", "non", "todo" — real English words.
+const NON_ENGLISH_BODY_WORDS = new Set([
+    // Spanish
+    'muy', 'pero', 'tiene', 'tienen', 'todos', 'todas', 'siempre', 'mientras',
+    'aunque', 'desde', 'hasta', 'mucho', 'mucha', 'muchos', 'muchas',
+    'puede', 'pueden', 'porque', 'entonces', 'después', 'despues', 'sobre',
+    'fueron', 'estos', 'estas', 'eres', 'somos',
+    // Italian
+    'molto', 'molta', 'molti', 'molte', 'anche', 'questo', 'questa',
+    'questi', 'queste', 'quello', 'quella', 'quelli', 'quelle', 'essere',
+    'mentre', 'quando', 'senza', 'soltanto', 'tutto', 'tutti', 'tutte',
+    'tutta', 'ancora', 'allora', 'mai',
+    // Portuguese
+    'muito', 'muita', 'muitos', 'muitas', 'isso', 'isto', 'esse', 'essa',
+    'esses', 'essas', 'aquele', 'aquela', 'aqueles', 'aquelas', 'depois',
+    // French (skipping "le"/"la"/"les"/"comme"/"pour" — too many English false positives)
+    'aussi', 'avec', 'sans', 'dans', 'leur', 'leurs', 'alors', 'toujours',
+    'ils', 'ses', 'nos', 'vos', 'dont', 'cette', 'ceux', 'celles',
+    // German
+    'ist', 'sind', 'nicht', 'auch', 'haben', 'werden', 'sehr', 'eine',
+    'einen', 'einer', 'wenn', 'dann', 'aber', 'vom', 'zum', 'zur', 'beim',
+    'nach', 'zwischen', 'gegen', 'sondern', 'weil', 'doch',
+    // Czech / Slovak / Polish
+    'jest', 'jsou', 'byla', 'bylo', 'byly', 'která', 'které', 'který',
+    'jeden', 'jedna', 'jedno',
+]);
 
 function looksNonEnglish(title, description = '') {
     if (!title) return false;
@@ -185,13 +213,15 @@ function looksNonEnglish(title, description = '') {
         if (NON_ENGLISH_STOPWORDS.has(word)) return true;
     }
 
-    // Positive English check on the description — a meaningful chunk
-    // of English text always contains at least one common function
-    // word. If a 80+-char description has zero, it is almost certainly
-    // not English. Catches Spanish/Italian/Portuguese editions whose
-    // titles slip past the title-only checks because they share the
-    // Latin alphabet and avoid stopword forms.
-    if (desc.length >= 80 && !ENGLISH_COMMON_WORDS_RE.test(desc)) return true;
+    // Description body-word check — any high-confidence non-English
+    // word in the description body drops the entry. Tuned conservatively
+    // so a single hit is enough; words that could legitimately appear
+    // in English (proper-noun articles, brand names, English homographs)
+    // are excluded from the list above.
+    const descLower = desc.toLowerCase();
+    for (const word of descLower.split(/[\s\-:.,;()'"!?]+/)) {
+        if (NON_ENGLISH_BODY_WORDS.has(word)) return true;
+    }
 
     return false;
 }
