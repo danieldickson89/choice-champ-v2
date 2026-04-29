@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@mui/material';
-import { Plus, Check, Search as SearchIcon } from 'lucide-react';
+import { Plus, Check, Search as SearchIcon, X } from 'lucide-react';
 
 import Loading from '../../shared/components/Loading';
 import { fetchSearch } from '../../mediaTab/discoverApi';
@@ -27,6 +27,7 @@ const AddItemsSheet = ({
     onAdd,
     onRemove,
 }) => {
+    const inputRef = useRef(null);
     const [query, setQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [items, setItems] = useState([]);
@@ -129,6 +130,7 @@ const AddItemsSheet = ({
                     <div className='add-items-sheet-search-wrap'>
                         <SearchIcon size={18} strokeWidth={2} className='add-items-sheet-search-icon' />
                         <input
+                            ref={inputRef}
                             type='text'
                             className='add-items-sheet-search'
                             placeholder={`Search for a ${TYPE_LABEL[mediaType] || 'item'}`}
@@ -137,6 +139,24 @@ const AddItemsSheet = ({
                             autoComplete='off'
                             autoFocus
                         />
+                        {query && (
+                            <button
+                                type='button'
+                                className='add-items-sheet-search-clear'
+                                // onMouseDown preventDefault keeps focus on
+                                // the input so the user can keep typing
+                                // immediately after clearing.
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                    setQuery('');
+                                    inputRef.current?.focus();
+                                }}
+                                aria-label='Clear text'
+                                style={{ color }}
+                            >
+                                <X size={14} strokeWidth={2.5} />
+                            </button>
+                        )}
                     </div>
                     <button
                         type='button'
