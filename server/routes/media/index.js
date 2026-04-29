@@ -140,12 +140,23 @@ function bookToResult(item) {
 // isn't a guarantee the cover actually exists. The fallback still
 // runs at render time inside bookToResult; the filter just refuses
 // to count it as a real cover for inclusion purposes.
+//
+// We also drop accessInfo.viewability === 'NO_PAGES' records.
+// Verified empirically: Google returns the same 15,567-byte "Image
+// Not Available" placeholder JPEG for many NO_PAGES volumes (same
+// hash across unrelated stub records), so even though imageLinks is
+// populated, the rendered grid shows "Image Not Available" tiles.
+// The canonical edition of each book usually has PARTIAL or ALL_PAGES
+// viewability with a real cover; dropping NO_PAGES keeps the well-
+// known editions and removes the noisy duplicates.
 function looksLikeBook(item, { strictLanguage = false } = {}) {
     const v = item.volumeInfo || {};
+    const a = item.accessInfo || {};
     if (!v.title) return false;
     const hasGoogleCover = v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail);
     if (!hasGoogleCover) return false;
     if (!Array.isArray(v.authors) || v.authors.length === 0) return false;
+    if (a.viewability === 'NO_PAGES') return false;
     if (strictLanguage && v.language && v.language !== 'en') return false;
     return true;
 }
