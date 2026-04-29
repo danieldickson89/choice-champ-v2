@@ -126,6 +126,21 @@ function bookToResult(item) {
     };
 }
 
+// Lightweight quality gate. Google Books's `printType=books` filter is
+// loose — academic papers, government reports, foreign-language
+// editions, and missing-cover stub records all mix in with real books.
+// Drop entries that lack the basic shape of a mainstream book so
+// search results are usable. Skipped for direct ISBN lookups since
+// the user explicitly asked for that exact volume.
+function looksLikeBook(item, { strictLanguage = false } = {}) {
+    const v = item.volumeInfo || {};
+    const cover = pickBookCover(v); // includes ISBN→Open Library fallback
+    if (!cover) return false;
+    if (!Array.isArray(v.authors) || v.authors.length === 0) return false;
+    if (strictLanguage && v.language && v.language !== 'en') return false;
+    return true;
+}
+
 // NYT Books API → Google Books bridge.
 //
 // NYT exposes weekly bestseller lists with rich metadata (title, author,
@@ -753,17 +768,30 @@ router
                     // ISBN lookup, otherwise fall through to free-text.
                     const isbn = asIsbn(q);
                     const queryString = isbn ? `isbn:${isbn}` : q;
-                    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(queryString)}&maxResults=${pageSize}&startIndex=${startIndex}&printType=books${googleBooksKey()}`;
+                    // Fetch a wider candidate pool (40 — Google's cap)
+                    // and apply the quality gate below; without it the
+                    // page ends up sparse after filtering. Skip
+                    // langRestrict for ISBN lookups since the user
+                    // explicitly named that exact edition.
+                    const langParam = isbn ? '' : '&langRestrict=en';
+                    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(queryString)}&maxResults=40&printType=books${langParam}${googleBooksKey()}`;
                     const r = await fetch(url);
                     if(!r.ok) {
                         return res.status(502).send({ errMsg: `Google Books search ${r.status}` });
                     }
                     const data = await r.json();
-                    const results = (data.items || []).map(bookToResult);
+                    const items = data.items || [];
+                    // Drop government reports, foreign-language editions,
+                    // and stub records without covers — common Google
+                    // Books noise. ISBN lookups bypass the gate.
+                    const filtered = isbn
+                        ? items
+                        : items.filter(item => looksLikeBook(item, { strictLanguage: true }));
+                    const results = filtered.map(bookToResult);
                     return res.send({
                         results,
-                        page,
-                        totalPages: data.totalItems ? Math.ceil(data.totalItems / pageSize) : 1
+                        page: 1,
+                        totalPages: 1
                     });
                 }
 
@@ -778,7 +806,8 @@ router
                 // zero hits on Google's parser.
                 if(feed === 'scifi_fantasy') {
                     const items = await fetchMultiSubjectBooks(['science fiction', 'fantasy'], page, pageSize);
-                    const results = items.map(bookToResult);
+                    const filtered = items.filter(item => looksLikeBook(item));
+                    const results = filtered.map(bookToResult);
                     return res.send({ results, page, totalPages: 1 });
                 }
 
@@ -799,18 +828,22 @@ router
                     return res.status(400).send({ errMsg: `Invalid feed '${feed}' for type 'book'. Supported: search, bestsellers, new_releases, mystery, romance, scifi_fantasy.` });
                 }
 
-                const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(cfg.q)}&orderBy=relevance&maxResults=${pageSize}&startIndex=${startIndex}&printType=books&langRestrict=en${googleBooksKey()}`;
+                // Fetch 40 (Google's cap) so the quality gate has room
+                // to drop noise without leaving the page sparse.
+                const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(cfg.q)}&orderBy=relevance&maxResults=40&startIndex=${startIndex}&printType=books&langRestrict=en${googleBooksKey()}`;
                 const r = await fetch(url);
                 if(!r.ok) {
                     return res.status(502).send({ errMsg: `Google Books discover ${r.status}` });
                 }
                 const data = await r.json();
-                const results = (data.items || []).map(bookToResult);
+                const items = data.items || [];
+                const filtered = items.filter(item => looksLikeBook(item));
+                const results = filtered.map(bookToResult);
 
                 return res.send({
                     results,
                     page,
-                    totalPages: data.totalItems ? Math.ceil(data.totalItems / pageSize) : 1
+                    totalPages: 1
                 });
             } else {
                 return res.status(400).send({ errMsg: `Invalid type '${type}'. Supported: movie, tv, game, board, book.` });
