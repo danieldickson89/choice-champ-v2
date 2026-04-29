@@ -96,10 +96,18 @@ function App() {
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      applyProfile(session).finally(() => mounted && setLoading(false));
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (!mounted) return;
+        applyProfile(session).finally(() => mounted && setLoading(false));
+      })
+      // If the session fetch itself fails (network blip, Supabase
+      // down) we still need to clear the loading state — otherwise
+      // the user sits on the splash screen indefinitely.
+      .catch(err => {
+        console.log(err);
+        if (mounted) setLoading(false);
+      });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       applyProfile(session);
     });

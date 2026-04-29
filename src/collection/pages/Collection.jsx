@@ -454,7 +454,12 @@ const Collection = ({ socket }) => {
     const removeItemBySource = async (sourceItemId) => {
         const match = itemsRef.current.find(it => String(it.itemId) === String(sourceItemId));
         if (!match) return;
-        await api(`/collections/items/${collectionId}/${match._id}`, { method: 'DELETE' });
+        try {
+            await api(`/collections/items/${collectionId}/${match._id}`, { method: 'DELETE' });
+        } catch (err) {
+            console.log(err);
+            return;
+        }
         itemsRef.current = itemsRef.current.filter(it => it._id !== match._id);
         setItems(itemsRef.current);
         channelRef.current?.send({ type: 'broadcast', event: 'remove', payload: { id: match._id } });

@@ -242,7 +242,8 @@ const Party = () => {
                         .then(response => response.json())
                         .then(body => {
                             setProviders(body.media.providers);
-                        });
+                        })
+                        .catch(err => console.log('winner providers fetch failed:', err));
                     }
 
                     setCollectionItems([item]);
@@ -308,7 +309,8 @@ const Party = () => {
                                     .then(response => response.json())
                                     .then(body => {
                                         setProviders(body.media.providers);
-                                    });
+                                    })
+                                    .catch(err => console.log('winner providers fetch failed:', err));
                                 }
                             } else {
                                 // Reset votes and voted for all filtered items
@@ -463,7 +465,8 @@ const Party = () => {
                                     .then(response => response.json())
                                     .then(body => {
                                         setProviders(body.media.providers);
-                                    });
+                                    })
+                                    .catch(err => console.log('winner providers fetch failed:', err));
                                 }
                             } else {
                                 // Reset votes and voted for all filtered items
@@ -556,7 +559,8 @@ const Party = () => {
                     .then(response => response.json())
                     .then(body => {
                         setProviders(body.media.providers);
-                    });
+                    })
+                    .catch(err => console.log('winner providers fetch failed:', err));
                 }
 
                 // Scroll user back to the top of the page
