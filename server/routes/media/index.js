@@ -36,6 +36,30 @@ async function lookupSgdbPoster(title) {
     return firstGrid ? firstGrid.url : null;
 }
 
+// Drop adult/explicit games from RAWG results. ESRB "adults-only"
+// (AO) is rare and almost always adult-content-focused. Mature (M) is
+// kept — that's GTA, Call of Duty, Last of Us, etc. The tag list
+// catches unrated indie/Steam titles whose tags clearly mark them as
+// explicit. Tags are user-contributed (scraped from Steam) so the
+// list is conservative — only unambiguous slugs that don't double as
+// neutral descriptors.
+const EXPLICIT_GAME_TAG_SLUGS = new Set([
+    'nudity',
+    'sexual-content',
+    'hentai',
+    'nsfw',
+    'erotic',
+]);
+function looksLikeRawgGame(item) {
+    if (item?.esrb_rating?.slug === 'adults-only') return false;
+    if (Array.isArray(item?.tags)) {
+        for (const t of item.tags) {
+            if (t && EXPLICIT_GAME_TAG_SLUGS.has(t.slug)) return false;
+        }
+    }
+    return true;
+}
+
 async function getSgdbPoster(rawgId, title) {
     if(!rawgId || !title) return null;
 
@@ -256,15 +280,26 @@ function isSummaryPublisher(artistName) {
     return SUMMARY_PUBLISHERS.has((artistName || '').trim().toLowerCase());
 }
 
+// iTunes ebook genres that mark the entry as adult/explicit content.
+// The URL `explicit=No` parameter does NOT filter these out for books
+// (verified live — it only affects music), so we have to do it post-
+// fetch by inspecting each item's genres array.
+const EXPLICIT_BOOK_GENRES = new Set(['Erotica', 'Erotic Romance']);
+function isExplicitBook(item) {
+    if (!Array.isArray(item.genres)) return false;
+    return item.genres.some(g => EXPLICIT_BOOK_GENRES.has(g));
+}
+
 // Drop entries without a usable cover or title. iTunes's `media=ebook`
 // filter is already strict — the catalog is curated, not crawled —
-// but the US store still sells foreign-language editions and book-
-// summary products mixed in with the original works. Filter both.
+// but the US store still sells foreign-language editions, book-summary
+// products, and adult content mixed in with the original works.
 function looksLikeITunesBook(item) {
     if (!item.trackName) return false;
     if (!item.artworkUrl100) return false;
     if (hasNonLatinScript(item.trackName, item.artistName)) return false;
     if (isSummaryPublisher(item.artistName)) return false;
+    if (isExplicitBook(item)) return false;
     if (looksNonEnglish(item.trackName, item.description)) return false;
     return true;
 }
@@ -577,7 +612,7 @@ router
                     return res.status(400).send({ errMsg: `Invalid feed '${feed}' for type '${type}'` });
                 }
 
-                const tmdbRes = await fetch(`https://api.themoviedb.org/3${path}?api_key=${process.env.MOVIE_DB_API_KEY}&language=en-US&page=${page}`);
+                const tmdbRes = await fetch(`https://api.themoviedb.org/3${path}?api_key=${process.env.MOVIE_DB_API_KEY}&language=en-US&include_adult=false&page=${page}`);
                 const data = await tmdbRes.json();
 
                 const results = (data.results || []).map(item => ({
@@ -660,7 +695,8 @@ router
                     const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&search=${encodeURIComponent(q)}${platformParam}&page=1&page_size=${candidatePoolSize}`);
                     const data = await rawgRes.json();
 
-                    const results = dedupeEditions(data.results || []).map(item => ({
+                    const safeItems = (data.results || []).filter(looksLikeRawgGame);
+                    const results = dedupeEditions(safeItems).map(item => ({
                         id: item.id,
                         title: item.name,
                         poster: item.background_image || null,
@@ -732,7 +768,8 @@ router
                 const rawgRes = await fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&${queryString}${platformParam}&page=${page}&page_size=${pageSize}`);
                 const data = await rawgRes.json();
 
-                const results = dedupeEditions(data.results || []).map(item => ({
+                const safeItems = (data.results || []).filter(looksLikeRawgGame);
+                const results = dedupeEditions(safeItems).map(item => ({
                     id: item.id,
                     title: item.name,
                     poster: item.background_image || null,
