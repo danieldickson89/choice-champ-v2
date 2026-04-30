@@ -10,19 +10,15 @@ root.render(
     </React.Fragment>
 );
 
-// Remove the inline splash painted by index.html once React has had a
-// chance to render. Min-display of ~450ms keeps it from flashing on
-// fast loads; we then fade out via the .cc-splash-hide class and drop
-// the node entirely after the transition.
-const SPLASH_MIN_MS = 450;
-const startedAt = performance.now();
-requestAnimationFrame(() => {
+// Splash dismissal is driven by App.jsx — it waits for the initial
+// auth state to resolve and then hides the splash. This safety net
+// just guarantees the splash is gone after 10s in case loading never
+// resolves (auth hung, unhandled error, etc.) so the user is never
+// stuck on it forever.
+window.__ccSplashStart = performance.now();
+setTimeout(() => {
     const splash = document.getElementById('cc-splash');
     if (!splash) return;
-    const elapsed = performance.now() - startedAt;
-    const wait = Math.max(0, SPLASH_MIN_MS - elapsed);
-    setTimeout(() => {
-        splash.classList.add('cc-splash-hide');
-        setTimeout(() => splash.remove(), 350);
-    }, wait);
-});
+    splash.classList.add('cc-splash-hide');
+    setTimeout(() => splash.remove(), 350);
+}, 10000);

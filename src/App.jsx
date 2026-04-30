@@ -94,6 +94,29 @@ function App() {
     sessionStorage.removeItem(RELOAD_GUARD_KEY);
   }, []);
 
+  // Dismiss the inline HTML splash (#cc-splash) once initial auth has
+  // resolved. Previously this ran on a fixed 450ms timer in index.jsx,
+  // which often fired before Supabase's getSession() returned — the
+  // splash faded out and the in-app <Loading> spinner flashed in until
+  // auth finished. Tying it to the actual loading flag means the
+  // wheel-pointer splash stays up the whole time and hands off cleanly
+  // to the routes. Floor of 450ms prevents a flash on instant cache
+  // hits; the 10s safety net in index.jsx still applies if this never
+  // fires.
+  useEffect(() => {
+    if (loading) return;
+    const splash = document.getElementById('cc-splash');
+    if (!splash) return;
+    const startedAt = window.__ccSplashStart || performance.now();
+    const elapsed = performance.now() - startedAt;
+    const wait = Math.max(0, 450 - elapsed);
+    const fadeTimer = setTimeout(() => {
+      splash.classList.add('cc-splash-hide');
+      setTimeout(() => splash.remove(), 350);
+    }, wait);
+    return () => clearTimeout(fadeTimer);
+  }, [loading]);
+
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession()
@@ -213,7 +236,10 @@ function App() {
     <AuthContext.Provider value={authValue}>
       <Router>
         <main>
-          {loading && <Loading color='#FCB016' className='page-loading' />}
+          {/* Don't render an in-app loader during initial boot — the
+              inline HTML splash (#cc-splash) is still on screen until
+              `loading` flips false, and a second spinner underneath
+              would flash through if the splash dismissed early. */}
           {!loading && <ErrorBoundary>{routes}</ErrorBoundary>}
           {
             (!loading && showInstallPrompt) && (
