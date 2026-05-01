@@ -198,22 +198,26 @@ const MediaTabFull = ({ type, config }) => {
                     <button className='icon-btn' onClick={() => navigate('/profile')} aria-label='Profile'>
                         <User size={22} strokeWidth={2} />
                     </button>
-                    <div className='media-tab-title-block'>
-                        {config.Icon && <config.Icon size={30} strokeWidth={1.75} color={config.color} />}
-                        <h1 className='media-tab-title' style={{ color: config.color }}>{config.title}</h1>
-                    </div>
+                    {!isReorder ? (
+                        <div className='media-tab-toggle-inline'>
+                            <SegmentedToggle
+                                options={VIEW_OPTIONS}
+                                value={view}
+                                onChange={handleViewChange}
+                                activeColor={config.color}
+                            />
+                        </div>
+                    ) : (
+                        <div className='media-tab-toggle-inline' />
+                    )}
                     <button className='icon-btn' onClick={() => navigate('/party')} aria-label='Start a party'>
                         <PartyPopperWheel size={22} strokeWidth={2} />
                     </button>
                 </div>
-                {!isReorder && (
-                    <SegmentedToggle
-                        options={VIEW_OPTIONS}
-                        value={view}
-                        onChange={handleViewChange}
-                        activeColor={config.color}
-                    />
-                )}
+                <div className='media-tab-title-block'>
+                    {config.Icon && <config.Icon size={18} strokeWidth={1.75} color={config.color} />}
+                    <h1 className='media-tab-title' style={{ color: config.color }}>{config.title}</h1>
+                </div>
             </div>
             )}
 
