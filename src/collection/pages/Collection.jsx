@@ -3,7 +3,7 @@ import { BACKEND_URL } from '../../shared/config';
 import { api } from '../../shared/lib/api';
 import { supabase } from '../../shared/lib/supabase';
 import { getMediaType, watchedLabelFor, unwatchedLabelFor } from '../../shared/lib/mediaTypes';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
 import { ArrowLeft, BookText, Check, MoreVertical, Pencil, Share2, ListOrdered, Trash, ArrowDownAZ, ArrowDownZA, ArrowDownWideNarrow, ArrowUpWideNarrow, Eye, Gamepad2, Dices, SlidersHorizontal, Layers, EyeOff, GripVertical, Search, Users, X, Columns2, Columns3, Columns4, Clapperboard, Star, Calendar, SquarePen, Info, User, Plus } from 'lucide-react';
@@ -30,6 +30,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-ki
 const Collection = ({ socket }) => {
     const auth = useContext(AuthContext);
     let navigate = useNavigate();
+    const location = useLocation();
     /************************************************************
      * Initial load and data needed. Here we grab the info we need
      * from the params and set edit and our items list
@@ -492,7 +493,9 @@ const Collection = ({ socket }) => {
             w: item.watched ? '1' : '0',
         });
         if (item.poster) params.set('p', item.poster);
-        navigate(`/items/${collectionType}/${item.itemId}?${params.toString()}`);
+        navigate(`/items/${collectionType}/${item.itemId}?${params.toString()}`, {
+            state: { originator: `${location.pathname}${location.search}` },
+        });
     };
 
     const sensors = useSensors(

@@ -1,0 +1,36 @@
+.ratings-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ratings-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 10pt;
+    background-color: var(--cc-elevation-mid);
+    border: 1px solid var(--cc-elevation-high);
+}
+
+.ratings-chip-label {
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--cc-text-muted);
+    text-transform: uppercase;
+}
+
+.ratings-chip-value {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--cc-text);
+}
+
+.ratings-chip-imdb .ratings-chip-label { color: #f5c518; }
+.ratings-chip-rt .ratings-chip-label { color: #fa320a; }
+.ratings-chip-mc .ratings-chip-label { color: #ffcc33; }
+.ratings-chip-tmdb .ratings-chip-label { color: #01b4e4; }

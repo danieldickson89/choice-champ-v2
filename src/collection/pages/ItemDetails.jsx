@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Check, Info, Plus, Star } from 'lucide-react';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { ArrowLeft, Check, Info, Plus, Star, X } from 'lucide-react';
 import { Popover } from '@mui/material';
 import { marked } from 'marked';
 
@@ -11,6 +11,9 @@ import { api } from '../../shared/lib/api';
 import { broadcast } from '../../shared/lib/realtime';
 import { getMediaType, watchedLabelFor, unwatchedLabelFor, rateLabelFor } from '../../shared/lib/mediaTypes';
 import RatingDialog from '../components/RatingDialog';
+import RatingsStrip from '../components/RatingsStrip';
+import CastRail from '../components/CastRail';
+import SimilarRail from '../components/SimilarRail';
 import './ItemDetails.css';
 
 // Format a movie runtime in minutes as "Xh Ym" / "Xh" / "Ym".
@@ -27,8 +30,14 @@ const formatRuntime = (minutes) => {
 const ItemDetails = () => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
     const { type: collectionType, itemId } = useParams();
     const [searchParams] = useSearchParams();
+    // Originator path: the page the user *first* opened a detail from
+    // (collection grid, discover, search). Threaded through similar-rail
+    // taps so the X close button always escapes the entire drill chain
+    // back to the original entry, regardless of depth.
+    const originator = location.state?.originator || null;
     // Collection context (when arriving from a collection grid). Used to
     // write back a fresher poster to that collection_items row if /getInfo
     // returns one that differs from what the grid had stored.
@@ -48,6 +57,8 @@ const ItemDetails = () => {
     const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
     const [details, setDetails] = useState({});
     const [providers, setProviders] = useState({});
+    const [cast, setCast] = useState([]);
+    const [similar, setSimilar] = useState([]);
     const [collectionList, setCollectionList] = useState([]);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [loadingCollections, setLoadingCollections] = useState(false);
@@ -93,10 +104,16 @@ const ItemDetails = () => {
                 setDetails(data.media.details);
                 if(collectionType === 'movie' || collectionType === 'tv') {
                     setProviders(data.media.providers);
+                    setCast(Array.isArray(data.media.cast) ? data.media.cast : []);
+                    setSimilar(Array.isArray(data.media.similar) ? data.media.similar : []);
                 } else if(collectionType === 'game') {
                     setProviders({ platforms: data.media.providers.platforms });
+                    setCast([]);
+                    setSimilar([]);
                 } else {
                     setProviders({});
+                    setCast([]);
+                    setSimilar([]);
                 }
                 setLoadingDetails(false);
 
@@ -280,11 +297,13 @@ const ItemDetails = () => {
 
     const infoRows = [];
     if(collectionType === 'movie') {
+        if(details.year) infoRows.push({ label: 'Year', value: details.year });
         infoRows.push({ label: 'Runtime', value: formatRuntime(details.runtime) });
-        infoRows.push({ label: 'Rating', value: details.rating != null ? `${details.rating} / 10` : 'N/A' });
+        if(details.mpaaRating) infoRows.push({ label: 'Rated', value: details.mpaaRating });
     } else if(collectionType === 'tv') {
+        if(details.year) infoRows.push({ label: 'Year', value: details.year });
         infoRows.push({ label: 'Seasons', value: details.runtime > 0 ? `${details.runtime} season${details.runtime === 1 ? '' : 's'}` : 'N/A' });
-        infoRows.push({ label: 'Rating', value: details.rating != null ? `${details.rating} / 10` : 'N/A' });
+        if(details.mpaaRating) infoRows.push({ label: 'Rated', value: details.mpaaRating });
     } else if(collectionType === 'game') {
         infoRows.push({ label: 'Avg Playtime', value: details.runtime > 0 ? `${details.runtime} hour${details.runtime === 1 ? '' : 's'}` : 'N/A' });
         infoRows.push({ label: 'Rating', value: details.rating != null ? `${details.rating} / 10` : 'N/A' });
@@ -324,6 +343,15 @@ const ItemDetails = () => {
                 <button className='icon-btn' onClick={() => navigate(-1)} aria-label='Back'>
                     <ArrowLeft size={22} strokeWidth={1.75} />
                 </button>
+                {originator && (
+                    <button
+                        className='icon-btn item-details-close-btn'
+                        onClick={() => navigate(originator)}
+                        aria-label='Close and return to original page'
+                    >
+                        <X size={22} strokeWidth={1.75} />
+                    </button>
+                )}
             </div>
 
             {isLoading ? (
@@ -348,6 +376,10 @@ const ItemDetails = () => {
                         </div>
                     )}
                     <h1 className='item-details-title' style={{ color }}>{details.title}</h1>
+
+                    {(collectionType === 'movie' || collectionType === 'tv') && details.ratings && (
+                        <RatingsStrip ratings={details.ratings} />
+                    )}
 
                     {infoRows.length > 0 && (
                         <section className='item-details-section'>
@@ -480,6 +512,10 @@ const ItemDetails = () => {
                     )}
 
                     {(collectionType === 'movie' || collectionType === 'tv') && (
+                        <CastRail cast={cast} />
+                    )}
+
+                    {(collectionType === 'movie' || collectionType === 'tv') && (
                         <section className='item-details-section'>
                             <h2 className='item-details-section-title'>Stream</h2>
                             <div className='item-details-card'>
@@ -510,6 +546,14 @@ const ItemDetails = () => {
                                 </div>
                             </div>
                         </section>
+                    )}
+
+                    {(collectionType === 'movie' || collectionType === 'tv') && (
+                        <SimilarRail
+                            similar={similar}
+                            collectionType={collectionType}
+                            accentColor={color}
+                        />
                     )}
                 </React.Fragment>
             )}

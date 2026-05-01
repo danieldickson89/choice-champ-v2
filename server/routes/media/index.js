@@ -412,11 +412,19 @@ router
 
         try {
         if(type === 'movie' || type === 'tv') {
-            const details = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${process.env.MOVIE_DB_API_KEY}&language=en-US`);
-            const detailsData = await details.json();
-
-            const providers = await fetch(`https://api.themoviedb.org/3/${type}/${id}/watch/providers?api_key=${process.env.MOVIE_DB_API_KEY}&language=en-US`);
-            const providersData = await providers.json();
+            const tmdbKey = process.env.MOVIE_DB_API_KEY;
+            const [detailsRes, providersRes, creditsRes, recommendationsRes] = await Promise.all([
+                fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${tmdbKey}&language=en-US&append_to_response=external_ids,release_dates,content_ratings`),
+                fetch(`https://api.themoviedb.org/3/${type}/${id}/watch/providers?api_key=${tmdbKey}&language=en-US`),
+                fetch(`https://api.themoviedb.org/3/${type}/${id}/credits?api_key=${tmdbKey}&language=en-US`),
+                fetch(`https://api.themoviedb.org/3/${type}/${id}/recommendations?api_key=${tmdbKey}&language=en-US`),
+            ]);
+            const [detailsData, providersData, creditsData, recommendationsData] = await Promise.all([
+                detailsRes.json(),
+                providersRes.json(),
+                creditsRes.json(),
+                recommendationsRes.json(),
+            ]);
 
             let providersObj = {};
 
@@ -465,16 +473,74 @@ router
                 releaseDate = detailsData.first_air_date;
             }
 
+            // MPAA / TV Parental Guidelines from TMDB. Movies live in
+            // release_dates.results[*].release_dates[*].certification;
+            // TV in content_ratings.results[*].rating. Both keyed by
+            // ISO country — we want US.
+            let mpaaRating = null;
+            if(type === 'movie') {
+                const usReleases = detailsData.release_dates?.results?.find(r => r.iso_3166_1 === 'US');
+                const cert = usReleases?.release_dates?.find(rd => rd.certification && rd.certification.trim());
+                if(cert) mpaaRating = cert.certification;
+            } else {
+                const usRating = detailsData.content_ratings?.results?.find(r => r.iso_3166_1 === 'US');
+                if(usRating?.rating) mpaaRating = usRating.rating;
+            }
+
+            // OMDb fetch (conditional on TMDB exposing an IMDb id).
+            // For TV, TMDB nests imdb_id under external_ids; for movies
+            // it's also at the top level. Use external_ids in both cases
+            // since we requested it via append_to_response.
+            const imdbId = detailsData.external_ids?.imdb_id;
+            let omdbData = null;
+            if(imdbId && process.env.OMDB_API_KEY) {
+                try {
+                    const omdbRes = await fetch(`https://www.omdbapi.com/?i=${imdbId}&apikey=${process.env.OMDB_API_KEY}`);
+                    const parsed = await omdbRes.json();
+                    if(parsed?.Response === 'True') omdbData = parsed;
+                } catch(_) {
+                    // OMDb is best-effort enrichment; failures fall back to TMDB-only ratings.
+                }
+            }
+
+            const valueOrNull = (v) => (v && v !== 'N/A' ? v : null);
+            const rtScore = omdbData?.Ratings?.find(r => r.Source === 'Rotten Tomatoes')?.Value || null;
+
             const response = {
                 details: {
                     title: title,
                     overview: detailsData.overview,
                     poster: `https://image.tmdb.org/t/p/w500${detailsData.poster_path}`,
                     releaseDate: releaseDate,
+                    year: releaseDate ? releaseDate.slice(0, 4) : null,
                     runtime: runtime,
-                    rating: detailsData.vote_average.toFixed(1)
+                    rating: detailsData.vote_average != null ? detailsData.vote_average.toFixed(1) : null,
+                    mpaaRating,
+                    ratings: {
+                        tmdb: detailsData.vote_average != null ? detailsData.vote_average.toFixed(1) : null,
+                        imdb: valueOrNull(omdbData?.imdbRating),
+                        rottenTomatoes: rtScore,
+                        metacritic: valueOrNull(omdbData?.Metascore),
+                    },
                 },
-                providers: providersObj
+                providers: providersObj,
+                cast: Array.isArray(creditsData?.cast)
+                    ? creditsData.cast.slice(0, 15).map(c => ({
+                        id: c.id,
+                        name: c.name,
+                        character: c.character || null,
+                        profile: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null,
+                    }))
+                    : [],
+                similar: Array.isArray(recommendationsData?.results)
+                    ? recommendationsData.results.slice(0, 12).map(r => ({
+                        id: r.id,
+                        title: r.title || r.name,
+                        poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null,
+                        rating: r.vote_average != null && r.vote_average > 0 ? r.vote_average.toFixed(1) : null,
+                        type: r.media_type || (r.title ? 'movie' : 'tv'),
+                    }))
+                    : [],
             }
 
             res.send({media: response});

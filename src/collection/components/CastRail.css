@@ -1,0 +1,71 @@
+.cast-rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 4px 8px 4px;
+    margin: 0 -4px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+.cast-rail::-webkit-scrollbar {
+    display: none;
+}
+
+.cast-rail-card {
+    flex: 0 0 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    scroll-snap-align: start;
+}
+
+.cast-rail-avatar-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: var(--cc-elevation-mid);
+    margin-bottom: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.cast-rail-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cast-rail-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cc-text-faint);
+}
+
+.cast-rail-name {
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: var(--cc-text);
+    line-height: 1.25;
+    width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.cast-rail-character {
+    font-size: 8.5pt;
+    color: var(--cc-text-muted);
+    line-height: 1.25;
+    margin-top: 2px;
+    width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}

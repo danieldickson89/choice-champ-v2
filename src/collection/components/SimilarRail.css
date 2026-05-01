@@ -1,0 +1,83 @@
+.similar-rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 4px 8px 4px;
+    margin: 0 -4px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+.similar-rail::-webkit-scrollbar {
+    display: none;
+}
+
+.similar-rail-card {
+    flex: 0 0 130px;
+    display: flex;
+    flex-direction: column;
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    scroll-snap-align: start;
+}
+
+.similar-rail-card:active .similar-rail-poster {
+    transform: scale(0.97);
+}
+
+.similar-rail-poster-wrap {
+    position: relative;
+    width: 130px;
+    height: 195px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: var(--cc-elevation-mid);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.similar-rail-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 120ms ease-out;
+}
+
+.similar-rail-poster-fallback {
+    background: linear-gradient(135deg, var(--cc-elevation-mid), var(--cc-elevation-high));
+}
+
+.similar-rail-rating {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 8.5pt;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    backdrop-filter: blur(4px);
+}
+
+.similar-rail-title {
+    margin-top: 8px;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--cc-text);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}

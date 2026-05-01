@@ -7,8 +7,13 @@
 .item-details-topbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding-top: 12px;
     padding-bottom: 4px;
+}
+
+.item-details-close-btn {
+    margin-left: auto;
 }
 
 .item-details-loading {

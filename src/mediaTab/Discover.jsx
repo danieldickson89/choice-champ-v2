@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Columns2, Columns3, Columns4, Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
 
 import { SUBTABS, fetchDiscover, fetchSearch, fetchGamePosters } from './discoverApi';
@@ -31,6 +31,7 @@ const Discover = ({ collectionType, color, onSearchingChange }) => {
 
 const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const auth = useContext(AuthContext);
     const [searchParams, setSearchParams] = useSearchParams();
     const subtabs = SUBTABS[collectionType];
@@ -181,7 +182,9 @@ const DiscoverFeed = ({ collectionType, color, onSearchingChange }) => {
         const search = item.poster
             ? `?p=${encodeURIComponent(item.poster)}`
             : '';
-        navigate(`/items/${collectionType}/${item.id}${search}`);
+        navigate(`/items/${collectionType}/${item.id}${search}`, {
+            state: { originator: `${location.pathname}${location.search}` },
+        });
     };
 
     const enterSearch = () => {
