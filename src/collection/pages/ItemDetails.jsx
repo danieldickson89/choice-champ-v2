@@ -85,6 +85,15 @@ const ItemDetails = () => {
         return () => auth.showFooterHandler(true);
     }, [auth]);
 
+    // Scroll to top whenever the user lands on a different itemId
+    // (forward via similar/cast, or back from a drill). Without this
+    // the browser restores scroll to the old page's position before
+    // new content loads, leaving the viewport in empty space until a
+    // user scroll triggers a repaint.
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [itemId]);
+
     useEffect(() => {
         if(!itemId) return;
         let cancelled = false;
