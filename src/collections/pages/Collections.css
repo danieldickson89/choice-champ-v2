@@ -15,14 +15,14 @@
 .no-collections-txt {
     text-align: center;
     font-weight: bold;
-    color: #888;
+    color: var(--cc-text-faintest);
     padding: 40px 0;
 }
 
 /* Global MUI Paper override — keeps Menu/Popover surfaces on-theme.
    Dialog-specific styling lives in .cc-dialog-* (index.css). */
 .MuiPaper-root {
-    background-color: rgb(58, 58, 58) !important;
+    background-color: var(--cc-surface-elevated) !important;
     border-radius: 20px;
     border: 2px solid #0c0c0cad !important;
 }

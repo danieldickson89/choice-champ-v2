@@ -1,5 +1,66 @@
 @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@484&family=Pangolin&display=swap');
 
+/* ---------- Theme primitives ----------------------------------------
+   The whole app reads its colors from these variables. Today they
+   define the (only) dark theme; Phase 2 of the theming work will add
+   a `:root[data-theme="light"]` override block so users can pick a
+   light mode from Settings.
+
+   Three categories:
+   1. SURFACES + TEXT + BORDERS — flip per theme. These are the
+      neutrals that change when you toggle dark/light.
+   2. STATUS — error reds. May get small contrast tweaks per theme but
+      mostly stable.
+   3. BRAND — media-type identity colors. These do NOT flip per theme;
+      Movies are yellow in both modes, TV is red, etc. Defined here
+      for centralization, but the light-theme block won't redefine
+      them. (A few `*-text` darker variants will be added in Phase 2
+      for places where brand color is used as foreground text on a
+      light background and would fail contrast.)
+   ------------------------------------------------------------------- */
+:root {
+  /* Surfaces */
+  --cc-bg: #312E2E;
+  --cc-surface: #1a1a1a;
+  --cc-surface-2: #454545;
+  --cc-surface-elevated: rgb(58, 58, 58);
+  --cc-surface-overlay: rgba(20, 20, 20, 0.7);
+  --cc-surface-overlay-hover: rgba(40, 40, 40, 0.85);
+  --cc-surface-menu: rgb(40, 40, 40);
+
+  /* Text */
+  --cc-text: #fff;
+  --cc-text-soft: #e8e8e8;
+  --cc-text-muted: #ccc;
+  --cc-text-faint: #aaa;
+  --cc-text-faintest: #888;
+
+  /* Borders / dividers */
+  --cc-border: #454545;
+  --cc-border-soft: rgba(255, 255, 255, 0.1);
+  --cc-border-strong: rgba(255, 255, 255, 0.25);
+  --cc-border-overlay: rgba(255, 255, 255, 0.12);
+  --cc-divider-on-overlay: rgba(255, 255, 255, 0.06);
+  --cc-divider-on-overlay-hover: rgba(255, 255, 255, 0.14);
+
+  /* Status */
+  --cc-error: #e53e3e;
+  --cc-error-strong: #c53030;
+  --cc-error-soft: #ff6b6b;
+
+  /* Brand — identity colors, same in both modes */
+  --cc-movie: #FCB016;
+  --cc-movie-pressed: #da9814;
+  --cc-movie-hover: #ffc747;
+  --cc-movie-translucent: #fcaf168a;
+  --cc-tv: #F04C53;
+  --cc-tv-pressed: #d13a3f;
+  --cc-game: #2482C5;
+  --cc-game-pressed: #1f6aa3;
+  --cc-board: #45B859;
+  --cc-board-pressed: #3a9b4c;
+  --cc-book: #A855F7;
+}
 
 * {
   box-sizing: border-box;
@@ -37,8 +98,8 @@ body {
   max-width: 1200px;
   margin: 0;
   overflow-x: clip;
-  background: #312E2E;
-  color: white;
+  background: var(--cc-bg);
+  color: var(--cc-text);
   font-family: 'Oxanium', cursive;
 }
 
@@ -72,10 +133,10 @@ button {
 
 .text-input {
   width: 100%;
-  background-color: #312E2E;
-  color: white;
+  background-color: var(--cc-bg);
+  color: var(--cc-text);
   border-radius: 10px;
-  border: solid 1px white;
+  border: solid 1px var(--cc-text);
   padding: 15px;
   margin-top: 20px;
   font-size: 14pt;
@@ -92,34 +153,34 @@ button {
   margin: 0;
   border: none;
   background: #000;
-  color: #ccc;
+  color: var(--cc-text-muted);
   border-radius: 50%;
   cursor: pointer;
   transition: background-color 150ms ease-out, color 150ms ease-out;
 }
 
 .icon-btn:hover {
-  background: #1a1a1a;
-  color: #fff;
+  background: var(--cc-surface);
+  color: var(--cc-text);
 }
 
 .collection-menu-paper {
-  background-color: rgb(40, 40, 40) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: var(--cc-surface-menu) !important;
+  border: 1px solid var(--cc-border-soft) !important;
   border-radius: 10px !important;
-  color: #e8e8e8 !important;
+  color: var(--cc-text-soft) !important;
   min-width: 180px !important;
 }
 
 .collection-menu-item {
   font-family: 'Oxanium', cursive !important;
   font-size: 11pt !important;
-  color: #e8e8e8 !important;
+  color: var(--cc-text-soft) !important;
   padding: 10px 16px !important;
 }
 
 .collection-menu-item-danger {
-  color: #ff6b6b !important;
+  color: var(--cc-error-soft) !important;
 }
 
 #download-banner {
@@ -131,7 +192,7 @@ button {
   align-items: center;
   padding: 5px;
   width: 100%;
-  background-color: #FCB016;
+  background-color: var(--cc-movie);
   z-index: 100;
   left: -100vw;
 }
@@ -234,18 +295,18 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(20, 20, 20, 0.7);
+  background-color: var(--cc-surface-overlay);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
   backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--cc-border-soft);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-  color: #fff;
+  color: var(--cc-text);
   cursor: pointer;
   transition: background-color 150ms ease-out;
 }
 
 .floating-search-btn:hover {
-  background-color: rgba(40, 40, 40, 0.85);
+  background-color: var(--cc-surface-overlay-hover);
 }
 
 .floating-actions {
@@ -269,18 +330,18 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(20, 20, 20, 0.7);
+  background-color: var(--cc-surface-overlay);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
   backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--cc-border-soft);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-  color: #fff;
+  color: var(--cc-text);
   cursor: pointer;
   transition: background-color 150ms ease-out;
 }
 
 .floating-filter:hover {
-  background-color: rgba(40, 40, 40, 0.85);
+  background-color: var(--cc-surface-overlay-hover);
 }
 
 .floating-filter-badge {
@@ -302,18 +363,18 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(20, 20, 20, 0.7);
+  background-color: var(--cc-surface-overlay);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
   backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--cc-border-soft);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-  color: #fff;
+  color: var(--cc-text);
   cursor: pointer;
   transition: background-color 150ms ease-out, color 150ms ease-out;
 }
 
 .floating-action:hover {
-  background-color: rgba(40, 40, 40, 0.85);
+  background-color: var(--cc-surface-overlay-hover);
 }
 
 .title {
@@ -326,67 +387,67 @@ button {
 }
 
 .color-movie {
-  color: #FCB016;
+  color: var(--cc-movie);
 }
 
 .backgroundColor-movie {
-  border: solid 2px #FCB016;
+  border: solid 2px var(--cc-movie);
 }
 
 .backgroundColorPressed-movie {
-  border: solid 2px #da9814;
+  border: solid 2px var(--cc-movie-pressed);
 }
 
 .color-tv {
-  color: #F04C53;
+  color: var(--cc-tv);
 }
 
 .backgroundColor-tv {
-  border: solid 2px #F04C53;
+  border: solid 2px var(--cc-tv);
 }
 
 .backgroundColorPressed-tv {
-  border: solid 2px #d13a3f;
+  border: solid 2px var(--cc-tv-pressed);
 }
 
 .color-game {
-  color: #2482C5;
+  color: var(--cc-game);
 }
 
 .backgroundColor-game {
-  border: solid 2px #2482C5;
+  border: solid 2px var(--cc-game);
 }
 
 .backgroundColorPressed-game {
-  border: solid 2px #1f6aa3;
+  border: solid 2px var(--cc-game-pressed);
 }
 
 .color-board {
-  color: #45B859;
+  color: var(--cc-board);
 }
 
 .backgroundColor-board {
-  border: solid 2px #45B859;
+  border: solid 2px var(--cc-board);
 }
 
 .backgroundColorPressed-board {
-  border: solid 2px #3a9b4c;
+  border: solid 2px var(--cc-board-pressed);
 }
 
 #title-movie {
-  color: #FCB016;
+  color: var(--cc-movie);
 }
 
 #title-tv {
-  color: #F04C53;
+  color: var(--cc-tv);
 }
 
 #title-game {
-  color: #2482C5;
+  color: var(--cc-game);
 }
 
 #title-board {
-  color: #45B859;
+  color: var(--cc-board);
 }
 
 .edit {
@@ -411,8 +472,8 @@ button {
 .add-btn {
   width: 100%;
   grid-column: 2/17;
-  color: white;
-  background-color: #312E2E;
+  color: var(--cc-text);
+  background-color: var(--cc-bg);
   padding: 12px 16px;
   font-size: 12pt;
   border-radius: 8px;
@@ -469,8 +530,8 @@ button {
 }
 
 button:disabled {
-  background-color: #fcaf168a;
-  color: #454545;
+  background-color: var(--cc-movie-translucent);
+  color: var(--cc-surface-2);
 }
 
 @keyframes button-press {
@@ -546,42 +607,42 @@ button:disabled {
    ------------------------------------------------------------------- */
 
 .cc-dialog-paper {
-  background-color: rgb(58, 58, 58) !important;
+  background-color: var(--cc-surface-elevated) !important;
   border-radius: 20px !important;
   border: 2px solid #0c0c0cad !important;
 }
 
 .cc-dialog {
   padding: 28px 24px;
-  color: #e8e8e8;
+  color: var(--cc-text-soft);
 }
 
 .cc-dialog-title {
   margin: 0 0 10px 0;
   font-weight: 700;
-  color: #fff;
+  color: var(--cc-text);
   font-size: 14pt;
   text-align: center;
 }
 
 .cc-dialog-subtitle {
-  color: #aaa;
+  color: var(--cc-text-faint);
   font-size: 10pt;
   margin: 0 0 20px 0;
   text-align: center;
   line-height: 1.45;
 }
 
-.cc-dialog-subtitle strong { color: #fff; }
+.cc-dialog-subtitle strong { color: var(--cc-text); }
 
 .cc-dialog-input {
   box-sizing: border-box;
   width: 100%;
   margin: 0;
   padding: 12px 14px;
-  background-color: rgba(255, 255, 255, 0.06);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background-color: var(--cc-divider-on-overlay);
+  color: var(--cc-text);
+  border: 1px solid var(--cc-border-strong);
   border-radius: 8px;
   font-family: inherit;
   font-size: 12pt;
@@ -590,7 +651,7 @@ button:disabled {
 
 .cc-dialog-input:focus {
   outline: none;
-  border-color: #FCB016;
+  border-color: var(--cc-movie);
 }
 
 .cc-dialog-input::placeholder {
@@ -600,26 +661,26 @@ button:disabled {
 .cc-dialog-hint {
   margin: 10px 0 0 0;
   font-size: 10pt;
-  color: #aaa;
+  color: var(--cc-text-faint);
   text-align: center;
 }
 
 .cc-dialog-hint strong {
-  color: #ff6b6b;
+  color: var(--cc-error-soft);
   letter-spacing: 1px;
 }
 
 .cc-dialog-error {
   margin: 10px 0 0 0;
   font-size: 10pt;
-  color: #ff6b6b;
+  color: var(--cc-error-soft);
   text-align: center;
 }
 
 .cc-dialog-divider {
   display: flex;
   align-items: center;
-  color: #888;
+  color: var(--cc-text-faintest);
   font-size: 9pt;
   font-weight: 700;
   letter-spacing: 2px;
@@ -630,7 +691,7 @@ button:disabled {
 .cc-dialog-divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--cc-border-overlay);
 }
 
 .cc-dialog-divider::before { margin-right: 12px; }
@@ -663,19 +724,19 @@ button:disabled {
 .cc-dialog-btn:disabled { cursor: not-allowed; opacity: 0.5; }
 
 .cc-dialog-btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e8e8e8;
+  background: var(--cc-divider-on-overlay);
+  color: var(--cc-text-soft);
 }
-.cc-dialog-btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); }
+.cc-dialog-btn-secondary:hover:not(:disabled) { background: var(--cc-divider-on-overlay-hover); }
 
 .cc-dialog-btn-primary {
-  background: #FCB016;
+  background: var(--cc-movie);
   color: #000;
 }
-.cc-dialog-btn-primary:hover:not(:disabled) { background: #ffc747; }
+.cc-dialog-btn-primary:hover:not(:disabled) { background: var(--cc-movie-hover); }
 
 .cc-dialog-btn-danger {
-  background: #c53030;
-  color: #fff;
+  background: var(--cc-error-strong);
+  color: var(--cc-text);
 }
-.cc-dialog-btn-danger:hover:not(:disabled) { background: #e53e3e; }
+.cc-dialog-btn-danger:hover:not(:disabled) { background: var(--cc-error); }

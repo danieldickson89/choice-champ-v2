@@ -171,7 +171,7 @@ const CreateParty = props => {
                                 />
                                 <span
                                     className='create-media-tile-label'
-                                    style={{ color: isActive ? '#111' : '#fff' }}
+                                    style={{ color: isActive ? '#111' : 'var(--cc-text)' }}
                                 >
                                     {label}
                                 </span>

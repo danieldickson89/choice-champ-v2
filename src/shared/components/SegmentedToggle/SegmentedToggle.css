@@ -19,7 +19,7 @@
     justify-content: center;
     border: none;
     background: transparent;
-    color: #aaa;
+    color: var(--cc-text-faint);
     font-size: 10pt;
     font-weight: 600;
     letter-spacing: 0.3px;
@@ -31,7 +31,7 @@
 }
 
 .segmented-toggle-option:hover:not(.segmented-toggle-option-active) {
-    color: #ddd;
+    color: var(--cc-text-muted);
 }
 
 .segmented-toggle-option-active {

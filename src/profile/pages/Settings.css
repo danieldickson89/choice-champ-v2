@@ -12,7 +12,7 @@
 .settings-title {
     margin: 12px 0 24px 0;
     font-size: 24pt;
-    color: white;
+    color: var(--cc-text);
     text-align: center;
 }
 
@@ -39,7 +39,7 @@
 .settings-action-btn {
     align-self: flex-end;
     padding: 9px 18px;
-    background-color: #FCB016;
+    background-color: var(--cc-movie);
     color: #111;
     border: none;
     border-radius: 8px;

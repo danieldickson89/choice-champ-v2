@@ -22,7 +22,7 @@
     margin: 0;
     border: none;
     background: transparent;
-    color: #888;
+    color: var(--cc-text-faintest);
     cursor: grab;
     touch-action: none;
     opacity: 0;
@@ -38,7 +38,7 @@
 }
 
 .collection-row-handle:hover {
-    color: #ccc;
+    color: var(--cc-text-muted);
 }
 
 .collection-row-handle:active {

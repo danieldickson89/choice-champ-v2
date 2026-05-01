@@ -17,7 +17,7 @@
 }
 
 :root {
-    --toastify-color-success: #FCB016;
+    --toastify-color-success: var(--cc-movie);
 }
 
 .party-voting {
@@ -42,7 +42,7 @@
     z-index: 10;
     margin: 0 -16px;
     padding: calc(env(safe-area-inset-top, 0) + 4px) 16px 12px 16px;
-    background-color: #312E2E;
+    background-color: var(--cc-bg);
 }
 
 .party-voting-top-row {
@@ -107,7 +107,7 @@
     height: 36px;
     padding: 0;
     border-radius: 50%;
-    background-color: #FCB016;
+    background-color: var(--cc-movie);
     color: #111;
     transition: background-color 150ms ease-out, opacity 150ms ease-out, transform 100ms ease-out;
 }
@@ -216,7 +216,7 @@
     height: auto;
     width: 85%;
     grid-column: 1/4;
-    border: #FCB016 solid 5px;
+    border: var(--cc-movie) solid 5px;
     border-radius: 22px;
     animation: zoomWinner .8s ease-in-out;
 }
@@ -236,7 +236,7 @@
     width: 100%;
     text-align: center;
     font-size: 21pt;
-    color: #FCB016;
+    color: var(--cc-movie);
     margin: 0;
     margin-bottom: 20px;
 }
@@ -245,7 +245,7 @@
     grid-column: 1/4;
     width: 85%;
     height: 4px;
-    background-color: #FCB016;
+    background-color: var(--cc-movie);
     margin-top: 50px;
     margin-bottom: 0px;
     border-radius: 10px;
@@ -257,7 +257,7 @@
     width: 100%;
     text-align: center;
     font-size: 18pt;
-    color: #FCB016;
+    color: var(--cc-movie);
     font-weight: 300;
     margin-top: 10px;
     margin-bottom: 0px;
@@ -268,7 +268,7 @@
     width: 100%;
     text-align: center;
     font-size: 18pt;
-    color: #FCB016;
+    color: var(--cc-movie);
     font-weight: 300;
     margin-bottom: 15px;
     margin-top: 0;
@@ -400,7 +400,7 @@
     grid-column: 3/16;
     width: 100%;
     margin-top: 20px;
-    color: #FCB016;
+    color: var(--cc-movie);
     font-weight: bold;
     text-align: center;
 }
@@ -421,7 +421,7 @@
 }
 
 .super-choice-star {
-    color: #FCB016;
+    color: var(--cc-movie);
 }
 
 .party-item-img {
@@ -444,7 +444,7 @@
     width: clamp(24px, 22cqw, 40px);
     height: clamp(24px, 22cqw, 40px);
     text-align: center;
-    background-color: #FCB016;
+    background-color: var(--cc-movie);
     color: black;
     border-radius: 50%;
     font-weight: bold;
@@ -520,7 +520,7 @@
     width: 100%;
     text-align: center;
     font-size: 18pt;
-    color: #FCB016;
+    color: var(--cc-movie);
     font-weight: bold;
     margin-top: 20px;
 }

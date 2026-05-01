@@ -29,14 +29,14 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: #888;
+    color: var(--cc-text-faintest);
     cursor: grab;
     touch-action: none;
     flex-shrink: 0;
 }
 
 .manage-item-handle:hover {
-    color: #ccc;
+    color: var(--cc-text-muted);
 }
 
 .manage-item-handle:active {
@@ -57,7 +57,7 @@
     min-width: 0;
     font-size: 11pt;
     font-weight: 600;
-    color: #e8e8e8;
+    color: var(--cc-text-soft);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -72,7 +72,7 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: #aaa;
+    color: var(--cc-text-faint);
     border-radius: 50%;
     cursor: pointer;
     flex-shrink: 0;
@@ -81,6 +81,6 @@
 
 .manage-item-trash:hover {
     background-color: rgba(255, 90, 90, 0.15);
-    color: #ff6b6b;
+    color: var(--cc-error-soft);
 }
 

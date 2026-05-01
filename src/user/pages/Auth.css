@@ -19,7 +19,7 @@ h3 {
   
   .seperator {
     width: 100%;
-    border-bottom: solid 2px #FCB016;
+    border-bottom: solid 2px var(--cc-movie);
     margin-bottom: 50px;
     margin-left: auto;
     margin-right: auto;
@@ -35,11 +35,11 @@ h3 {
   }
   
   .switch-link {
-    color: #FCB016;
+    color: var(--cc-movie);
   }
   
   .switch-link:hover {
-    color: #FCB016;
+    color: var(--cc-movie);
     text-decoration: underline;
     cursor: pointer;
   }
@@ -72,8 +72,8 @@ h3 {
   .auth-page .text-input:-webkit-autofill:focus,
   .auth-page .text-input:-webkit-autofill:active {
     -webkit-text-fill-color: #fff;
-    -webkit-box-shadow: 0 0 0 1000px #312E2E inset;
-    box-shadow: 0 0 0 1000px #312E2E inset;
+    -webkit-box-shadow: 0 0 0 1000px var(--cc-bg) inset;
+    box-shadow: 0 0 0 1000px var(--cc-bg) inset;
     caret-color: #fff;
     transition: background-color 5000s ease-in-out 0s;
   }

@@ -1,11 +1,13 @@
 .primary-btn {
     width: 100%;
+    /* Dark text on the yellow brand bg in both themes — don't swap to
+       --cc-bg since that flips light, which would lose contrast. */
     color: #312E2E;
     margin-top: 20px;
     padding: 15px;
     border: none;
     border-radius: 10px;
-    background-color: #FCB016;
+    background-color: var(--cc-movie);
     font-family: inherit;
     font-size: 12pt;
     font-weight: bold;

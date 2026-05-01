@@ -36,7 +36,7 @@
 .quick-edit-title {
     font-size: 11pt;
     font-weight: 600;
-    color: white;
+    color: var(--cc-text);
     line-height: 1.25;
     /* Two-line clamp keeps long titles readable without blowing up
        the row height. */
@@ -136,7 +136,7 @@
 
 .quick-edit-help-paper {
     background-color: #2a2727 !important;
-    color: white !important;
+    color: var(--cc-text) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 10px !important;
     max-width: 280px !important;
