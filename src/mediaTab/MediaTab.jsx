@@ -191,7 +191,7 @@ const MediaTabFull = ({ type, config }) => {
     };
 
     return (
-        <div className={`media-tab${isDiscoverSearching ? ' is-searching' : ''}`}>
+        <div className={`media-tab${isDiscoverSearching ? ' is-searching' : ''}${!isDiscoverSearching && !isReorder ? ' has-toggle' : ''}`}>
             {!isDiscoverSearching && (
                 <React.Fragment>
                     <div className='floating-topbar'>
