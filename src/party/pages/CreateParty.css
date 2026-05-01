@@ -40,19 +40,28 @@
     overflow: hidden;
 }
 
+/* Each option row stacks horizontally: text-block on the left
+   (label + description, both wrapping inside the available width),
+   toggle pinned to the right and vertically centered. The text-block
+   has flex:1 + min-width:0 so the label and description never spill
+   under the toggle area. */
 .create-option {
     padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .create-option + .create-option {
     border-top: 1px solid var(--cc-elevation-high);
 }
 
-.create-option-row {
+.create-option-text-block {
+    flex: 1;
+    min-width: 0;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .create-option-text {
@@ -63,7 +72,7 @@
 }
 
 .create-option-subtext {
-    margin: 6px 0 0 0;
+    margin: 0;
     font-size: 9.5pt;
     color: var(--cc-text-muted);
     line-height: 1.4;

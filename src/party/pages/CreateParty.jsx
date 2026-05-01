@@ -109,42 +109,42 @@ const CreateParty = props => {
                 <h2 className='create-party-section-title'>Options</h2>
                 <div className='create-options-card'>
                     <div className='create-option'>
-                        <div className='create-option-row'>
+                        <div className='create-option-text-block'>
                             <p className='create-option-text'>Secret Mode</p>
-                            <ToggleSwitch
-                                checked={secretMode}
-                                onChange={setSecretMode}
-                                activeColor={collectionTypeColor}
-                                ariaLabel='Secret Mode'
-                            />
+                            <p className='create-option-subtext'>Party members will not see each other's votes</p>
                         </div>
-                        <p className='create-option-subtext'>Party members will not see each other's votes</p>
+                        <ToggleSwitch
+                            checked={secretMode}
+                            onChange={setSecretMode}
+                            activeColor={collectionTypeColor}
+                            ariaLabel='Secret Mode'
+                        />
                     </div>
                     <div className='create-option'>
-                        <div className='create-option-row'>
+                        <div className='create-option-text-block'>
                             <p className='create-option-text'>Include Watched</p>
-                            <ToggleSwitch
-                                checked={includeWatched}
-                                onChange={setIncludeWatched}
-                                activeColor={collectionTypeColor}
-                                ariaLabel='Include Watched'
-                            />
+                            <p className='create-option-subtext'>Include items that have been marked as watched/played</p>
                         </div>
-                        <p className='create-option-subtext'>Include items that have been marked as watched/played</p>
+                        <ToggleSwitch
+                            checked={includeWatched}
+                            onChange={setIncludeWatched}
+                            activeColor={collectionTypeColor}
+                            ariaLabel='Include Watched'
+                        />
                     </div>
                     <div className='create-option'>
-                        <div className='create-option-row'>
+                        <div className='create-option-text-block'>
                             <p className='create-option-text'>Super Choice Mode</p>
-                            <ToggleSwitch
-                                checked={superChoice}
-                                onChange={setSuperChoice}
-                                activeColor={collectionTypeColor}
-                                ariaLabel='Super Choice Mode'
-                            />
+                            <p className='create-option-subtext'>
+                                Double-tap a choice to star it. Starred choices always advance to the next round.
+                            </p>
                         </div>
-                        <p className='create-option-subtext'>
-                            Double-tap a choice to star it. Starred choices always advance to the next round.
-                        </p>
+                        <ToggleSwitch
+                            checked={superChoice}
+                            onChange={setSuperChoice}
+                            activeColor={collectionTypeColor}
+                            ariaLabel='Super Choice Mode'
+                        />
                     </div>
                 </div>
             </section>
@@ -209,7 +209,7 @@ const CreateParty = props => {
                 type='button'
                 className='create-party-submit'
                 onClick={navToPartyWait}
-                backgroundColor='var(--cc-pill-inverse-bg)'
+                backgroundColor={collectionTypeColor}
                 color='#fff'
             >
                 Create Party

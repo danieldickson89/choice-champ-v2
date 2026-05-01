@@ -25,10 +25,12 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    /* Knob contrasts against the track AND against the brand color
-       in the on-state. White on dark + dark-on-light works for both
-       cases when the track lights up yellow/red/blue/etc. */
-    background-color: var(--cc-text);
+    /* Always-white knob like iOS, with a small shadow so it reads
+       on any track color — the off-state gray track in light mode
+       and any brand color in the on-state both have enough contrast
+       against white to keep the dot legible. */
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
     transition: transform 150ms ease-out;
 }
 

@@ -143,9 +143,12 @@
   --cc-icon-btn-bg: #e5e5e5;
   --cc-icon-btn-bg-hover: #d4d4d4;
 
-  /* Inverse pill softens to a medium-dark gray so the Create Party
-     button + active toggle option don't read as stop-light on white. */
-  --cc-pill-inverse-bg: #525252;
+  /* Inverse pill in light mode is a soft light gray — just enough to
+     stand out from the off-white page bg. Pairs with var(--cc-text)
+     for the foreground (which flips dark in this theme), so the
+     PartyHome Create / Join toggle reads as a subtle light pill with
+     dark text instead of a stop-light black pill with white text. */
+  --cc-pill-inverse-bg: #e5e5e5;
 }
 
 * {
