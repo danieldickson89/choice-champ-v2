@@ -194,6 +194,10 @@ const MediaTabFull = ({ type, config }) => {
         <div className='media-tab'>
             {!isDiscoverSearching && (
             <div className='media-tab-sticky-header'>
+                <div className='media-tab-title-block'>
+                    {config.Icon && <config.Icon size={18} strokeWidth={1.75} color={config.color} />}
+                    <h1 className='media-tab-title' style={{ color: config.color }}>{config.title}</h1>
+                </div>
                 <div className='media-tab-top-row'>
                     <button className='icon-btn' onClick={() => navigate('/profile')} aria-label='Profile'>
                         <User size={22} strokeWidth={2} />
@@ -213,10 +217,6 @@ const MediaTabFull = ({ type, config }) => {
                     <button className='icon-btn' onClick={() => navigate('/party')} aria-label='Start a party'>
                         <PartyPopperWheel size={22} strokeWidth={2} />
                     </button>
-                </div>
-                <div className='media-tab-title-block'>
-                    {config.Icon && <config.Icon size={18} strokeWidth={1.75} color={config.color} />}
-                    <h1 className='media-tab-title' style={{ color: config.color }}>{config.title}</h1>
                 </div>
             </div>
             )}
