@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, Check, Info, Plus, Star, X } from 'lucide-react';
-import { Popover } from '@mui/material';
+import { ArrowLeft, Check, Info, Plus, Star, X, ListPlus } from 'lucide-react';
+import { Popover, SwipeableDrawer } from '@mui/material';
 import { marked } from 'marked';
 
 import Loading from '../../shared/components/Loading';
@@ -64,6 +64,7 @@ const ItemDetails = () => {
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [loadingCollections, setLoadingCollections] = useState(false);
     const [hintAnchor, setHintAnchor] = useState(null);
+    const [manageOpen, setManageOpen] = useState(false);
 
     // Fetch the user's global watched/played status + personal rating
     // for this item. Both live on watched_media keyed by (user, item).
@@ -460,6 +461,80 @@ const ItemDetails = () => {
                         </section>
                     )}
 
+                    {details.overview && (
+                        <section className='item-details-section'>
+                            <h2 className='item-details-section-title'>Overview</h2>
+                            <div
+                                className={`item-details-card item-details-overview-card${(collectionType === 'movie' || collectionType === 'tv') && details.backdrop ? ' has-backdrop' : ''}`}
+                                style={(collectionType === 'movie' || collectionType === 'tv') && details.backdrop ? { backgroundImage: `url(${details.backdrop})` } : undefined}
+                            >
+                                <div
+                                    className='item-details-overview'
+                                    dangerouslySetInnerHTML={{ __html: details.overview || '' }}
+                                />
+                            </div>
+                        </section>
+                    )}
+
+                    {(collectionType === 'movie' || collectionType === 'tv') && (
+                        <CastRail cast={cast} />
+                    )}
+
+                    {collectionType === 'game' && providers.platforms && (
+                        <section className='item-details-section'>
+                            <h2 className='item-details-section-title'>Platforms</h2>
+                            <div className='item-details-card'>
+                                <div className='item-details-platforms'>
+                                    {providers.platforms.map(p => p.name).join(', ')}
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
+                    {(collectionType === 'movie' || collectionType === 'tv') && (
+                        <SimilarRail
+                            similar={similar}
+                            collectionType={collectionType}
+                            accentColor={color}
+                        />
+                    )}
+                </React.Fragment>
+            )}
+
+            {!isLoading && (
+                <button
+                    type='button'
+                    className='item-details-manage-fab'
+                    style={{ backgroundColor: color }}
+                    onClick={() => setManageOpen(true)}
+                    aria-label='Manage status, rating, and collections'
+                >
+                    <ListPlus size={18} strokeWidth={2.25} />
+                    <span>Manage</span>
+                </button>
+            )}
+
+            <SwipeableDrawer
+                anchor='bottom'
+                open={manageOpen}
+                onOpen={() => setManageOpen(true)}
+                onClose={() => setManageOpen(false)}
+                disableSwipeToOpen
+                PaperProps={{ className: 'item-details-manage-sheet' }}
+            >
+                <div className='item-details-manage-grabber' />
+                <div className='item-details-manage-header'>
+                    <h2 className='item-details-manage-title'>My Stuff</h2>
+                    <button
+                        type='button'
+                        className='icon-btn'
+                        onClick={() => setManageOpen(false)}
+                        aria-label='Close'
+                    >
+                        <X size={20} strokeWidth={1.75} />
+                    </button>
+                </div>
+                <div className='item-details-manage-body'>
                     <section className='item-details-section'>
                         <div className='item-details-card'>
                             <div className='item-details-row item-details-watched-row'>
@@ -564,46 +639,8 @@ const ItemDetails = () => {
                             </div>
                         </section>
                     )}
-
-                    {details.overview && (
-                        <section className='item-details-section'>
-                            <h2 className='item-details-section-title'>Overview</h2>
-                            <div
-                                className={`item-details-card item-details-overview-card${(collectionType === 'movie' || collectionType === 'tv') && details.backdrop ? ' has-backdrop' : ''}`}
-                                style={(collectionType === 'movie' || collectionType === 'tv') && details.backdrop ? { backgroundImage: `url(${details.backdrop})` } : undefined}
-                            >
-                                <div
-                                    className='item-details-overview'
-                                    dangerouslySetInnerHTML={{ __html: details.overview || '' }}
-                                />
-                            </div>
-                        </section>
-                    )}
-
-                    {(collectionType === 'movie' || collectionType === 'tv') && (
-                        <CastRail cast={cast} />
-                    )}
-
-                    {collectionType === 'game' && providers.platforms && (
-                        <section className='item-details-section'>
-                            <h2 className='item-details-section-title'>Platforms</h2>
-                            <div className='item-details-card'>
-                                <div className='item-details-platforms'>
-                                    {providers.platforms.map(p => p.name).join(', ')}
-                                </div>
-                            </div>
-                        </section>
-                    )}
-
-                    {(collectionType === 'movie' || collectionType === 'tv') && (
-                        <SimilarRail
-                            similar={similar}
-                            collectionType={collectionType}
-                            accentColor={color}
-                        />
-                    )}
-                </React.Fragment>
-            )}
+                </div>
+            </SwipeableDrawer>
 
             <RatingDialog
                 open={ratingDialogOpen}
