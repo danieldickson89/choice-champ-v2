@@ -36,15 +36,6 @@
     margin-top: 0;
 }
 
-/* Party home uses a generic black/white toggle (active button is
-   activeColor='#000') instead of a media-type accent — flip the
-   active text color to white so it contrasts against the black pill.
-   The default rule is `.segmented-toggle-option-active { color: #000 }`
-   for bright accent colors; this scopes a white override to PartyHome. */
-.party-home .segmented-toggle-option-active {
-    color: var(--cc-text);
-}
-
 .offline-msg {
     margin-top: 40px;
     text-align: center;

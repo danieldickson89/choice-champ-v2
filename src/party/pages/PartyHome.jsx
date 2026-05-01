@@ -6,6 +6,7 @@ import MultiColorText from '../../shared/components/MultiColorText';
 import PartyPopperWheel from '../../shared/components/Icons/PartyPopperWheel';
 import { CreateParty } from './CreateParty';
 import JoinParty from './JoinParty';
+import { MEDIA_TYPES } from '../../shared/lib/mediaTypes';
 
 import './PartyHome.css';
 
@@ -18,6 +19,13 @@ const PartyHome = () => {
     const auth = useContext(AuthContext);
     const [view, setView] = useState('create');
     const [online, setOnline] = useState(true);
+    // Active media type is owned by PartyHome so the Create / Join
+    // toggle and the embedded CreateParty form can share it. The
+    // toggle's active pill paints in the media color, the CreateParty
+    // form drives changes via setActiveMediaType, and the value
+    // persists when the user toggles to Join and back.
+    const [activeMediaType, setActiveMediaType] = useState('movie');
+    const collectionTypeColor = MEDIA_TYPES[activeMediaType]?.color || MEDIA_TYPES.movie.color;
 
     useEffect(() => {
         auth.showFooterHandler(true);
@@ -43,12 +51,18 @@ const PartyHome = () => {
                     options={VIEW_OPTIONS}
                     value={view}
                     onChange={setView}
-                    activeColor='var(--cc-pill-inverse-bg)'
+                    activeColor={collectionTypeColor}
                 />
             </div>
 
             <div className='party-home-body'>
-                {view === 'create' ? <CreateParty /> : <JoinParty embedded />}
+                {view === 'create'
+                    ? <CreateParty
+                        activeMediaType={activeMediaType}
+                        setActiveMediaType={setActiveMediaType}
+                        collectionTypeColor={collectionTypeColor}
+                    />
+                    : <JoinParty embedded />}
             </div>
         </div>
     );

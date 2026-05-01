@@ -19,7 +19,15 @@ const MEDIA_TYPES = MEDIA_TYPE_ORDER.map(key => ({
     Icon:  MEDIA_TYPE_CONFIG[key].Icon,
 }));
 
-const CreateParty = props => {
+const CreateParty = ({
+    // Active media type lives in PartyHome so the parent's Create /
+    // Join toggle can paint its active pill in the same color the
+    // user selects here. Falls back to local state if rendered
+    // standalone (e.g., a future direct route).
+    activeMediaType: activeMediaTypeProp,
+    setActiveMediaType: setActiveMediaTypeProp,
+    collectionTypeColor: collectionTypeColorProp,
+} = {}) => {
     const auth = useContext(AuthContext);
 
     const [collections, setCollections] = useState([]);
@@ -29,8 +37,13 @@ const CreateParty = props => {
     const [secretMode, setSecretMode] = useState(false);
     const [includeWatched, setIncludeWatched] = useState(false);
     const [superChoice, setSuperChoice] = useState(false);
-    const [activeMediaType, setActiveMediaType] = useState('movie');
-    const [collectionTypeColor, setCollectionTypeColor] = useState('#FCB016');
+
+    const [localActiveMediaType, setLocalActiveMediaType] = useState('movie');
+    const activeMediaType = activeMediaTypeProp ?? localActiveMediaType;
+    const setActiveMediaType = setActiveMediaTypeProp ?? setLocalActiveMediaType;
+    const collectionTypeColor = collectionTypeColorProp
+        ?? MEDIA_TYPES.find(m => m.key === activeMediaType)?.color
+        ?? '#FCB016';
 
     const navigate = useNavigate();
 
@@ -63,9 +76,9 @@ const CreateParty = props => {
 
     const selectMediaType = (type) => {
         if(type === activeMediaType) return;
-        const media = MEDIA_TYPES.find(m => m.key === type);
+        // collectionTypeColor is derived from activeMediaType (either
+        // here or in the parent), so we only need to push the type.
         setActiveMediaType(type);
-        setCollectionTypeColor(media.color);
         loadCollections(type);
     };
 
@@ -210,7 +223,7 @@ const CreateParty = props => {
                 className='create-party-submit'
                 onClick={navToPartyWait}
                 backgroundColor={collectionTypeColor}
-                color='#fff'
+                color='#111'
             >
                 Create Party
             </Button>
