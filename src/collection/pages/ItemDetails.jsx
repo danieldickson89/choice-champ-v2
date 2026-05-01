@@ -394,6 +394,28 @@ const ItemDetails = () => {
                         </section>
                     )}
 
+                    {(collectionType === 'movie' || collectionType === 'tv') && (
+                        <section className='item-details-section'>
+                            <h2 className='item-details-section-title'>Stream</h2>
+                            <div className='item-details-card'>
+                                {providers.stream ? (
+                                    <div className='item-details-providers'>
+                                        {providers.stream.map(provider => (
+                                            <img
+                                                key={provider.provider_name}
+                                                className='item-details-provider'
+                                                src={`https://image.tmdb.org/t/p/w500${provider.logo_path}`}
+                                                alt={provider.provider_name}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className='item-details-none'>Not available to stream</div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+
                     <section className='item-details-section'>
                         <div className='item-details-card'>
                             <div className='item-details-row item-details-watched-row'>
@@ -513,28 +535,6 @@ const ItemDetails = () => {
 
                     {(collectionType === 'movie' || collectionType === 'tv') && (
                         <CastRail cast={cast} />
-                    )}
-
-                    {(collectionType === 'movie' || collectionType === 'tv') && (
-                        <section className='item-details-section'>
-                            <h2 className='item-details-section-title'>Stream</h2>
-                            <div className='item-details-card'>
-                                {providers.stream ? (
-                                    <div className='item-details-providers'>
-                                        {providers.stream.map(provider => (
-                                            <img
-                                                key={provider.provider_name}
-                                                className='item-details-provider'
-                                                src={`https://image.tmdb.org/t/p/w500${provider.logo_path}`}
-                                                alt={provider.provider_name}
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className='item-details-none'>Not available to stream</div>
-                                )}
-                            </div>
-                        </section>
                     )}
 
                     {collectionType === 'game' && providers.platforms && (
