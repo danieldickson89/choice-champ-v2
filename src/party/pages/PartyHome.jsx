@@ -43,7 +43,7 @@ const PartyHome = () => {
                     options={VIEW_OPTIONS}
                     value={view}
                     onChange={setView}
-                    activeColor='#000'
+                    activeColor='var(--cc-pill-inverse-bg)'
                 />
             </div>
 

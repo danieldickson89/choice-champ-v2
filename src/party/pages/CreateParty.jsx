@@ -209,7 +209,7 @@ const CreateParty = props => {
                 type='button'
                 className='create-party-submit'
                 onClick={navToPartyWait}
-                backgroundColor='#000'
+                backgroundColor='var(--cc-pill-inverse-bg)'
                 color='#fff'
             >
                 Create Party

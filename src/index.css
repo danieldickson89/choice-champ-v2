@@ -66,6 +66,13 @@
   --cc-icon-btn-bg: #000;
   --cc-icon-btn-bg-hover: #1a1a1a;
 
+  /* "Neutral inverse pill" — used for the PartyHome segmented toggle
+     active option and the CreateParty submit button. White text on
+     a dark surface in both themes; light mode uses a softer gray
+     instead of pure black so it doesn't feel stop-light on a near-
+     white page. */
+  --cc-pill-inverse-bg: #000;
+
   /* Status */
   --cc-error: #e53e3e;
   --cc-error-strong: #c53030;
@@ -135,6 +142,10 @@
   /* Icon buttons in light mode: soft gray pill, not stamped black. */
   --cc-icon-btn-bg: #e5e5e5;
   --cc-icon-btn-bg-hover: #d4d4d4;
+
+  /* Inverse pill softens to a medium-dark gray so the Create Party
+     button + active toggle option don't read as stop-light on white. */
+  --cc-pill-inverse-bg: #525252;
 }
 
 * {
