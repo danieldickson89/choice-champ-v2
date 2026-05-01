@@ -61,19 +61,20 @@ const CastDetail = () => {
 
     return (
         <div className='content cast-detail-page'>
-            <div className='floating-topbar'>
-                <button className='icon-btn icon-btn-floating' onClick={() => navigate(-1)} aria-label='Back'>
+            <div className='cast-detail-sticky-header'>
+                <button className='icon-btn' onClick={() => navigate(-1)} aria-label='Back'>
                     <ArrowLeft size={22} strokeWidth={1.75} />
                 </button>
+                <h1 className='cast-detail-header-title'>{person?.name || ''}</h1>
                 {originator ? (
                     <button
-                        className='icon-btn icon-btn-floating'
+                        className='icon-btn'
                         onClick={() => navigate(originator)}
                         aria-label='Close and return to original page'
                     >
                         <X size={22} strokeWidth={1.75} />
                     </button>
-                ) : <span />}
+                ) : <span className='cast-detail-header-spacer' />}
             </div>
 
             {loading ? (
@@ -92,7 +93,6 @@ const CastDetail = () => {
                                 </div>
                             )}
                         </div>
-                        <h1 className='cast-detail-name'>{person.name}</h1>
                         {subtitle && <p className='cast-detail-subtitle'>{subtitle}</p>}
                     </div>
 
