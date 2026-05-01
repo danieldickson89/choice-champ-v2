@@ -1,10 +1,54 @@
 .item-details-page {
     color: var(--cc-text-soft);
     font-family: inherit;
-    /* Top padding clears the floating topbar (40px icon + 12px above + 12px below + safe area).
-       Bottom padding clears the sticky Manage FAB. */
-    padding-top: calc(env(safe-area-inset-top, 0) + 64px);
+    /* Bottom padding clears the sticky Manage FAB. The sticky header
+       takes care of its own top spacing via safe-area-aware padding. */
     padding-bottom: calc(env(safe-area-inset-bottom, 0) + 92px);
+}
+
+/* Sticky glass header — back button + media-color title + (optional)
+   X close button. Matches the MediaTab / Collection treatment so the
+   chrome reads as one consistent system. */
+.item-details-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 -16px;
+    padding: calc(env(safe-area-inset-top, 0) + 12px) 16px 10px 16px;
+    background-color: rgba(20, 20, 20, 0.55);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:root[data-theme="light"] .item-details-sticky-header {
+    background-color: rgba(255, 255, 255, 0.55);
+}
+
+.item-details-header-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-size: 13pt;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Width-matched placeholder for when the X close button isn't shown,
+   so the title stays centered between the back button and the right
+   edge instead of drifting toward the right side. */
+.item-details-header-spacer {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
 }
 
 /* Sticky Manage FAB — Apple "Liquid Glass" aesthetic. Very light
@@ -126,16 +170,8 @@
     to { opacity: 1; }
 }
 
-.item-details-title {
-    margin: 0 0 8px 0;
-    text-align: center;
-    font-size: 20pt;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
 .item-details-tagline {
-    margin: 0 0 8px 0;
+    margin: 4px 0 8px 0;
     text-align: center;
     font-size: 10.5pt;
     font-style: italic;

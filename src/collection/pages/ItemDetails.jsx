@@ -353,19 +353,20 @@ const ItemDetails = () => {
 
     return (
         <div className='content item-details-page'>
-            <div className='floating-topbar'>
-                <button className='icon-btn icon-btn-floating' onClick={() => navigate(-1)} aria-label='Back'>
+            <div className='item-details-sticky-header'>
+                <button className='icon-btn' onClick={() => navigate(-1)} aria-label='Back'>
                     <ArrowLeft size={22} strokeWidth={1.75} />
                 </button>
+                <h1 className='item-details-header-title' style={{ color }}>{details.title || ''}</h1>
                 {originator && (collectionType === 'movie' || collectionType === 'tv') ? (
                     <button
-                        className='icon-btn icon-btn-floating'
+                        className='icon-btn'
                         onClick={() => navigate(originator)}
                         aria-label='Close and return to original page'
                     >
                         <X size={22} strokeWidth={1.75} />
                     </button>
-                ) : <span />}
+                ) : <span className='item-details-header-spacer' />}
             </div>
 
             {isLoading ? (
@@ -389,8 +390,6 @@ const ItemDetails = () => {
                             />
                         </div>
                     )}
-                    <h1 className='item-details-title' style={{ color }}>{details.title}</h1>
-
                     {(collectionType === 'movie' || collectionType === 'tv') && details.tagline && (
                         <p className='item-details-tagline'>"{details.tagline}"</p>
                     )}
