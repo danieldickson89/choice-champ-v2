@@ -43,6 +43,7 @@ const lazyWithReload = (loader) =>
 
 const Collection = lazyWithReload(() => import('./collection/pages/Collection'));
 const ItemDetails = lazyWithReload(() => import('./collection/pages/ItemDetails'));
+const CastDetail = lazyWithReload(() => import('./collection/pages/CastDetail'));
 const Auth = lazyWithReload(() => import('./user/pages/Auth'));
 const PasswordReset = lazyWithReload(() => import('./user/pages/PasswordReset'));
 const PartyHome = lazyWithReload(() => import('./party/pages/PartyHome'));
@@ -201,6 +202,7 @@ function App() {
           <Route path="/collections/:type" element={<MediaTabByType />} exact />
           <Route path="/collections/:type/:id" element={<Collection />} exact />
           <Route path="/items/:type/:itemId" element={<ItemDetails />} exact />
+          <Route path="/person/:personId" element={<CastDetail />} exact />
           <Route path="/party" element={<PartyHome />} exact />
           <Route path="/party/wait/:code" element={<PartyWait />} exact />
           <Route path="/party/:code" element={<Party />} exact />

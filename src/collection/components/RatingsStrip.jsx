@@ -7,7 +7,7 @@ const RatingsStrip = ({ ratings }) => {
     const chips = [];
     if (ratings.imdb) chips.push({ key: 'imdb', label: 'IMDb', value: ratings.imdb, className: 'ratings-chip-imdb' });
     if (ratings.rottenTomatoes) chips.push({ key: 'rt', label: 'RT', value: ratings.rottenTomatoes, className: 'ratings-chip-rt' });
-    if (ratings.metacritic) chips.push({ key: 'mc', label: 'Metacritic', value: ratings.metacritic, className: 'ratings-chip-mc' });
+    if (ratings.metacritic) chips.push({ key: 'mc', label: 'Meta', value: ratings.metacritic, className: 'ratings-chip-mc' });
     if (ratings.tmdb) chips.push({ key: 'tmdb', label: 'TMDB', value: ratings.tmdb, className: 'ratings-chip-tmdb' });
 
     if (chips.length === 0) return null;

@@ -1,0 +1,209 @@
+.cast-detail-page {
+    color: var(--cc-text-soft);
+    font-family: inherit;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 40px);
+}
+
+.cast-detail-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    padding-bottom: 4px;
+}
+
+.cast-detail-close-btn {
+    margin-left: auto;
+}
+
+.cast-detail-loading {
+    display: flex;
+    justify-content: center;
+    padding: 60px 0;
+}
+
+.cast-detail-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--cc-text-muted);
+}
+
+.cast-detail-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 16px 0 24px 0;
+}
+
+.cast-detail-avatar-wrap {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: var(--cc-elevation-mid);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    margin-bottom: 14px;
+}
+
+.cast-detail-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cast-detail-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cc-text-faint);
+}
+
+.cast-detail-name {
+    margin: 0 0 6px 0;
+    font-size: 20pt;
+    font-weight: 700;
+    color: var(--cc-text);
+    text-align: center;
+    line-height: 1.2;
+}
+
+.cast-detail-subtitle {
+    margin: 0;
+    font-size: 10pt;
+    color: var(--cc-text-muted);
+    text-align: center;
+}
+
+.cast-detail-section {
+    margin-bottom: 20px;
+}
+
+.cast-detail-section-title {
+    margin: 0 0 10px 0;
+    font-size: 10pt;
+    color: var(--cc-text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.cast-detail-card {
+    background-color: var(--cc-elevation-mid);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.cast-detail-bio {
+    margin: 0;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: var(--cc-text-soft);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+}
+
+.cast-detail-bio.is-expanded {
+    -webkit-line-clamp: unset;
+    display: block;
+}
+
+.cast-detail-bio-toggle {
+    margin-top: 10px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--cc-text-muted);
+    font-size: 10pt;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.cast-detail-bio-toggle:hover {
+    color: var(--cc-text);
+}
+
+.cast-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.cast-detail-credit {
+    display: flex;
+    flex-direction: column;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.cast-detail-credit:active .cast-detail-credit-poster {
+    transform: scale(0.97);
+}
+
+.cast-detail-credit-poster-wrap {
+    aspect-ratio: 2 / 3;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: var(--cc-elevation-mid);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.cast-detail-credit-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 120ms ease-out;
+}
+
+.cast-detail-credit-poster-fallback {
+    background: linear-gradient(135deg, var(--cc-elevation-mid), var(--cc-elevation-high));
+}
+
+.cast-detail-credit-title {
+    margin-top: 8px;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--cc-text);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.cast-detail-credit-meta {
+    margin-top: 2px;
+    font-size: 9pt;
+    color: var(--cc-text-muted);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+.cast-detail-credit-dot {
+    color: var(--cc-text-faint);
+}
+
+@media (min-width: 600px) {
+    .cast-detail-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 900px) {
+    .cast-detail-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}

@@ -20,6 +20,16 @@
     align-items: center;
     text-align: center;
     scroll-snap-align: start;
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.cast-rail-card:active .cast-rail-avatar-wrap {
+    transform: scale(0.96);
 }
 
 .cast-rail-avatar-wrap {
@@ -30,6 +40,7 @@
     background-color: var(--cc-elevation-mid);
     margin-bottom: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 120ms ease-out;
 }
 
 .cast-rail-avatar {

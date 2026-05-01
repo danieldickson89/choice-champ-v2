@@ -1253,5 +1253,66 @@ router
         res.send({media: responseJson});
     });
 
+router.get('/person/:id', async (req, res, next) => {
+    const id = req.params.id;
+    const tmdbKey = process.env.MOVIE_DB_API_KEY;
+
+    try {
+        const [personRes, creditsRes] = await Promise.all([
+            fetch(`https://api.themoviedb.org/3/person/${id}?api_key=${tmdbKey}&language=en-US`),
+            fetch(`https://api.themoviedb.org/3/person/${id}/combined_credits?api_key=${tmdbKey}&language=en-US`),
+        ]);
+        const [personData, creditsData] = await Promise.all([
+            personRes.json(),
+            creditsRes.json(),
+        ]);
+
+        // Combined cast credits — dedupe (same person can be billed
+        // both as cast and crew for the same project), sort by
+        // popularity, cap to 40 so prolific actors stay browsable.
+        const seen = new Set();
+        const filmography = (Array.isArray(creditsData?.cast) ? creditsData.cast : [])
+            .filter(c => {
+                const mediaType = c.media_type === 'tv' ? 'tv' : 'movie';
+                const dedupeKey = `${mediaType}:${c.id}`;
+                if (seen.has(dedupeKey)) return false;
+                seen.add(dedupeKey);
+                return true;
+            })
+            .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+            .slice(0, 40)
+            .map(c => {
+                const mediaType = c.media_type === 'tv' ? 'tv' : 'movie';
+                const date = mediaType === 'movie' ? c.release_date : c.first_air_date;
+                return {
+                    id: c.id,
+                    title: c.title || c.name,
+                    poster: c.poster_path ? `https://image.tmdb.org/t/p/w342${c.poster_path}` : null,
+                    type: mediaType,
+                    character: c.character || null,
+                    year: date ? date.slice(0, 4) : null,
+                    rating: c.vote_average != null && c.vote_average > 0 ? c.vote_average.toFixed(1) : null,
+                };
+            });
+
+        const response = {
+            person: {
+                id: personData.id,
+                name: personData.name,
+                profile: personData.profile_path ? `https://image.tmdb.org/t/p/w500${personData.profile_path}` : null,
+                biography: personData.biography || null,
+                knownFor: personData.known_for_department || null,
+                birthday: personData.birthday || null,
+                placeOfBirth: personData.place_of_birth || null,
+            },
+            filmography,
+        };
+
+        res.send(response);
+    } catch (err) {
+        next(err);
+    }
+});
+
 
 module.exports = router;
