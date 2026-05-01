@@ -58,12 +58,11 @@
     width: 100%;
 }
 
-/* Constrains the SegmentedToggle so it fits comfortably between the
-   profile / party icon buttons and doesn't dominate the row. */
+/* Constrained-width toggle pill, centered in its own row below the
+   icon + title row. */
 .media-tab-toggle-inline {
-    flex: 1;
-    min-width: 0;
-    max-width: 260px;
+    width: 100%;
+    max-width: 280px;
     margin: 0 auto;
 }
 
@@ -73,6 +72,7 @@
     justify-content: center;
     gap: 8px;
     min-width: 0;
+    flex: 1;
 }
 
 .media-tab-title {
