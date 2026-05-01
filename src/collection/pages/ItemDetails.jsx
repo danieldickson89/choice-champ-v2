@@ -343,7 +343,7 @@ const ItemDetails = () => {
                 <button className='icon-btn' onClick={() => navigate(-1)} aria-label='Back'>
                     <ArrowLeft size={22} strokeWidth={1.75} />
                 </button>
-                {originator && (
+                {originator && (collectionType === 'movie' || collectionType === 'tv') && (
                     <button
                         className='icon-btn item-details-close-btn'
                         onClick={() => navigate(originator)}
