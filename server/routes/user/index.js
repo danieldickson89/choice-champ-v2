@@ -40,7 +40,7 @@ router
                 total: 0,
             }));
 
-        const counts = { movie: 0, tv: 0, game: 0, board: 0 };
+        const counts = { movie: 0, tv: 0, game: 0, board: 0, book: 0 };
         collections.forEach(c => { if (counts[c.type] !== undefined) counts[c.type]++; });
 
         if (collections.length > 0) {
