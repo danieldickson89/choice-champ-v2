@@ -5,6 +5,7 @@ import { ArrowLeft, X, User } from 'lucide-react';
 import Loading from '../../shared/components/Loading';
 import { AuthContext } from '../../shared/context/auth-context';
 import { BACKEND_URL } from '../../shared/config';
+import TruncatedHeaderTitle from '../../shared/components/TruncatedHeaderTitle/TruncatedHeaderTitle';
 import './CastDetail.css';
 
 const CastDetail = () => {
@@ -65,7 +66,9 @@ const CastDetail = () => {
                 <button className='icon-btn' onClick={() => navigate(-1)} aria-label='Back'>
                     <ArrowLeft size={22} strokeWidth={1.75} />
                 </button>
-                <h1 className='cast-detail-header-title'>{person?.name || ''}</h1>
+                <TruncatedHeaderTitle className='cast-detail-header-title'>
+                    {person?.name || ''}
+                </TruncatedHeaderTitle>
                 {originator ? (
                     <button
                         className='icon-btn'

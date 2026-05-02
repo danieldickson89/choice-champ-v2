@@ -7,6 +7,7 @@ import { api } from '../../shared/lib/api';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
 import { MEDIA_TYPES, MEDIA_TYPE_ORDER } from '../../shared/lib/mediaTypes';
+import TruncatedHeaderTitle from '../../shared/components/TruncatedHeaderTitle/TruncatedHeaderTitle';
 
 import './Profile.css';
 
@@ -78,7 +79,9 @@ const Profile = () => {
                     >
                         <ArrowLeft size={22} strokeWidth={1.75} />
                     </button>
-                    <h1 className='profile-header-title'>{auth.username || 'Your Profile'}</h1>
+                    <TruncatedHeaderTitle className='profile-header-title'>
+                        {auth.username || 'Your Profile'}
+                    </TruncatedHeaderTitle>
                     <button
                         type='button'
                         className='icon-btn'

@@ -15,6 +15,7 @@ import RatingsStrip from '../components/RatingsStrip';
 import CastRail from '../components/CastRail';
 import SimilarRail from '../components/SimilarRail';
 import TrailerButton from '../components/TrailerButton';
+import TruncatedHeaderTitle from '../../shared/components/TruncatedHeaderTitle/TruncatedHeaderTitle';
 import './ItemDetails.css';
 
 // Format a movie runtime in minutes as "Xh Ym" / "Xh" / "Ym".
@@ -357,7 +358,9 @@ const ItemDetails = () => {
                 <button className='icon-btn' onClick={() => navigate(-1)} aria-label='Back'>
                     <ArrowLeft size={22} strokeWidth={1.75} />
                 </button>
-                <h1 className='item-details-header-title' style={{ color }}>{details.title || ''}</h1>
+                <TruncatedHeaderTitle className='item-details-header-title' style={{ color }}>
+                    {details.title || ''}
+                </TruncatedHeaderTitle>
                 {originator && (collectionType === 'movie' || collectionType === 'tv') ? (
                     <button
                         className='icon-btn'

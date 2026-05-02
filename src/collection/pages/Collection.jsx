@@ -17,6 +17,7 @@ import QuickEditRow from '../components/QuickEditRow';
 import RatingDialog from '../components/RatingDialog';
 import AddItemsSheet from '../components/AddItemsSheet';
 import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterPanel';
+import TruncatedHeaderTitle from '../../shared/components/TruncatedHeaderTitle/TruncatedHeaderTitle';
 import {
     DndContext,
     closestCenter,
@@ -702,7 +703,9 @@ const Collection = ({ socket }) => {
                                 <div className='collection-title-block' data-ready={!isLoading}>
                                     <div className='collection-title-row'>
                                         <TypeIcon size={22} strokeWidth={1.75} color={collectionTypeColor} />
-                                        <h2 className={`collection-title color-${collectionType}`}>{collectionName}</h2>
+                                        <TruncatedHeaderTitle className={`collection-title color-${collectionType}`}>
+                                            {collectionName}
+                                        </TruncatedHeaderTitle>
                                     </div>
                                     <p className='collection-subtitle'>{subtitle}</p>
                                 </div>
