@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog } from '@mui/material';
-import { LogOut, ChevronRight } from 'lucide-react';
+import { LogOut, ChevronRight, ArrowLeft } from 'lucide-react';
 
 import { api } from '../../shared/lib/api';
 import { AuthContext } from '../../shared/context/auth-context';
@@ -69,7 +69,16 @@ const Profile = () => {
     return (
         <React.Fragment>
             <div className='content profile-content'>
-                <div className='profile-topbar'>
+                <div className='profile-sticky-header'>
+                    <button
+                        type='button'
+                        className='icon-btn'
+                        onClick={() => navigate(-1)}
+                        aria-label='Back'
+                    >
+                        <ArrowLeft size={22} strokeWidth={1.75} />
+                    </button>
+                    <h1 className='profile-header-title'>{auth.username || 'Your Profile'}</h1>
                     <button
                         type='button'
                         className='icon-btn'
@@ -80,10 +89,7 @@ const Profile = () => {
                     </button>
                 </div>
 
-                <header className='profile-header'>
-                    <h1 className='profile-username'>{auth.username || 'Your Profile'}</h1>
-                    {memberFor && <p className='profile-member-for'>{memberFor}</p>}
-                </header>
+                {memberFor && <p className='profile-member-for'>{memberFor}</p>}
 
                 {stats === null ? (
                     <div className='profile-loading'>
@@ -114,6 +120,11 @@ const Profile = () => {
                                     <span className='profile-stat-sub'>
                                         {!isReady ? '—' : pluralize(count, 'collection')}
                                     </span>
+                                    <ChevronRight
+                                        size={18}
+                                        strokeWidth={2}
+                                        className='profile-stat-chevron'
+                                    />
                                 </button>
                             );
                         })}

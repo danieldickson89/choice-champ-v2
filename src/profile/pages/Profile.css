@@ -1,27 +1,44 @@
-.profile-topbar {
+/* Sticky glass header — back (left) + username (center) + logout
+   (right). Matches the chrome system used across MediaTab, Collection,
+   ItemDetails, CastDetail, and ProgressByType. */
+.profile-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 -16px;
+    padding: calc(env(safe-area-inset-top, 0) + 12px) 16px 10px 16px;
+    background-color: rgba(20, 20, 20, 0.55);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding-top: 12px;
-    padding-bottom: 4px;
+    gap: 10px;
 }
 
-.profile-header {
-    margin: 16px 0 28px 0;
-    text-align: center;
+:root[data-theme="light"] .profile-sticky-header {
+    background-color: rgba(255, 255, 255, 0.55);
 }
 
-.profile-username {
+.profile-header-title {
+    flex: 1;
+    min-width: 0;
     margin: 0;
-    font-size: 28pt;
+    text-align: center;
+    font-size: 13pt;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
     color: var(--cc-text);
-    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .profile-member-for {
-    margin: 6px 0 0 0;
+    margin: 14px 0 24px 0;
     color: var(--cc-text-muted);
-    font-size: 11pt;
+    font-size: 10.5pt;
+    text-align: center;
 }
 
 .profile-section {
@@ -103,6 +120,12 @@
 .profile-stat-sub {
     font-size: 10pt;
     color: var(--cc-text-faint);
+}
+
+.profile-stat-chevron {
+    flex-shrink: 0;
+    color: var(--cc-text-faint);
+    margin-left: -2px;
 }
 
 .profile-link-list {
