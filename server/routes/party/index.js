@@ -202,6 +202,7 @@ router
             .map(it => ({
                 collection_id: newCollection.id,
                 item_id: String(it.itemId ?? it.item_id ?? ''),
+                media_type: type,
                 title: it.title,
                 poster: it.poster ?? null,
                 complete: false,
