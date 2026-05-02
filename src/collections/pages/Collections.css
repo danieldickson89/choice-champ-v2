@@ -4,6 +4,9 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    /* Small breathing room so the first card isn't hugging the
+       translucent sticky header at scrolltop = 0. */
+    padding-top: 12px;
 }
 
 .collections-loading {
