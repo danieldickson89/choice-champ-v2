@@ -622,7 +622,10 @@ const Party = () => {
 
     const openExportDialog = () => {
         setExportName(defaultExportName);
-        setExportShare(true);
+        // Default to "Share" only when there's actually someone to
+        // share with — otherwise the disabled-share radio left "Just
+        // for me" unselectable from a stuck pre-selected state.
+        setExportShare(getOtherLoggedInUserIds().length > 0);
         setExportError('');
         setExportOpen(true);
     };
