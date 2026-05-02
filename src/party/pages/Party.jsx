@@ -972,7 +972,7 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                         slideDown ? { transform: 'translateY(100vh)', transition: 'transform 2s ease-in-out' } : null
                     }
                 >
-                    <CheckeredFlag className='flag-selected' />
+                    <CheckeredFlag className='flag-selected' strokeWidth={1.25} />
                 </div>
             )
         }
