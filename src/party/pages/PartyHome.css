@@ -65,6 +65,9 @@
 .party-home-body {
     width: 100%;
     margin-top: 0;
+    /* Small breathing room so the form isn't hugging the glass header
+       at scrolltop = 0. Matches the Collections list treatment. */
+    padding-top: 12px;
 }
 
 .offline-msg {
