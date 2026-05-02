@@ -96,61 +96,25 @@ const Profile = () => {
                     <div className='profile-stat-grid'>
                         {MEDIA_STATS.map(({ key, label, color, Icon }) => {
                             const count = stats?.counts?.[key];
+                            const isReady = count !== undefined && count !== null;
+                            const isEnabled = isReady && count > 0;
                             return (
-                                <div key={key} className='profile-stat-card'>
+                                <button
+                                    key={key}
+                                    type='button'
+                                    className='profile-stat-card'
+                                    onClick={() => navigate(`/profile/progress/${key}`)}
+                                    disabled={!isEnabled}
+                                    aria-label={`Open ${label} progress`}
+                                >
                                     <div className='profile-stat-head'>
                                         <Icon size={22} strokeWidth={1.75} color={color} />
                                         <span className='profile-stat-heading'>{label}</span>
                                     </div>
                                     <span className='profile-stat-sub'>
-                                        {count === undefined || count === null ? '—' : pluralize(count, 'collection')}
+                                        {!isReady ? '—' : pluralize(count, 'collection')}
                                     </span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </section>
-
-                <section className='profile-section'>
-                    <h2 className='profile-section-title'>Progress</h2>
-                    <div className='profile-progress'>
-                        {stats && (stats.collections?.length ?? 0) === 0 && (
-                            <p className='profile-progress-empty'>No collections yet</p>
-                        )}
-                        {MEDIA_STATS.map(({ key, label, action, color, Icon }) => {
-                            const collections = (stats?.collections || []).filter(c => c.type === key);
-                            if (collections.length === 0) return null;
-                            return (
-                                <div key={key} className='profile-progress-group'>
-                                    <div className='profile-progress-group-head'>
-                                        <Icon size={20} strokeWidth={1.75} color={color} />
-                                        <span className='profile-progress-group-label'>{label}</span>
-                                    </div>
-                                    <div className='profile-progress-list'>
-                                        {collections.map(c => {
-                                            const isEmpty = c.total === 0;
-                                            const isComplete = !isEmpty && c.complete === c.total;
-                                            return (
-                                                <button
-                                                    key={c.id}
-                                                    type='button'
-                                                    className='profile-progress-row'
-                                                    onClick={() => navigate(`/collections/${c.type}/${c.id}`)}
-                                                >
-                                                    <span className='profile-progress-row-name'>{c.name}</span>
-                                                    <span
-                                                        className='profile-progress-row-detail'
-                                                        style={isComplete ? { color } : undefined}
-                                                    >
-                                                        {isEmpty
-                                                            ? 'Empty'
-                                                            : `${c.complete} of ${c.total} ${action}`}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>

@@ -78,6 +78,79 @@ router
             collections,
         });
     })
+    // GET /user/progress/:type — full per-type breakdown for the new
+    // ProgressByType page. Returns each collection with its items
+    // (title, poster, complete) so the frontend can render the
+    // accordion of progress cards + watched/unwatched poster grids
+    // without further round-trips.
+    .get('/progress/:type', requireAuth, async (req, res) => {
+        const userId = req.user.id;
+        const type = req.params.type;
+        const VALID_TYPES = new Set(['movie', 'tv', 'game', 'board', 'book']);
+        if (!VALID_TYPES.has(type)) return res.status(400).json({ errMsg: 'Invalid type' });
+
+        const { data: memberships, error: memErr } = await supabase
+            .from('collection_members')
+            .select('collections(id, name, type, created_at)')
+            .eq('user_id', userId);
+        if (memErr) return res.status(500).json({ errMsg: memErr.message });
+
+        const collections = (memberships || [])
+            .map(m => m.collections)
+            .filter(c => c && c.type === type)
+            .map(c => ({
+                id: c.id,
+                name: c.name,
+                created_at: c.created_at,
+                total: 0,
+                complete: 0,
+                items: [],
+            }));
+
+        if (collections.length > 0) {
+            const ids = collections.map(c => c.id);
+            const { data: items, error: itemsErr } = await supabase
+                .from('collection_items')
+                .select('id, collection_id, title, poster, complete, item_id')
+                .in('collection_id', ids);
+            if (itemsErr) return res.status(500).json({ errMsg: itemsErr.message });
+
+            const byId = new Map(collections.map(c => [c.id, c]));
+            (items || []).forEach(it => {
+                const c = byId.get(it.collection_id);
+                if (!c) return;
+                c.total++;
+                if (it.complete) c.complete++;
+                c.items.push({
+                    id: it.id,
+                    itemId: it.item_id,
+                    title: it.title,
+                    poster: it.poster,
+                    complete: !!it.complete,
+                });
+            });
+        }
+
+        // Sort collections oldest-first within the type so the page
+        // ordering matches what the user already sees on Profile.
+        collections.sort((a, b) => {
+            const at = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return at - bt;
+        });
+
+        // Roll up the page-level summary so the new page can show
+        // "Across 5 collections · 60% complete · 234 of 388 watched"
+        // without recomputing in the client.
+        const summary = collections.reduce((acc, c) => {
+            acc.totalCollections += 1;
+            acc.totalItems += c.total;
+            acc.completeItems += c.complete;
+            return acc;
+        }, { totalCollections: 0, totalItems: 0, completeItems: 0 });
+
+        res.json({ type, summary, collections });
+    })
     // POST /user/username — change the signed-in user's display name.
     // Surfaces a clean 409 on uniqueness violations so the Settings UI
     // can show "username already taken" without parsing the raw error.

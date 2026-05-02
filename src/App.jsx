@@ -51,6 +51,7 @@ const PartyWait = lazyWithReload(() => import('./party/pages/PartyWait'));
 const Party = lazyWithReload(() => import('./party/pages/Party'));
 const JoinParty = lazyWithReload(() => import('./party/pages/JoinParty'));
 const Profile = lazyWithReload(() => import('./profile/pages/Profile'));
+const ProgressByType = lazyWithReload(() => import('./profile/pages/ProgressByType'));
 const Attribution = lazyWithReload(() => import('./profile/pages/Attribution'));
 const Contact = lazyWithReload(() => import('./profile/pages/Contact'));
 const Settings = lazyWithReload(() => import('./profile/pages/Settings'));
@@ -207,6 +208,7 @@ function App() {
           <Route path="/party/wait/:code" element={<PartyWait />} exact />
           <Route path="/party/:code" element={<Party />} exact />
           <Route path="/profile" element={<Profile />} exact />
+          <Route path="/profile/progress/:type" element={<ProgressByType />} exact />
           <Route path="/profile/attribution" element={<Attribution />} exact />
           <Route path="/profile/contact" element={<Contact />} exact />
           <Route path="/profile/settings" element={<Settings />} exact />

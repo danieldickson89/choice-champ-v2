@@ -63,9 +63,29 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    width: 100%;
     padding: 12px 16px;
     background-color: var(--cc-elevation-mid);
+    border: none;
     border-radius: 12px;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+}
+
+.profile-stat-card:hover:not(:disabled) {
+    background-color: var(--cc-elevation-low);
+}
+
+.profile-stat-card:active:not(:disabled) {
+    opacity: 0.85;
+}
+
+.profile-stat-card:disabled {
+    cursor: default;
+    opacity: 0.45;
 }
 
 .profile-stat-head {
@@ -83,99 +103,6 @@
 .profile-stat-sub {
     font-size: 10pt;
     color: var(--cc-text-faint);
-}
-
-/* Per-collection progress. Grouped by media type with a small
-   icon header, then a tappable list of the user's collections in
-   that type with their complete/total counts. Replaces the older
-   aggregate "X of Y watched" rollup. */
-.profile-progress {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.profile-progress-empty {
-    margin: 0;
-    padding: 14px 16px;
-    background-color: var(--cc-elevation-mid);
-    border-radius: 12px;
-    color: var(--cc-text-faint);
-    font-size: 10pt;
-    text-align: center;
-}
-
-.profile-progress-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.profile-progress-group-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 4px;
-}
-
-.profile-progress-group-label {
-    font-size: 11pt;
-    font-weight: 600;
-    color: var(--cc-text);
-}
-
-.profile-progress-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    background-color: var(--cc-elevation-mid);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.profile-progress-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    width: 100%;
-    padding: 12px 16px;
-    background: none;
-    border: none;
-    color: var(--cc-text);
-    font-family: inherit;
-    text-align: left;
-    cursor: pointer;
-    transition: background-color 150ms ease-out;
-}
-
-.profile-progress-row + .profile-progress-row {
-    border-top: 1px solid var(--cc-row-divider);
-}
-
-.profile-progress-row:hover {
-    background-color: var(--cc-elevation-low);
-}
-
-.profile-progress-row:active {
-    opacity: 0.7;
-}
-
-.profile-progress-row-name {
-    font-size: 11pt;
-    font-weight: 500;
-    color: var(--cc-text);
-    flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.profile-progress-row-detail {
-    font-size: 9.5pt;
-    color: var(--cc-text-faint);
-    flex-shrink: 0;
 }
 
 .profile-link-list {
