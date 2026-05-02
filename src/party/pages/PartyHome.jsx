@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 import { AuthContext } from '../../shared/context/auth-context';
 import SegmentedToggle from '../../shared/components/SegmentedToggle/SegmentedToggle';
-import MultiColorText from '../../shared/components/MultiColorText';
 import PartyPopperWheel from '../../shared/components/Icons/PartyPopperWheel';
 import { CreateParty } from './CreateParty';
 import JoinParty from './JoinParty';
@@ -17,6 +18,7 @@ const VIEW_OPTIONS = [
 
 const PartyHome = () => {
     const auth = useContext(AuthContext);
+    const navigate = useNavigate();
     const [view, setView] = useState('create');
     const [online, setOnline] = useState(true);
     // Active media type is owned by PartyHome so the Create / Join
@@ -43,10 +45,16 @@ const PartyHome = () => {
     return (
         <div className='content party-home'>
             <div className='party-home-sticky-header'>
-                <h1 className='party-home-title'>
-                    <PartyPopperWheel size={28} strokeWidth={2} />
-                    <MultiColorText>Party Time!</MultiColorText>
-                </h1>
+                <div className='party-home-top-row'>
+                    <button className='icon-btn' onClick={() => navigate(-1)} aria-label='Back'>
+                        <ArrowLeft size={22} strokeWidth={1.75} />
+                    </button>
+                    <div className='party-home-title-block'>
+                        <PartyPopperWheel size={18} strokeWidth={2} />
+                        <h1 className='party-home-title'>Party Time!</h1>
+                    </div>
+                    <span className='party-home-header-spacer' />
+                </div>
                 <SegmentedToggle
                     options={VIEW_OPTIONS}
                     value={view}
