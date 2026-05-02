@@ -12,7 +12,7 @@ const CheckeredFlag = ({ size = 24, strokeWidth = 2, className }) => (
         height={size}
         viewBox='0 0 24 24'
         fill='none'
-        stroke='currentColor'
+        stroke='#111'
         strokeWidth={strokeWidth}
         strokeLinecap='round'
         strokeLinejoin='round'
@@ -20,12 +20,12 @@ const CheckeredFlag = ({ size = 24, strokeWidth = 2, className }) => (
         aria-hidden='true'
     >
         <defs>
-            {/* 2-square × ~2-square checker — bold enough to read while
-                spinning, fine enough that you still get four+ columns
-                across the flag width. */}
+            {/* True racing checker — white background with black squares
+                top-left + bottom-right of a 4×4 unit cell, repeated. */}
             <pattern id='cc-checker' width='4' height='4' patternUnits='userSpaceOnUse'>
-                <rect width='2' height='2' fill='currentColor' />
-                <rect x='2' y='2' width='2' height='2' fill='currentColor' />
+                <rect width='4' height='4' fill='#fff' />
+                <rect width='2' height='2' fill='#111' />
+                <rect x='2' y='2' width='2' height='2' fill='#111' />
             </pattern>
             <clipPath id='cc-flag-clip'>
                 <path d='M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z' />
