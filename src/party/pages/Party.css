@@ -535,7 +535,7 @@
 
 .flag-selected {
     grid-column: 1/18;
-    width: 80%;
+    width: 55%;
     height: auto;
     animation: flip-flag 1.5s linear;
     transform-origin: top;
@@ -759,7 +759,7 @@
     }
 
     .flag-selected {
-        width: 32%;
+        width: 22%;
         height: auto;
     }
 }
