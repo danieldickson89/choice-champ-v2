@@ -113,6 +113,14 @@
         position: relative;
         width: 120px;
         height: 120px;
+        /* Empirical lift to better align with the native iOS launch
+           image at hand-off. The auto-generated apple-touch-startup-
+           image PNGs use Apple HIG approximations for status-bar
+           height per device, and those don't perfectly match the real
+           WebView center — the HTML splash lands a hair lower without
+           this nudge. Adjust the value if it lands a hair high/low
+           on your test device. */
+        transform: translateY(-3px);
       }
       .cc-splash-stack img {
         position: absolute;
