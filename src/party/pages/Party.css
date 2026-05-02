@@ -511,6 +511,7 @@
 .flag-selected {
     grid-column: 1/18;
     width: 80%;
+    height: auto;
     animation: flip-flag 1.5s linear;
     transform-origin: top;
 }
@@ -729,9 +730,11 @@
 
     .random-selected-dice {
         width: 10%;
+        height: auto;
     }
 
     .flag-selected {
         width: 32%;
+        height: auto;
     }
 }
