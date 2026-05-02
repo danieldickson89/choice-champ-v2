@@ -8,8 +8,10 @@ import Button from '../../shared/components/FormElements/Button';
 import Confetti from 'react-confetti';
 import Loading from '../../shared/components/Loading';
 import { AuthContext } from '../../shared/context/auth-context';
-import { X, Dices, Flag, Minus, Plus, Star, SlidersHorizontal, Columns2, Columns3, Columns4 } from 'lucide-react';
+import { X, Dices, Flag, Minus, Plus, Star, SlidersHorizontal, Columns2, Columns3, Columns4, ListPlus, Check } from 'lucide-react';
+import { Dialog } from '@mui/material';
 import SortFilterPanel from '../../shared/components/SortFilterPanel/SortFilterPanel';
+import { getMediaType } from '../../shared/lib/mediaTypes';
 import {
     shapeIncomingItems,
     filterByVotesAndSuperChoice,
@@ -99,6 +101,19 @@ const Party = () => {
         return [2, 3, 4].includes(parsed) ? parsed : 2;
     });
     const [filterAnchor, setFilterAnchor] = useState(null);
+
+    // Export-as-collection (flag-ended only) — opens a dialog where the
+    // user picks a name and decides whether to share the new collection
+    // with other logged-in party members. exportedCollection is set on
+    // success (also from a `party-exported` broadcast received from
+    // someone else's shared export) so all party members swap their
+    // button to "Saved! View collection →".
+    const [exportOpen, setExportOpen] = useState(false);
+    const [exportName, setExportName] = useState('');
+    const [exportShare, setExportShare] = useState(true);
+    const [exportSubmitting, setExportSubmitting] = useState(false);
+    const [exportError, setExportError] = useState('');
+    const [exportedCollection, setExportedCollection] = useState(null);
 
     const handleViewChange = (v) => {
         setViewValue(v);
@@ -340,6 +355,20 @@ const Party = () => {
             navigate('/party');
         });
 
+        // Someone else in the party exported the remaining items as a
+        // shared collection — update local state so this user's button
+        // swaps to "Saved! View collection →" instead of letting them
+        // create a duplicate. Personal exports don't broadcast, so this
+        // only fires when share === true on the originator's side.
+        channel.on('broadcast', { event: 'party-exported' }, ({ payload }) => {
+            if (!payload?.collectionId) return;
+            setExportedCollection({
+                collectionId: payload.collectionId,
+                name: payload.name || '',
+                type: payload.type || null,
+            });
+        });
+
         channel.subscribe((status) => {
             if (status === 'SUBSCRIBED') channel.track({ joined_at: new Date().toISOString() });
         });
@@ -570,6 +599,91 @@ const Party = () => {
         }, 1500);
     }
 
+    // Pull a "Mon D" date label for the default collection name so a
+    // post-party glance at the user's collection list can tell which
+    // session it came from. The user can rewrite the name freely.
+    const partyDateLabel = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date());
+    const partyTypeConfig = getMediaType(mediaType);
+    const defaultExportName = `${partyTypeConfig.title} from Party (${partyDateLabel})`;
+
+    // Logged-in party members other than the current user. Anonymous
+    // joiners use a `guest-...` presence key so they get filtered out;
+    // those user accounts are the candidates for auto-collaboration on
+    // a shared export.
+    const getOtherLoggedInUserIds = () => {
+        const state = channelRef.current?.presenceState?.() || {};
+        return Object.keys(state).filter(key =>
+            key && !key.startsWith('guest-') && key !== auth.userId
+        );
+    };
+
+    const otherLoggedInIds = getOtherLoggedInUserIds();
+    const otherLoggedInCount = otherLoggedInIds.length;
+
+    const openExportDialog = () => {
+        setExportName(defaultExportName);
+        setExportShare(true);
+        setExportError('');
+        setExportOpen(true);
+    };
+
+    const closeExportDialog = () => {
+        if (exportSubmitting) return;
+        setExportOpen(false);
+    };
+
+    const submitExport = () => {
+        const trimmed = exportName.trim();
+        if (!trimmed) {
+            setExportError('Name is required');
+            return;
+        }
+        setExportSubmitting(true);
+        setExportError('');
+
+        const others = exportShare ? getOtherLoggedInUserIds() : [];
+        const items = collectionPointRef.current.map(it => ({
+            itemId: it.itemId,
+            title: it.title,
+            poster: it.poster,
+        }));
+
+        api(`/party/${code}/export`, {
+            method: 'POST',
+            body: JSON.stringify({
+                name: trimmed,
+                type: mediaType,
+                share: exportShare,
+                otherUserIds: others,
+                items,
+            }),
+        })
+            .then(data => {
+                setExportSubmitting(false);
+                setExportOpen(false);
+                setExportedCollection({
+                    collectionId: data.collectionId,
+                    name: data.name,
+                    type: data.type,
+                });
+                if (data.isShared) {
+                    channelRef.current?.send({
+                        type: 'broadcast',
+                        event: 'party-exported',
+                        payload: {
+                            collectionId: data.collectionId,
+                            name: data.name,
+                            type: data.type,
+                        },
+                    });
+                }
+            })
+            .catch(err => {
+                setExportSubmitting(false);
+                setExportError(err?.body?.errMsg || err.message || 'Could not save the collection');
+            });
+    };
+
 const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !finished;
 
   return (
@@ -652,6 +766,32 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                 <div className='finished-title'>CHOICE CHAMPIONS!</div>
             )
         }
+
+        {finished && auth.userId && collectionItems.length > 1 && (
+            <div className='party-export-bar'>
+                {exportedCollection ? (
+                    <button
+                        type='button'
+                        className='party-export-btn party-export-btn-saved'
+                        onClick={() => navigate(`/collections/${exportedCollection.type || mediaType}/${exportedCollection.collectionId}`)}
+                        style={{ borderColor: partyColor, color: partyColor }}
+                    >
+                        <Check size={16} strokeWidth={2.5} />
+                        <span>Saved! View collection →</span>
+                    </button>
+                ) : (
+                    <button
+                        type='button'
+                        className='party-export-btn'
+                        onClick={openExportDialog}
+                        style={{ backgroundColor: partyColor }}
+                    >
+                        <ListPlus size={16} strokeWidth={2.5} />
+                        <span>Save as new collection</span>
+                    </button>
+                )}
+            </div>
+        )}
 
         {collectionItems.length > 1 && !finished && !ready && !randomSelected && !finishEarly && (
             <button
@@ -815,9 +955,9 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
         }
         {
             finishEarly && (
-                <div 
+                <div
                     className='ready-overlay'
-                    style={ 
+                    style={
                         // If slide down is true translate the overlay down 100vh make the transition smooth over 2 seconds
                         slideDown ? { transform: 'translateY(100vh)', transition: 'transform 2s ease-in-out' } : null
                     }
@@ -826,6 +966,91 @@ const isOwnerVoting = userType === 'owner' && collectionItems.length > 1 && !fin
                 </div>
             )
         }
+
+        <Dialog
+            open={exportOpen}
+            onClose={closeExportDialog}
+            fullWidth
+            maxWidth='xs'
+            PaperProps={{ className: 'cc-dialog-paper' }}
+        >
+            <div className='cc-dialog'>
+                <h3 className='cc-dialog-title'>Save as a new collection</h3>
+
+                <div className='cc-dialog-section'>
+                    <div className='cc-dialog-input-wrap'>
+                        <input
+                            className='cc-dialog-input'
+                            type='text'
+                            value={exportName}
+                            onChange={(e) => setExportName(e.target.value)}
+                            placeholder='Collection name'
+                            disabled={exportSubmitting}
+                        />
+                        {exportName && (
+                            <button
+                                type='button'
+                                className='cc-dialog-input-clear'
+                                onClick={() => setExportName('')}
+                                aria-label='Clear name'
+                                disabled={exportSubmitting}
+                            >
+                                <X size={14} strokeWidth={2.5} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className='cc-dialog-radio-list' role='radiogroup' aria-label='Sharing'>
+                        <label className='cc-dialog-radio-row'>
+                            <input
+                                type='radio'
+                                name='party-export-share'
+                                checked={exportShare}
+                                onChange={() => setExportShare(true)}
+                                disabled={exportSubmitting || otherLoggedInCount === 0}
+                            />
+                            <span>
+                                Share with everyone in this party
+                                {otherLoggedInCount > 0 && ` (${otherLoggedInCount} other${otherLoggedInCount === 1 ? '' : 's'})`}
+                                {otherLoggedInCount === 0 && ' (no other accounts joined)'}
+                            </span>
+                        </label>
+                        <label className='cc-dialog-radio-row'>
+                            <input
+                                type='radio'
+                                name='party-export-share'
+                                checked={!exportShare}
+                                onChange={() => setExportShare(false)}
+                                disabled={exportSubmitting}
+                            />
+                            <span>Just for me</span>
+                        </label>
+                    </div>
+
+                    {exportError && <p className='cc-dialog-error'>{exportError}</p>}
+                </div>
+
+                <div className='cc-dialog-actions'>
+                    <button
+                        type='button'
+                        className='cc-dialog-btn cc-dialog-btn-secondary'
+                        onClick={closeExportDialog}
+                        disabled={exportSubmitting}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type='button'
+                        className='cc-dialog-btn cc-dialog-btn-primary'
+                        style={{ background: partyColor }}
+                        onClick={submitExport}
+                        disabled={exportSubmitting}
+                    >
+                        {exportSubmitting ? 'Saving…' : 'Create'}
+                    </button>
+                </div>
+            </div>
+        </Dialog>
     </div>
   )
 }

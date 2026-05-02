@@ -802,6 +802,56 @@ button:disabled {
   color: var(--cc-text-faint);
 }
 
+.cc-dialog-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cc-dialog-input-wrap .cc-dialog-input {
+  padding-right: 40px;
+}
+
+.cc-dialog-input-clear {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--cc-border-strong);
+  color: var(--cc-text);
+  cursor: pointer;
+}
+
+.cc-dialog-input-clear:disabled { cursor: not-allowed; opacity: 0.4; }
+
+.cc-dialog-radio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cc-dialog-radio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: var(--cc-divider-on-overlay);
+  color: var(--cc-text-soft);
+  font-size: 11pt;
+  cursor: pointer;
+}
+
+.cc-dialog-radio-row input[type='radio'] {
+  flex-shrink: 0;
+  accent-color: var(--cc-movie);
+}
+
 .cc-dialog-hint {
   margin: 10px 0 0 0;
   font-size: 10pt;
