@@ -50,6 +50,37 @@ h3 {
     }
   }
 
+  /* Password field with reveal toggle. The wrapper is positioned so the
+     eye button overlays the right edge of the input; the input gets extra
+     right padding so typed characters never slide under the icon. */
+  .password-field {
+    position: relative;
+  }
+
+  .password-field .text-input {
+    padding-right: 50px;
+  }
+
+  .password-toggle {
+    position: absolute;
+    top: 50%;
+    /* offset for .text-input's 20px margin-top so the icon stays centered */
+    transform: translateY(calc(-50% + 10px));
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: var(--cc-text-muted);
+    cursor: pointer;
+  }
+
+  .password-toggle:hover {
+    color: var(--cc-text);
+  }
+
   /* Auth-page-only overrides — keep the rest of the app's yellow
      primary buttons unchanged. */
   .auth-page .primary-btn {

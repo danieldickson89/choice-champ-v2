@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 
 import Button from '../../shared/components/FormElements/Button';
 import { supabase } from '../../shared/lib/supabase';
@@ -15,6 +16,7 @@ const Auth = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { register, handleSubmit, setValue, formState: { errors } } = useForm();
 
@@ -95,14 +97,25 @@ const Auth = () => {
 
                 {!isForgot && (
                     <>
-                        <input
-                            className='text-input'
-                            type='password'
-                            id="password"
-                            placeholder="Password"
-                            autoComplete={isLogin ? 'current-password' : 'new-password'}
-                            {...register('passwordRequired', { required: !isForgot, minLength: 6 })}
-                        />
+                        <div className='password-field'>
+                            <input
+                                className='text-input'
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                placeholder="Password"
+                                autoComplete={isLogin ? 'current-password' : 'new-password'}
+                                {...register('passwordRequired', { required: !isForgot, minLength: 6 })}
+                            />
+                            <button
+                                type="button"
+                                className='password-toggle'
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                aria-pressed={showPassword}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                         {errors.passwordRequired && <p className='error'>Password must be at least 6 characters</p>}
                     </>
                 )}
