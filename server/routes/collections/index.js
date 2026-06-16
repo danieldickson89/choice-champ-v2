@@ -406,7 +406,49 @@ router
             .eq('collections.type', type);
         if (error) return res.status(500).json({ errMsg: error.message });
 
-        const collections = (memberships || []).map(m => collectionToLegacy(m.collections));
+        const collectionRows = (memberships || []).map(m => m.collections).filter(Boolean);
+        const allItems = collectionRows.flatMap(c => c.collection_items || []);
+
+        // Attach the same personal-rating + cached-IMDb fields the single
+        // collection endpoint adds, so the collections list page can preview
+        // thumbnails in the user's saved sort order (incl. the rating sorts).
+        // Both reads are cache-only — one batched query each across every
+        // collection of this type — so there's no OMDb API hit here.
+        const ratingByItemId = {};
+        if (allItems.length > 0) {
+            const itemIds = [...new Set(allItems.map(r => String(r.item_id)))];
+            const { data: rows } = await supabase
+                .from('watched_media')
+                .select('item_id, rating')
+                .eq('user_id', userId)
+                .eq('media_type', type)
+                .in('item_id', itemIds);
+            for (const r of rows || []) {
+                if (r.rating != null) ratingByItemId[String(r.item_id)] = Number(r.rating);
+            }
+        }
+
+        // IMDb only applies to movie / tv, and lookupImdbRatings reads
+        // omdb_cache only (never calls OMDb), so cache-miss items stay null
+        // and sort to the bottom — exactly as on the Collection page.
+        const imdbRatingById = {};
+        if ((type === 'movie' || type === 'tv') && allItems.length > 0) {
+            const ratings = await lookupImdbRatings(allItems.map(r => r.imdb_id).filter(Boolean));
+            for (const row of allItems) {
+                if (row.imdb_id && ratings.get(row.imdb_id) != null) {
+                    imdbRatingById[row.id] = Number(ratings.get(row.imdb_id)) || null;
+                }
+            }
+        }
+
+        const collections = collectionRows.map(c => ({
+            ...collectionToLegacy(c),
+            items: (c.collection_items || []).map(row => ({
+                ...itemToLegacy(row),
+                userRating: ratingByItemId[String(row.item_id)] ?? null,
+                imdbRating: imdbRatingById[row.id] ?? null,
+            })),
+        }));
         res.json({ collections });
     })
     // Create a new collection.
