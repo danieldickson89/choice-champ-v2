@@ -8,9 +8,9 @@ import './CollectionCard.css';
 const MAX_PREVIEW_POSTERS = 4;
 
 // Read the sort/filter the user last set on this collection's page so the card
-// preview mirrors the top of that sorted/filtered list. Note: the list
-// endpoint doesn't load per-user rating / IMDb data, so 'rating-*' and
-// 'imdb-*' sorts degrade to date-added order in the preview (by design).
+// preview mirrors the top of that sorted/filtered list. The list endpoint now
+// attaches userRating + (cached) imdbRating, so every sort reproduces here;
+// only items with no rating yet sort to the bottom, same as on the page.
 const readPrefs = (collectionId) => {
     const prefs = { sort: 'recent', filter: 'all', customOrder: null };
     try {

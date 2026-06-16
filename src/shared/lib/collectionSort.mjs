@@ -3,9 +3,9 @@
 // thumbnails on each collection card) so both order items identically.
 //
 // Kept free of component state so it can run anywhere: it reads only fields
-// the item itself carries. Sorts that depend on per-user data not loaded on
-// the list page (userRating, imdbRating) degrade gracefully there — every
-// item looks unrated, so the comparator falls back to date-added order.
+// the item itself carries (both the collection page and the list endpoint
+// provide userRating + imdbRating). Items missing a rating sort to the bottom
+// by date added, the same in the grid and in the card previews.
 
 // Server provides `timestamp` (Unix seconds, derived from added_at).
 const addedAt = (item) => item?.timestamp || 0;
