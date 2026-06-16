@@ -3,6 +3,7 @@ import { BACKEND_URL } from '../../shared/config';
 import { api } from '../../shared/lib/api';
 import { supabase } from '../../shared/lib/supabase';
 import { getMediaType, watchedLabelFor, unwatchedLabelFor } from '../../shared/lib/mediaTypes';
+import { applySortAndFilter } from '../../shared/lib/collectionSort';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../shared/context/auth-context';
 import Loading from '../../shared/components/Loading';
@@ -47,6 +48,8 @@ const Collection = ({ socket }) => {
 
     const customOrderKey = `choice-champ:custom-order:${collectionId}`;
     const viewCountKey = `choice-champ:view-count:${collectionId}`;
+    const sortKey = `choice-champ:sort:${collectionId}`;
+    const filterKey = `choice-champ:filter:${collectionId}`;
 
     // URL-backed filter + query state so navigating into ItemDetails
     // and using the back button restores what the user had set,
@@ -71,12 +74,19 @@ const Collection = ({ socket }) => {
     // whatever the user had selected. Falls back to the historical
     // localStorage-driven default when the URL has no sort param.
     const [sortValue, setSortValue] = useState(() => {
+        // URL param (ItemDetails round-trip) wins, then the per-collection
+        // saved preference, then the historical custom-order/recent default.
         if (urlSort) return urlSort;
-        return localStorage.getItem(`choice-champ:custom-order:${collectionId}`) ? 'custom' : 'recent';
+        const saved = localStorage.getItem(sortKey);
+        if (saved) return saved;
+        return localStorage.getItem(customOrderKey) ? 'custom' : 'recent';
     });
-    const [filterValue, setFilterValue] = useState(
-        ['watched', 'unwatched'].includes(urlFilter) ? urlFilter : 'all'
-    );
+    const [filterValue, setFilterValue] = useState(() => {
+        if (['watched', 'unwatched'].includes(urlFilter)) return urlFilter;
+        const saved = localStorage.getItem(filterKey);
+        if (['watched', 'unwatched', 'all'].includes(saved)) return saved;
+        return 'all';
+    });
     // Declared up here next to filterValue (rather than further down by
     // the rest of the search-bar logic) so the URL-sync useEffect below
     // can read them. Hooks evaluate top-to-bottom; the effect's
@@ -343,6 +353,14 @@ const Collection = ({ socket }) => {
         }
     }, [filterValue, query, sortValue, searchParams, setSearchParams]);
 
+    // Persist sort + filter per-collection so reopening the collection later
+    // restores them (and the home-page card previews mirror the same order).
+    // Mirrors the existing custom-order / view-count localStorage pattern.
+    useEffect(() => {
+        localStorage.setItem(sortKey, sortValue);
+        localStorage.setItem(filterKey, filterValue);
+    }, [sortKey, filterKey, sortValue, filterValue]);
+
     // Personal rating changes from ItemDetails (same tab, same user).
     // Not broadcast through Supabase since ratings are per-user — other
     // collection members shouldn't see them — and the only place a stale
@@ -569,83 +587,13 @@ const Collection = ({ socket }) => {
         return items.filter(i => i.title.toLowerCase().includes(query.toLowerCase()));
     }, [items, query]);
 
-    // collection_items now use UUIDs (post-Mongo), so we trust the
-    // server-provided `timestamp` (Unix seconds, derived from added_at).
-    const addedAt = (item) => item?.timestamp || 0;
-
-    const sortedItems = useMemo(() => {
-        let result = items.filter(i => i.title.toLowerCase().includes(query.toLowerCase()));
-
-        if (filterValue === 'watched')        result = result.filter(i => i.watched);
-        else if (filterValue === 'unwatched') result = result.filter(i => !i.watched);
-
-        if (sortValue === 'custom') {
-            // items array is already in the user's saved custom order; preserve it
-        } else if (sortValue === 'abc') {
-            result = [...result].sort((a, b) => a.title.localeCompare(b.title));
-        } else if (sortValue === 'zyx') {
-            result = [...result].sort((a, b) => b.title.localeCompare(a.title));
-        } else if (sortValue === 'oldest') {
-            result = [...result].sort((a, b) => addedAt(a) - addedAt(b));
-        } else if (sortValue === 'watched') {
-            // Recently watched first, never-watched items at the bottom
-            // ordered by date added so they're not in arbitrary order.
-            result = [...result].sort((a, b) => {
-                const ca = a?.completedAt || 0;
-                const cb = b?.completedAt || 0;
-                if (ca !== cb) return cb - ca;
-                return addedAt(b) - addedAt(a);
-            });
-        } else if (sortValue === 'release-desc' || sortValue === 'release-asc') {
-            // Release date sorts lexicographically since releaseDate is
-            // a 'YYYY-MM-DD' string from the server (board games store
-            // YYYY-01-01 since BGG only gives a year). Items missing a
-            // release date fall to the bottom either direction.
-            const dir = sortValue === 'release-desc' ? -1 : 1;
-            result = [...result].sort((a, b) => {
-                const ra = a?.releaseDate || null;
-                const rb = b?.releaseDate || null;
-                if (!ra && !rb) return addedAt(b) - addedAt(a);
-                if (!ra) return 1;
-                if (!rb) return -1;
-                if (ra !== rb) return (ra < rb ? -1 : 1) * dir;
-                return addedAt(b) - addedAt(a);
-            });
-        } else if (sortValue === 'rating-desc' || sortValue === 'rating-asc') {
-            // Personal rating first, unrated items always at the bottom
-            // (ordered by date added) regardless of sort direction —
-            // surfacing unrated items at the top of an "ascending" list
-            // would defeat the point of asking to see your low-rated stuff.
-            const dir = sortValue === 'rating-desc' ? -1 : 1;
-            result = [...result].sort((a, b) => {
-                const ra = a?.userRating;
-                const rb = b?.userRating;
-                if (ra == null && rb == null) return addedAt(b) - addedAt(a);
-                if (ra == null) return 1;
-                if (rb == null) return -1;
-                if (ra !== rb) return (ra - rb) * dir;
-                return addedAt(b) - addedAt(a);
-            });
-        } else if (sortValue === 'imdb-desc' || sortValue === 'imdb-asc') {
-            // Same null-to-bottom convention as personal rating —
-            // items missing an IMDb rating (cache miss / no IMDb id /
-            // not movie or tv) sort below rated ones either way.
-            const dir = sortValue === 'imdb-desc' ? -1 : 1;
-            result = [...result].sort((a, b) => {
-                const ra = a?.imdbRating;
-                const rb = b?.imdbRating;
-                if (ra == null && rb == null) return addedAt(b) - addedAt(a);
-                if (ra == null) return 1;
-                if (rb == null) return -1;
-                if (ra !== rb) return (ra - rb) * dir;
-                return addedAt(b) - addedAt(a);
-            });
-        } else { /* recent / newest first */
-            result = [...result].sort((a, b) => addedAt(b) - addedAt(a));
-        }
-
-        return result;
-    }, [items, query, sortValue, filterValue]);
+    // Sort + filter live in a shared helper so the collections list page can
+    // reproduce the exact same ordering for its preview thumbnails. `items` is
+    // already in the user's saved custom order, so 'custom' is a no-op here.
+    const sortedItems = useMemo(
+        () => applySortAndFilter(items, { sort: sortValue, filter: filterValue, query }),
+        [items, query, sortValue, filterValue]
+    );
 
     const emptyMessage = (() => {
         if (query !== '') return 'No items match search';

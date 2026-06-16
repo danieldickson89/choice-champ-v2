@@ -1,15 +1,37 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 
+import { applySortAndFilter } from '../../shared/lib/collectionSort';
 import './CollectionCard.css';
 
 const MAX_PREVIEW_POSTERS = 4;
 
+// Read the sort/filter the user last set on this collection's page so the card
+// preview mirrors the top of that sorted/filtered list. Note: the list
+// endpoint doesn't load per-user rating / IMDb data, so 'rating-*' and
+// 'imdb-*' sorts degrade to date-added order in the preview (by design).
+const readPrefs = (collectionId) => {
+    const prefs = { sort: 'recent', filter: 'all', customOrder: null };
+    try {
+        prefs.sort = localStorage.getItem(`choice-champ:sort:${collectionId}`) || prefs.sort;
+        prefs.filter = localStorage.getItem(`choice-champ:filter:${collectionId}`) || prefs.filter;
+        const raw = localStorage.getItem(`choice-champ:custom-order:${collectionId}`);
+        if (raw) prefs.customOrder = JSON.parse(raw);
+    } catch { /* localStorage unavailable or bad JSON → keep defaults */ }
+    return prefs;
+};
+
 const CollectionCard = ({ collection, collectionsType, color, interactive = true, onSelect, selected }) => {
     const items = Array.isArray(collection.items) ? collection.items : [];
-    const previewItems = items.filter(item => item && item.poster).slice(0, MAX_PREVIEW_POSTERS);
     const itemCount = items.length;
+
+    const previewItems = useMemo(() => {
+        const { sort, filter, customOrder } = readPrefs(collection._id);
+        return applySortAndFilter(items, { sort, filter, customOrder })
+            .filter(item => item && item.poster)
+            .slice(0, MAX_PREVIEW_POSTERS);
+    }, [items, collection._id]);
 
     const content = (
         <>
