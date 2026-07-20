@@ -128,14 +128,28 @@ router
             .single();
         if (partyErr) return res.status(500).send({ errMsg: partyErr.message });
 
+        // Collections can overlap — the same item_id may appear in several of
+        // the selected collections. party_items has a UNIQUE (party_id, item_id)
+        // constraint, so dedupe by item_id before inserting or the whole batch
+        // fails. An item counts as watched if it's complete in ANY collection
+        // (keeps the include_watched=false filter from surfacing seen items).
         if (items.length > 0) {
-            const itemRows = items.map(it => ({
-                party_id: newParty.id,
-                item_id: it.item_id,
-                title: it.title,
-                poster: it.poster,
-                watched: it.complete,
-            }));
+            const byItemId = new Map();
+            for (const it of items) {
+                const existing = byItemId.get(it.item_id);
+                if (existing) {
+                    existing.watched = existing.watched || Boolean(it.complete);
+                } else {
+                    byItemId.set(it.item_id, {
+                        party_id: newParty.id,
+                        item_id: it.item_id,
+                        title: it.title,
+                        poster: it.poster,
+                        watched: Boolean(it.complete),
+                    });
+                }
+            }
+            const itemRows = [...byItemId.values()];
             const { error: piErr } = await supabase.from('party_items').insert(itemRows);
             if (piErr) return res.status(500).send({ errMsg: piErr.message });
         }

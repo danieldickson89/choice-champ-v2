@@ -33,6 +33,8 @@ const CreateParty = ({
     const [collections, setCollections] = useState([]);
     const [mediaType, setMediaType] = useState('movie');
     const [selectAlert, setSelectAlert] = useState(false);
+    const [createError, setCreateError] = useState('');
+    const [isCreating, setIsCreating] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [secretMode, setSecretMode] = useState(false);
     const [includeWatched, setIncludeWatched] = useState(false);
@@ -99,6 +101,8 @@ const CreateParty = ({
             setSelectAlert(true);
             return;
         }
+        setCreateError('');
+        setIsCreating(true);
         api('/party', {
             method: 'POST',
             body: JSON.stringify({
@@ -111,7 +115,12 @@ const CreateParty = ({
             })
         })
         .then(data => navigate(`/party/wait/${data.partyCode}`))
-        .catch(err => console.log(err));
+        .catch(err => {
+            console.log(err);
+            // Don't leave the user staring at a dead button — surface why.
+            setCreateError(err?.message || 'Something went wrong creating the party. Please try again.');
+            setIsCreating(false);
+        });
     };
 
     const nonEmptyCollections = collections.filter(c => Array.isArray(c.items) && c.items.length > 0);
@@ -224,10 +233,12 @@ const CreateParty = ({
                 onClick={navToPartyWait}
                 backgroundColor={collectionTypeColor}
                 color='#111'
+                disabled={isCreating}
             >
-                Create Party
+                {isCreating ? 'Creating…' : 'Create Party'}
             </Button>
             {selectAlert && <p className='create-party-alert'>Please select at least one collection</p>}
+            {createError && <p className='create-party-alert'>{createError}</p>}
         </div>
     );
 };
